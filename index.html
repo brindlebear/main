@@ -2376,10 +2376,21 @@ function drawEnemy(e){
 // ══════════════════════════════════════════
 //  GAME LOOP
 // ══════════════════════════════════════════
-function loop(){
+let _lastT=0;
+function loop(ts=0){
   frameId=requestAnimationFrame(loop);
   if(gameOver) return;
-  if(frozen>0){frozen--;return;}
+  // Clamp delta to avoid spiral of death on tab-wake; treat 30fps as 2 steps
+  const dt=Math.min(ts-_lastT, 50);
+  _lastT=ts;
+  const steps=dt>20?2:1; // run logic twice if running at ~30fps
+  for(let s=0;s<steps;s++){
+    if(frozen>0){frozen--;continue;}
+    _loopUpdate();
+  }
+  _loopDraw();
+}
+function _loopUpdate(){
 
   const W=canvas.width,H=canvas.height;
 
@@ -2621,7 +2632,10 @@ function loop(){
   // SHAKE
   if(shakeMag>0.3){shakeX=(Math.random()-.5)*shakeMag*2;shakeY=(Math.random()-.5)*shakeMag*2;shakeMag*=0.7;}
   else{shakeX=0;shakeY=0;shakeMag=0;}
+} // end _loopUpdate
 
+function _loopDraw(){
+  const W=canvas.width,H=canvas.height;
   // RENDER
   ctx.clearRect(0,0,W,H);
   ctx.save();ctx.translate(shakeX,shakeY);
