@@ -154,90 +154,126 @@ canvas{display:block;}
 
 /* ── PHONE LANDSCAPE ── */
 @media (orientation:landscape) and (max-height:500px){
-  /* Screen becomes a scroll container; inner content is centred via an auto-margin flex column */
+
+  /* All screens scroll vertically, content centred */
   .screen{
     overflow-y:auto;
     overflow-x:hidden;
-    justify-content:flex-start;
     align-items:center;
+    justify-content:center;
     gap:0!important;
     padding:0;
   }
-  /* Inner flex column that centres itself when content is shorter than viewport */
-  .screen > *:not(#rainCanvas):not(canvas){
-    flex-shrink:0;
-  }
-  /* Main menu: compact, centred column */
+
+  /* ── MAIN MENU ── */
   #menuScreen{
-    padding-top:10px!important;
-    padding-bottom:10px;
-    gap:6px!important;
-    justify-content:center;
+    padding-top:8px!important;
+    padding-bottom:8px;
+    gap:5px!important;
     min-height:100%;
   }
-  .menu-title{font-size:1rem!important;letter-spacing:0.08em;margin:0;}
-  .menu-subtitle{font-size:0.5rem!important;letter-spacing:0.15em;}
-  .menu-divider{margin:2px auto;width:110px;}
+  .menu-title{font-size:0.95rem!important;letter-spacing:0.07em;margin:0;}
+  .menu-subtitle{font-size:0.48rem!important;letter-spacing:0.14em;}
+  .menu-divider{margin:2px auto;width:100px;}
   .menu-btn{
-    width:200px!important;
-    font-size:0.6rem!important;
-    padding:7px 10px!important;
-    letter-spacing:0.1em;
+    width:192px!important;
+    font-size:0.58rem!important;
+    padding:6px 10px!important;
+    letter-spacing:0.09em;
   }
   .save-info{
-    font-size:0.52rem!important;
-    line-height:1.4;
+    font-size:0.5rem!important;
+    line-height:1.35;
     text-align:center;
-    padding:0 24px;
-    max-width:360px;
-    margin:0 auto;
+    padding:0 20px;
+    max-width:340px;
   }
-  /* Settings: single-column centred, compact */
-  #settingsScreen{justify-content:center;min-height:100%;}
+
+  /* ── SETTINGS — two-column grid ── */
+  #settingsScreen{min-height:100%;}
   #settingsScreen .settings-wrap{
+    display:grid;
+    grid-template-columns:auto auto;
+    justify-content:center;
     align-items:center;
-    gap:4px 0;
-    padding:8px 16px;
-    width:260px;
-    margin:0 auto;
+    column-gap:14px;
+    row-gap:4px;
+    padding:8px 12px;
+    width:auto;
+    max-width:100%;
   }
-  .settings-title{font-size:0.88rem!important;margin-bottom:2px;}
-  .settings-section-lbl{font-size:0.5rem;align-self:center;}
-  .settings-divider{width:220px;}
-  .diff-row{width:220px;}
-  .diff-desc{font-size:0.48rem;width:220px;}
-  .menu-btn.settings-fs-btn,#settingsScreen .menu-btn{
-    width:220px!important;
-    font-size:0.58rem!important;
-    padding:6px 8px!important;
+  /* Title spans full width */
+  #settingsScreen .settings-title{
+    grid-column:1/-1;
+    font-size:0.85rem!important;
+    text-align:center;
+    margin-bottom:2px;
   }
-  /* Boss rush & stage select */
-  #bossRushScreen,#stageSelectScreen{justify-content:center;min-height:100%;}
+  /* Dividers span full width */
+  #settingsScreen .settings-divider{
+    grid-column:1/-1;
+    width:100%;
+    margin:1px 0;
+  }
+  /* Section labels: col 1, right-aligned */
+  #settingsScreen .settings-section-lbl{
+    font-size:0.48rem;
+    text-align:right;
+    white-space:nowrap;
+    margin-bottom:0;
+  }
+  /* Buttons and controls: col 2 */
+  #settingsScreen .menu-btn,
+  #settingsScreen .diff-row{
+    width:180px!important;
+    font-size:0.54rem!important;
+    padding:5px 7px!important;
+  }
+  #settingsScreen .diff-row{width:180px;font-size:0.54rem;}
+  /* desc text: col 2 */
+  #settingsScreen .diff-desc{
+    font-size:0.44rem;
+    width:180px;
+    text-align:left;
+  }
+
+  /* ── BOSS RUSH & STAGE SELECT ── */
+  #bossRushScreen,#stageSelectScreen{min-height:100%;}
   .boss-rush-wrap{
-    width:min(380px,92vw);
-    padding:6px 12px 12px;
+    width:min(360px,90vw);
+    padding:5px 10px 10px;
     gap:5px;
-    margin:auto;
   }
-  .boss-rush-title{font-size:0.82rem!important;margin-bottom:0;}
-  .boss-rush-sub{font-size:0.5rem;margin-bottom:3px;}
-  .boss-entry{padding:5px 10px;}
-  .boss-entry-name{font-size:0.62rem;}
-  .stage-card{height:54px;}
-  /* Prep screen */
-  #prepScreen{justify-content:flex-start;}
-  .prep-wrap{max-height:100vh;padding:0 0 10px;}
-  .prep-header{padding:5px 12px;}
-  .prep-title{font-size:0.76rem!important;}
-  .prep-section-head{padding:5px 12px 4px;}
-  .stat-row{padding:5px 10px;}
-  .prep-actions{padding:5px 12px 0;}
-  .prep-tab{padding:6px 4px 5px;font-size:0.47rem;}
-  /* Pause & Dead — centred */
-  #pauseScreen{justify-content:center;gap:7px;min-height:100%;}
-  #pauseScreen button{padding:7px 20px;font-size:0.68rem;width:160px;}
-  #dead{justify-content:center;gap:8px;min-height:100%;}
-  #dead button{padding:7px 20px;font-size:0.68rem;}
+  .boss-rush-title{font-size:0.8rem!important;margin-bottom:0;}
+  .boss-rush-sub{font-size:0.49rem;margin-bottom:3px;}
+  .boss-entry{padding:5px 9px;}
+  .boss-entry-name{font-size:0.6rem;}
+  .stage-card{height:52px;}
+
+  /* ── PREP SCREEN (stats / weapon / spell) ── */
+  #prepScreen{
+    justify-content:flex-start;
+    align-items:center;
+  }
+  .prep-wrap{
+    width:min(480px,98vw);
+    max-height:100vh;
+    margin:0 auto;
+    padding:0 0 10px;
+  }
+  .prep-header{padding:4px 12px;}
+  .prep-title{font-size:0.74rem!important;}
+  .prep-section-head{padding:4px 12px 3px;}
+  .stat-row{padding:4px 10px;}
+  .prep-actions{padding:4px 12px 0;}
+  .prep-tab{padding:6px 4px 5px;font-size:0.46rem;}
+  .weapon-grid{padding:0 10px;}
+
+  /* ── PAUSE & DEAD ── */
+  #pauseScreen{gap:7px;min-height:100%;}
+  #pauseScreen button{padding:6px 18px;font-size:0.66rem;width:155px;}
+  #dead{gap:7px;min-height:100%;}
+  #dead button{padding:6px 18px;font-size:0.66rem;}
 }
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
@@ -1958,10 +1994,10 @@ const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
-const JUGGLE_GRAV=0.22;  // snappier juggle arc — enemies rise and fall much faster
-const JUGGLE_VY=-8.5;    // stronger upward launch to compensate for higher gravity
-// player vy for juggle follow — rises slightly less than enemy so player can stay above
-const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.92));
+const JUGGLE_GRAV=0.10;  // moderate fall — crisper than before but not too fast
+const JUGGLE_VY=-6.8;    // close to original height, slight boost for higher gravity
+// player rises to 95% of enemy peak — stays just below so attacks can reach
+const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
 const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
