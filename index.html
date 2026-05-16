@@ -9,12 +9,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
-/* ── VIEWPORT fills screen, menus use fixed positioning ── */
-#viewport{
-  position:fixed;
-  inset:0;
-  overflow:hidden;
-}
+#viewport{position:fixed;inset:0;overflow:hidden;}
 #c{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:fill;}
 /* ── SETTINGS SCREEN ── */
 .settings-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
@@ -171,14 +166,18 @@ canvas{display:block;}
 
 /* ── STAT PANEL (top-left) ── */
 .hud-panel{
-  position:absolute;top:8px;left:8px;width:200px;
+  position:absolute;
+  top:var(--hud-pad,10px);left:var(--hud-pad,10px);
+  width:var(--hud-w,22vw);
+  min-width:var(--hud-minw,160px);
+  max-width:var(--hud-maxw,280px);
   background:linear-gradient(158deg,rgba(38,20,10,0.82) 0%,rgba(52,28,12,0.76) 100%);
   border:1px solid rgba(200,155,60,0.4);
-  border-radius:7px;
-  padding:8px 12px 8px;
-  display:flex;flex-direction:column;gap:6px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,215,80,0.1);
-  backdrop-filter:blur(10px);
+  border-radius:6px;
+  padding:var(--hud-p,8px 12px);
+  display:flex;flex-direction:column;gap:var(--hud-gap,5px);
+  box-shadow:0 4px 18px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,215,80,0.08);
+  backdrop-filter:blur(8px);
 }
 .hud-panel::before{
   content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
@@ -188,12 +187,12 @@ canvas{display:block;}
   content:'';position:absolute;bottom:0;left:25%;right:25%;height:1px;
   background:linear-gradient(90deg,transparent,rgba(185,140,50,0.4),transparent);
 }
-.hud-bar-row{display:flex;align-items:center;gap:6px;}
-.hud-icon{font-size:0.78rem;width:14px;text-align:center;flex-shrink:0;line-height:1;}
+.hud-bar-row{display:flex;align-items:center;gap:var(--hud-gap,5px);}
+.hud-icon{font-size:var(--hud-icon,0.85rem);width:var(--hud-icon-w,16px);text-align:center;flex-shrink:0;line-height:1;}
 .hud-icon.h{color:#60ff80;text-shadow:0 0 9px rgba(60,255,110,0.9);}
 .hud-icon.s{color:#ffd050;text-shadow:0 0 9px rgba(230,175,40,0.9);}
 .hud-icon.m{color:#b888ff;text-shadow:0 0 9px rgba(160,100,255,0.9);}
-.bar-wrap{flex:1;position:relative;height:8px;}
+.bar-wrap{flex:1;position:relative;height:var(--hud-bar-h,9px);}
 .bar-track{position:absolute;inset:0;border-radius:3px;background:rgba(20,8,2,0.75);border:1px solid rgba(160,110,40,0.3);box-shadow:inset 0 2px 5px rgba(0,0,0,0.7);overflow:hidden;}
 .bar-ghost{position:absolute;inset:0;border-radius:2px;background:rgba(255,200,100,0.18);transform-origin:left;transition:width 0.85s cubic-bezier(0.25,0.46,0.45,0.94);}
 .bar-fill{position:absolute;inset:0;border-radius:2px;transform-origin:left;overflow:hidden;transition:width 0.2s cubic-bezier(0.34,1.4,0.64,1);}
@@ -205,7 +204,7 @@ canvas{display:block;}
 @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 .bar-gloss{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(to bottom,rgba(255,255,255,0.1),transparent);border-radius:2px 2px 0 0;pointer-events:none;}
 .bar-chip-layer{position:absolute;inset:0;overflow:visible;pointer-events:none;}
-.hud-val{font-size:0.65rem;font-weight:700;min-width:28px;text-align:right;letter-spacing:0.02em;flex-shrink:0;font-family:'Cinzel',serif;}
+.hud-val{font-size:var(--hud-val,0.68rem);font-weight:700;min-width:var(--hud-val-w,32px);text-align:right;letter-spacing:0.02em;flex-shrink:0;font-family:'Cinzel',serif;}
 .hud-val.hp{color:#6dff88;text-shadow:0 0 10px rgba(60,255,110,0.7);}
 .hud-val.stamina{color:#ffd050;text-shadow:0 0 10px rgba(230,175,40,0.7);}
 .hud-val.mana{color:#b888ff;text-shadow:0 0 10px rgba(160,100,255,0.7);}
@@ -213,9 +212,9 @@ canvas{display:block;}
 .hud-panel .bar-fill{border-radius:4px;}
 .hud-divider{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,rgba(190,145,55,0.4),transparent);}
 .hud-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.hud-lv{font-size:0.6rem;letter-spacing:0.1em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
-.hud-pot-wrap{display:flex;align-items:center;gap:7px;}
-.hud-score-sm{font-size:0.52rem;letter-spacing:0.04em;color:rgba(225,190,120,0.88);}
+.hud-lv{font-size:var(--hud-lv,0.60rem);letter-spacing:0.1em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
+.hud-pot-wrap{display:flex;align-items:center;gap:4px;}
+.hud-score-sm{font-size:var(--hud-score,0.52rem);letter-spacing:0.03em;color:rgba(225,190,120,0.88);}
 .hud-exp-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
 .hud-level{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,180,80,0.85);font-weight:600;}
 .wave-hud{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,120,70,0.92);font-weight:600;}
@@ -882,11 +881,10 @@ function expForLevel(lv){ return Math.floor(100*Math.pow(lv,1.4)); }
 //  VIEWPORT / SETTINGS
 // ══════════════════════════════════════════
 function scaleViewport(){
-  // Canvas internal res stays 1280×720; CSS stretches it to fill the screen.
   const vp=document.getElementById('viewport');
-  vp.style.width  = window.innerWidth  + 'px';
-  vp.style.height = window.innerHeight + 'px';
-  vp.style.transform = '';
+  vp.style.width=window.innerWidth+'px';
+  vp.style.height=window.innerHeight+'px';
+  vp.style.transform='';
 }
 window.addEventListener('resize',scaleViewport);
 function showSettings(){
@@ -1138,7 +1136,8 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.24, FLOOR_PAD=88, JUMP_V=-10;
+const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10;
+const ENEMY_GRAV_MULT=1.2;
 const AIR_ATK_GRAV_MULT   = 0.1; // gravity multiplier during airborne normal attacks (0.1 = 90% slower fall)
 const AIR_ATK_FREEZE_FRAMES = 60;  // frames the player hangs in the air on first air attack (~1s at 60fps)
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -1171,11 +1170,12 @@ function getSwordTip(p){
 // Supported formats: .ogg  .wav  — set any field to null to play nothing.
 // ── Web Audio API sound system ────────────────────────────────────────────────
 // Fetch + decode starts immediately on page load — no user gesture needed for
-// network requests or decodeAudioData. By the time the player reaches gameplay
-// every buffer is already sitting in memory. The only thing that needs a user
-// gesture is AudioContext.resume(), called on the Play button click.
-const _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const _audioBuffers = {}; // file path → decoded AudioBuffer
+// ── AUDIO ENGINE ─────────────────────────
+// AudioContext is created lazily on first user gesture — required on iOS/Android.
+// A silent buffer is played immediately on unlock to fully activate the context on iOS.
+let _audioCtx = null;
+const _audioBuffers = {};
+let _audioUnlocked = false;
 
 const _ALL_SFX = [
   'Audio/sword.wav','Audio/sword_hit.wav','Audio/sword_sp.wav',
@@ -1184,7 +1184,7 @@ const _ALL_SFX = [
   'Audio/katana.wav','Audio/katana_sp.wav',
   'Audio/cestus_sp.wav','Audio/cestus_sp_hit.wav',
   'Audio/fireball.wav','Audio/fireball_hit.wav',
-  'Audio/frostbolt.mp4a','Audio/frostbolt_hit.wav',
+  'Audio/frostbolt.wav','Audio/frostbolt_hit.wav',
   'Audio/arcane.wav','Audio/arcane_explosion_hit.wav',
   'Audio/enemy_death.wav',
   'Audio/juggle.wav','Audio/slam_land.wav',
@@ -1194,32 +1194,65 @@ const _ALL_SFX = [
   'Audio/magic_missile.wav','Audio/magic_missile_hit.wav',
 ];
 
-// Kick off all fetches right now — runs while the player is still on the main menu
-_ALL_SFX.forEach(file=>{
-  fetch(file)
-    .then(r=>r.arrayBuffer())
-    .then(ab=>_audioCtx.decodeAudioData(ab))
-    .then(buf=>{ _audioBuffers[file]=buf; })
-    .catch(()=>{}); // missing files silently skipped
-});
+function _getAudioCtx(){
+  if(!_audioCtx){
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+}
 
-// Called on the Play button click — the user gesture needed to resume the context
+function _unlockAudio(){
+  if(_audioUnlocked) return;
+  const ctx = _getAudioCtx();
+  // Resume suspended context (required on Android Chrome)
+  const doUnlock = () => {
+    if(ctx.state === 'suspended') ctx.resume();
+    // Play a silent buffer — required on iOS Safari to fully activate context
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    _audioUnlocked = true;
+    // Now kick off all fetches
+    _loadAllSfx();
+  };
+  if(ctx.state === 'suspended'){
+    ctx.resume().then(doUnlock).catch(doUnlock);
+  } else {
+    doUnlock();
+  }
+}
+
+function _loadAllSfx(){
+  const ctx = _getAudioCtx();
+  _ALL_SFX.forEach(file=>{
+    if(_audioBuffers[file]) return; // already loaded
+    fetch(file)
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(ab=>ctx.decodeAudioData(ab))
+      .then(buf=>{ _audioBuffers[file]=buf; })
+      .catch(()=>{}); // missing/broken files silently skipped
+  });
+}
+
+// Called from every user-gesture entry point (menu buttons, touch events)
 function preloadAllSfx(){
-  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  _unlockAudio();
 }
 
 function playSfx(file, volume=1.0){
-  if(!file) return;
-  // Safety resume in case context was suspended (e.g. tab backgrounded)
-  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  if(!file||!_audioUnlocked) return;
+  const ctx = _getAudioCtx();
+  if(ctx.state==='suspended'){ ctx.resume(); return; }
   const buf=_audioBuffers[file];
-  if(!buf) return; // still loading — skip silently
-  const src=_audioCtx.createBufferSource();
+  if(!buf) return;
+  const src=ctx.createBufferSource();
   src.buffer=buf;
-  const gain=_audioCtx.createGain();
+  const gain=ctx.createGain();
   gain.gain.value=Math.max(0,Math.min(1,volume));
   src.connect(gain);
-  gain.connect(_audioCtx.destination);
+  gain.connect(ctx.destination);
   src.start(0);
 }
 
@@ -1233,7 +1266,7 @@ function weaponStats(w){
 let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
 
 // Base swing durations (in frames) — scaled by activeWeapon.atkSpeed
-const ATK_FRAMES_BASE = [50, 50, 50]; // per combo step
+const ATK_FRAMES_BASE = [25, 25, 25]; // halved = 2x attack speed
 // ATK_FRAMES is recomputed by equipWeapon() each time a weapon is selected
 let ATK_FRAMES = [...ATK_FRAMES_BASE];
 
@@ -1888,51 +1921,51 @@ const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
-const ENEMY_WINDUP_FRAMES = 42;  // frames enemy telegraphs before swinging (~0.7s at 60fps)
-const ENEMY_SWING_FRAMES  = 72;  // total frames for the full swing arc (~1.2s at 60fps)
+const ENEMY_WINDUP_FRAMES = 21;
+const ENEMY_SWING_FRAMES  = 36;
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
-const KNIGHT_COMBO_GAP    = 26;  // short gap between knight's two-hit combo swings
+const KNIGHT_COMBO_GAP    = 13;
 // Boss constants
-const BOSS_WINDUP      = 70;   // wind-up frames before boss swing
-const BOSS_SWING       = 110;  // frames for the full club arc
+const BOSS_WINDUP      = 35;
+const BOSS_SWING       = 55;
 const BOSS_ATK_RANGE   = 100;  // px distance to trigger boss windup
 const BOSS_ATK_COOLDOWN= 95;   // post-swing cooldown frames
 const BOSS_REACH       = 38;   // club-head radius used in hit check
 const BOSS_PIVOT_X     = 34;   // club pivot x from boss centre (local)
 const BOSS_PIVOT_Y     = -18;  // club pivot y from boss centre (local)
 // Boss attack pattern 1 — two-hit combo
-const BOSS_COMBO_WINDUP1 = 45; // first hit windup
-const BOSS_COMBO_SWING1  = 50; // first swing frames
-const BOSS_COMBO_GAP     = 55; // gap / second-hit micro-windup — wide enough for dual parry
-const BOSS_COMBO_SWING2  = 55; // second swing frames
+const BOSS_COMBO_WINDUP1 = 22;
+const BOSS_COMBO_SWING1  = 25;
+const BOSS_COMBO_GAP     = 28;
+const BOSS_COMBO_SWING2  = 28;
 // Boss attack pattern 2 — spin charge
-const BOSS_SPIN_WINDUP   = 180; // wind-up before charge (3 s @ 60 fps)
-const BOSS_SPIN_SPEED    = 11; // px/frame during charge
-const BOSS_SPIN_DURATION = 95; // frames the charge lasts
+const BOSS_SPIN_WINDUP   = 90;
+const BOSS_SPIN_SPEED    = 11;
+const BOSS_SPIN_DURATION = 48;
 const BOSS_SPIN_MIN_DIST = 230;// min distance to use spin (skip if closer)
 
 // ── STAGE 1 ENEMY CONSTANTS ──────────────────────────────────
 const DRUNKARD_THROW_RANGE  = 340;  // px — drunkard opens fire within this dist
-const DRUNKARD_THROW_WINDUP = 120;  // windup frames before bottle leaves hand (~2s at 60fps)
+const DRUNKARD_THROW_WINDUP = 60;
 const DRUNKARD_THROW_CD     = 200;  // cooldown frames between throws
 const DRUNKARD_THROW_ANIM   = 28;   // follow-through frames after bottle releases
 const BOTTLE_SPEED          = 7;    // px/frame launch speed
 const BOTTLE_LIFE           = 320;  // auto-expire frames
 // Captain Shamaz constants
-const SHAMAZ_WINDUP         = 55;   // hook single swing windup
-const SHAMAZ_SWING          = 90;   // hook single swing duration
+const SHAMAZ_WINDUP         = 28;
+const SHAMAZ_SWING          = 45;
 const SHAMAZ_ATK_RANGE      = 110;
 const SHAMAZ_ATK_COOLDOWN   = 90;
 const SHAMAZ_HOOK_REACH     = 52;
 const SHAMAZ_HOOK_PIVOT_X   = 32;
 const SHAMAZ_HOOK_PIVOT_Y   = -16;
-const SHAMAZ_COMBO_WINDUP1  = 42;
-const SHAMAZ_COMBO_SWING1   = 46;
-const SHAMAZ_COMBO_GAP1     = 48;
-const SHAMAZ_COMBO_SWING2   = 46;
-const SHAMAZ_COMBO_GAP2     = 48;
-const SHAMAZ_COMBO_SWING3   = 58;
+const SHAMAZ_COMBO_WINDUP1  = 21;
+const SHAMAZ_COMBO_SWING1   = 23;
+const SHAMAZ_COMBO_GAP1     = 24;
+const SHAMAZ_COMBO_SWING2   = 23;
+const SHAMAZ_COMBO_GAP2     = 24;
+const SHAMAZ_COMBO_SWING3   = 29;
 const SHAMAZ_CANNON_WINDUP  = 240;  // 4 s at 60 fps
 const SHAMAZ_CANNON_SPEED   = 14;
 const SHAMAZ_CANNON_RADIUS  = 22;
@@ -2054,6 +2087,7 @@ function openPrep(){
 }
 
 function confirmPrep(){
+  preloadAllSfx(); // ensure audio unlocked on this gesture
   // Apply stat point allocation
   save.stats.str += allocPending.str;
   save.stats.vit += allocPending.vit;
@@ -2201,6 +2235,7 @@ function startRun(){
   if(!_bossRush) document.getElementById('waveLabel').textContent=`${TOTAL_ENEMIES} REMAIN`;
   setExpBar(false);
 
+  _applyHudScale();
   cancelAnimationFrame(frameId);
   _lastT = performance.now();
   _accumulator = 0;
@@ -2491,7 +2526,8 @@ function iaidoLines(x,y,facing){
 
 // ── PHYSICS ──────────────────────────────
 function physics(e,isP,gravMult=1){
-  e.vy+=GRAV*gravMult*GAME_SPEED; e.x+=e.vx*GAME_SPEED; e.y+=e.vy*GAME_SPEED;
+  const _gm=gravMult*(isP?1:ENEMY_GRAV_MULT);
+  e.vy+=GRAV*_gm*GAME_SPEED; e.x+=e.vx*GAME_SPEED; e.y+=e.vy*GAME_SPEED;
   const fh=floorY()-(isP?PH:EH);
   if(e.y>=fh){
     const wasAirborne=!e.onGround;
@@ -6891,6 +6927,13 @@ function _stageMusicStop(){
   }, 30);
 }
 
+// Re-resume AudioContext when page becomes visible again (mobile browser suspends it)
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && _audioCtx && _audioCtx.state==='suspended'){
+    _audioCtx.resume();
+  }
+});
+
 window.addEventListener('gamepadconnected', e => {
   const status = document.getElementById('status');
   if (status) {
@@ -6918,169 +6961,117 @@ window.addEventListener('gamepaddisconnected', () => {
 });
 
 
-// ══════════════════════════════════════════
-//  MOBILE CONTROLS — canvas drawn
-// ══════════════════════════════════════════
-let _mcBtns = [];
-const _mcPressed = {};
+function _applyHudScale(){
+  const mob=!!save.mobileControls, r=document.documentElement;
+  if(mob){
+    r.style.setProperty('--hud-pad','6px');r.style.setProperty('--hud-w','18vw');
+    r.style.setProperty('--hud-minw','110px');r.style.setProperty('--hud-maxw','170px');
+    r.style.setProperty('--hud-p','4px 8px');r.style.setProperty('--hud-gap','3px');
+    r.style.setProperty('--hud-icon','0.55rem');r.style.setProperty('--hud-icon-w','11px');
+    r.style.setProperty('--hud-bar-h','5px');r.style.setProperty('--hud-val','0.48rem');
+    r.style.setProperty('--hud-val-w','22px');r.style.setProperty('--hud-lv','0.44rem');
+    r.style.setProperty('--hud-score','0.38rem');
+  } else {
+    r.style.setProperty('--hud-pad','10px');r.style.setProperty('--hud-w','22vw');
+    r.style.setProperty('--hud-minw','180px');r.style.setProperty('--hud-maxw','280px');
+    r.style.setProperty('--hud-p','8px 12px');r.style.setProperty('--hud-gap','6px');
+    r.style.setProperty('--hud-icon','0.85rem');r.style.setProperty('--hud-icon-w','16px');
+    r.style.setProperty('--hud-bar-h','9px');r.style.setProperty('--hud-val','0.68rem');
+    r.style.setProperty('--hud-val-w','32px');r.style.setProperty('--hud-lv','0.60rem');
+    r.style.setProperty('--hud-score','0.52rem');
+  }
+}
 
+// ── MOBILE CONTROLS ───────────────────────
+let _mcBtns=[];
+const _mcPressed={};
 function _buildMcLayout(){
-  const W=canvas.width, H=canvas.height;
-  const r   = Math.round(H * 0.072);   // base radius ~52px at 720h
-  const rBig= Math.round(H * 0.085);   // attack button slightly larger
-  const pad = Math.round(H * 0.052);
-  const gap = Math.round(r * 2.55);
-
-  // LEFT cluster: bottom-left
-  const lx = pad + r, ly = H - pad - r;
-  // RIGHT cluster: bottom-right
-  const rx = W - pad - r, ry = H - pad - r;
-
-  _mcBtns = [
-    // LEFT — movement (bottom row)
-    { id:'l',      x:lx,       y:ly,      r:r,    label:'◀', col:'rgba(255,255,255,0.12)' },
-    { id:'r',      x:lx+gap,   y:ly,      r:r,    label:'▶', col:'rgba(255,255,255,0.12)' },
-    // LEFT — combat (row above)
-    { id:'grapple',x:lx,       y:ly-gap,  r:r,    label:'🪝', col:'rgba(255,200,60,0.12)'  },
-    { id:'parry',  x:lx+gap,   y:ly-gap,  r:r,    label:'🛡', col:'rgba(255,220,80,0.12)'  },
-    // RIGHT — jump top
-    { id:'jump',   x:rx,       y:ry-gap,  r:r,    label:'▲', col:'rgba(255,255,255,0.12)' },
-    // RIGHT — attack (bigger), then magic, evade, launch
-    { id:'atk',    x:rx,       y:ry,      r:rBig, label:'⚔', col:'rgba(220,60,60,0.16)'   },
-    { id:'magic',  x:rx-gap,   y:ry,      r:r,    label:'✨', col:'rgba(120,80,220,0.12)'  },
-    { id:'evade',  x:rx-gap,   y:ry-gap,  r:r,    label:'💨', col:'rgba(60,140,220,0.12)'  },
-    { id:'launch', x:rx-gap*2, y:ry,      r:r,    label:'↑',  col:'rgba(40,180,130,0.12)'  },
+  const W=canvas.width,H=canvas.height;
+  const r=Math.round(H*0.072),rBig=Math.round(H*0.085);
+  const pad=Math.round(H*0.052),gap=Math.round(r*2.55);
+  const lx=pad+r,ly=H-pad-r,rx=W-pad-r,ry=H-pad-r;
+  _mcBtns=[
+    {id:'l',      x:lx,      y:ly,     r:r,    label:'◀',col:'rgba(255,255,255,0.11)'},
+    {id:'r',      x:lx+gap,  y:ly,     r:r,    label:'▶',col:'rgba(255,255,255,0.11)'},
+    {id:'grapple',x:lx,      y:ly-gap, r:r,    label:'🪝',col:'rgba(255,200,60,0.11)'},
+    {id:'parry',  x:lx+gap,  y:ly-gap, r:r,    label:'🛡',col:'rgba(255,220,80,0.11)'},
+    {id:'jump',   x:rx,      y:ry-gap, r:r,    label:'▲',col:'rgba(255,255,255,0.11)'},
+    {id:'atk',    x:rx,      y:ry,     r:rBig, label:'⚔',col:'rgba(220,60,60,0.15)'},
+    {id:'magic',  x:rx-gap,  y:ry,     r:r,    label:'✨',col:'rgba(120,80,220,0.11)'},
+    {id:'evade',  x:rx-gap,  y:ry-gap, r:r,    label:'💨',col:'rgba(60,140,220,0.11)'},
+    {id:'launch', x:rx-gap*2,y:ry,     r:r,    label:'↑', col:'rgba(40,180,130,0.11)'},
   ];
 }
-
 function _drawMobileControls(){
-  if(!save.mobileControls || gameOver || paused) return;
+  if(!save.mobileControls||gameOver||paused)return;
   _buildMcLayout();
-  ctx.save();
-  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
   for(const b of _mcBtns){
-    const p = !!_mcPressed[b.id];
-    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-    ctx.fillStyle   = p ? 'rgba(255,215,60,0.18)' : b.col;
-    ctx.strokeStyle = p ? 'rgba(255,215,60,0.88)' : 'rgba(255,255,255,0.20)';
-    ctx.lineWidth   = p ? 2 : 1;
-    ctx.fill(); ctx.stroke();
-    ctx.font = Math.round(b.r * 0.58) + 'px serif';
-    ctx.globalAlpha = p ? 1 : 0.55;
-    ctx.fillStyle = '#fff';
-    ctx.fillText(b.label, b.x, b.y + 1);
-    ctx.globalAlpha = 1;
+    const p=!!_mcPressed[b.id];
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle=p?'rgba(255,215,60,0.18)':b.col;
+    ctx.strokeStyle=p?'rgba(255,215,60,0.88)':'rgba(255,255,255,0.18)';
+    ctx.lineWidth=p?2:1;ctx.fill();ctx.stroke();
+    ctx.font=Math.round(b.r*0.58)+'px serif';
+    ctx.globalAlpha=p?1:0.5;ctx.fillStyle='#fff';
+    ctx.fillText(b.label,b.x,b.y+1);ctx.globalAlpha=1;
   }
-  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.restore();
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore();
 }
-
-function _mcHit(cx,cy){
-  for(const b of _mcBtns){
-    const dx=cx-b.x, dy=cy-b.y;
-    if(dx*dx+dy*dy <= b.r*b.r) return b.id;
-  }
-  return null;
-}
-
+function _mcHit(cx,cy){for(const b of _mcBtns){const dx=cx-b.x,dy=cy-b.y;if(dx*dx+dy*dy<=b.r*b.r)return b.id;}return null;}
 function _mcOn(id){
-  _mcPressed[id] = true;
-  if     (id==='l')       btnS.l=true;
-  else if(id==='r')       btnS.r=true;
-  else if(id==='jump')  { btnS.jump=true; jumpEdge=true; }
-  else if(id==='atk')     atkEdge=true;
-  else if(id==='magic')   btnS.magic=true;
-  else if(id==='evade')   evadeEdge=true;
-  else if(id==='parry') { parryEdge=true; btnS.parry=true; }
-  else if(id==='grapple') btnS.grapple=true;
-  else if(id==='launch')  btnS.launch=true;
+  _mcPressed[id]=true;
+  if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
+  else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
+  else if(id==='atk')atkEdge=true;
+  else if(id==='magic')btnS.magic=true;
+  else if(id==='evade')evadeEdge=true;
+  else if(id==='parry'){parryEdge=true;btnS.parry=true;}
+  else if(id==='grapple')btnS.grapple=true;
+  else if(id==='launch')btnS.launch=true;
 }
 function _mcOff(id){
   delete _mcPressed[id];
-  if     (id==='l')       btnS.l=false;
-  else if(id==='r')       btnS.r=false;
-  else if(id==='jump')    btnS.jump=false;
-  else if(id==='magic')   btnS.magic=false;
-  else if(id==='parry')   btnS.parry=false;
-  else if(id==='grapple') btnS.grapple=false;
-  else if(id==='launch')  btnS.launch=false;
+  if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
+  else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
+  else if(id==='parry')btnS.parry=false;else if(id==='grapple')btnS.grapple=false;
+  else if(id==='launch')btnS.launch=false;
 }
-
-function toggleMobileControls(){
-  save.mobileControls=!save.mobileControls; _syncMobileBtn(); writeSave();
-}
-function _syncMobileBtn(){
-  const on=!!save.mobileControls;
-  const l=document.getElementById('mobileCtrlLabel');
-  if(l) l.textContent=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
-}
-
+function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();writeSave();}
+function _syncMobileBtn(){const on=!!save.mobileControls;const l=document.getElementById('mobileCtrlLabel');if(l)l.textContent=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';}
 function initMobileControls(){
   const tmap={};
-
-  function toCanvas(sx,sy){
-    const rect=canvas.getBoundingClientRect();
-    // canvas internal res is 1280×720; CSS may display it at a different size
-    return {
-      x: (sx-rect.left) / rect.width  * canvas.width,
-      y: (sy-rect.top)  / rect.height * canvas.height,
-    };
-  }
-
+  function tc(sx,sy){const r=canvas.getBoundingClientRect();return{x:(sx-r.left)/r.width*canvas.width,y:(sy-r.top)/r.height*canvas.height};}
   canvas.addEventListener('touchstart',(e)=>{
-    e.preventDefault();
-    if(!save.mobileControls) return;
-    _buildMcLayout();
-    for(const t of e.changedTouches){
-      const {x,y}=toCanvas(t.clientX,t.clientY);
-      const id=_mcHit(x,y); if(!id) continue;
-      tmap[t.identifier]=id; _mcOn(id);
-    }
+    e.preventDefault();preloadAllSfx();if(!save.mobileControls)return;
+    _buildMcLayout();for(const t of e.changedTouches){const{x,y}=tc(t.clientX,t.clientY);const id=_mcHit(x,y);if(!id)continue;tmap[t.identifier]=id;_mcOn(id);}
   },{passive:false});
-
   canvas.addEventListener('touchmove',(e)=>{
-    e.preventDefault();
-    if(!save.mobileControls) return;
-    _buildMcLayout();
-    for(const t of e.changedTouches){
-      const {x,y}=toCanvas(t.clientX,t.clientY);
-      const nid=_mcHit(x,y), oid=tmap[t.identifier];
-      if(nid===oid) continue;
-      if(oid) _mcOff(oid);
-      if(nid){ tmap[t.identifier]=nid; _mcOn(nid); }
-      else    delete tmap[t.identifier];
-    }
+    e.preventDefault();if(!save.mobileControls)return;
+    _buildMcLayout();for(const t of e.changedTouches){const{x,y}=tc(t.clientX,t.clientY);const nid=_mcHit(x,y),oid=tmap[t.identifier];if(nid===oid)continue;if(oid)_mcOff(oid);if(nid){tmap[t.identifier]=nid;_mcOn(nid);}else delete tmap[t.identifier];}
   },{passive:false});
-
-  canvas.addEventListener('touchend',(e)=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){
-      const id=tmap[t.identifier]; if(!id) continue;
-      delete tmap[t.identifier]; _mcOff(id);
-    }
-  },{passive:false});
-
-  canvas.addEventListener('touchcancel',(e)=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){
-      const id=tmap[t.identifier]; if(!id) continue;
-      delete tmap[t.identifier]; _mcOff(id);
-    }
-  },{passive:false});
+  canvas.addEventListener('touchend',(e)=>{e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
+  canvas.addEventListener('touchcancel',(e)=>{e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
 }
+
+// Unlock audio on very first touch anywhere — catches all mobile entry paths
+document.addEventListener('touchstart', function _firstTouch(){
+  preloadAllSfx();
+  document.removeEventListener('touchstart', _firstTouch);
+}, {once:true, passive:true});
 
 // Start polling (handles already-connected gamepads)
 updateGamepad();
-initMobileControls();
 
 // ══════════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════════
 openDB().then(()=>{
-  loadSave().then(()=>{ scaleViewport(); showMenu(); }).catch(()=>{ scaleViewport(); showMenu(); });
+  loadSave().then(()=>{ scaleViewport();_applyHudScale();showMenu(); }).catch(()=>{ scaleViewport();_applyHudScale();showMenu(); });
 }).catch(()=>{
-  scaleViewport(); showMenu();
+  scaleViewport();_applyHudScale();showMenu();
 });
+initMobileControls();
 </script>
 </div><!-- #viewport -->
 </body>
