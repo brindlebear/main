@@ -2005,7 +2005,7 @@ const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
 const EVADE_COOLDOWN      = 50;  // cooldown frames before next evade is allowed
-const PARRY_WINDOW        = 48;  // frames the parry is active after button press (must overlap ENEMY_WINDUP_FRAMES=42 + start of swing)
+const PARRY_WINDOW        = 43;  // -10% from 48
 const PARRY_COOLDOWN      = 72;  // cooldown frames before next parry is allowed
 const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 26;  // halved from 52 — snappier parry
@@ -3380,13 +3380,14 @@ function launchEnemy(){
     if(anyJuggled){
       // Immediately launch player upward to follow — 5% below enemy peak
       player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
+      player.vx=0; // clear horizontal momentum so player rises straight up
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
       player.launchJumpReady=false;
       player.onGround=false;
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
-    playSfx(LAUNCH_SOUND); triggerFreeze(6); triggerShake(5);
+    playSfx(LAUNCH_SOUND); triggerFreeze(4); triggerShake(5);
     hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
     const newTier=Math.floor(hitStreak/10);
     if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
