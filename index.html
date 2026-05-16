@@ -9,7 +9,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
-/* ── VIEWPORT — fills screen, menus/HUD position relative to it ── */
+/* ── VIEWPORT fills screen, menus use fixed positioning ── */
 #viewport{
   position:fixed;
   inset:0;
@@ -171,14 +171,14 @@ canvas{display:block;}
 
 /* ── STAT PANEL (top-left) ── */
 .hud-panel{
-  position:absolute;top:14px;left:14px;width:370px;
-  background:linear-gradient(158deg,rgba(38,20,10,0.88) 0%,rgba(52,28,12,0.82) 100%);
-  border:1px solid rgba(200,155,60,0.55);
-  border-radius:10px;
-  padding:16px 22px 15px;
-  display:flex;flex-direction:column;gap:12px;
-  box-shadow:0 12px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,215,80,0.14),inset 0 0 40px rgba(60,30,10,0.3);
-  backdrop-filter:blur(14px);
+  position:absolute;top:8px;left:8px;width:200px;
+  background:linear-gradient(158deg,rgba(38,20,10,0.82) 0%,rgba(52,28,12,0.76) 100%);
+  border:1px solid rgba(200,155,60,0.4);
+  border-radius:7px;
+  padding:8px 12px 8px;
+  display:flex;flex-direction:column;gap:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,215,80,0.1);
+  backdrop-filter:blur(10px);
 }
 .hud-panel::before{
   content:'';position:absolute;top:0;left:18%;right:18%;height:1px;
@@ -188,12 +188,12 @@ canvas{display:block;}
   content:'';position:absolute;bottom:0;left:25%;right:25%;height:1px;
   background:linear-gradient(90deg,transparent,rgba(185,140,50,0.4),transparent);
 }
-.hud-bar-row{display:flex;align-items:center;gap:12px;}
-.hud-icon{font-size:1.18rem;width:22px;text-align:center;flex-shrink:0;line-height:1;}
+.hud-bar-row{display:flex;align-items:center;gap:6px;}
+.hud-icon{font-size:0.78rem;width:14px;text-align:center;flex-shrink:0;line-height:1;}
 .hud-icon.h{color:#60ff80;text-shadow:0 0 9px rgba(60,255,110,0.9);}
 .hud-icon.s{color:#ffd050;text-shadow:0 0 9px rgba(230,175,40,0.9);}
 .hud-icon.m{color:#b888ff;text-shadow:0 0 9px rgba(160,100,255,0.9);}
-.bar-wrap{flex:1;position:relative;height:15px;}
+.bar-wrap{flex:1;position:relative;height:8px;}
 .bar-track{position:absolute;inset:0;border-radius:3px;background:rgba(20,8,2,0.75);border:1px solid rgba(160,110,40,0.3);box-shadow:inset 0 2px 5px rgba(0,0,0,0.7);overflow:hidden;}
 .bar-ghost{position:absolute;inset:0;border-radius:2px;background:rgba(255,200,100,0.18);transform-origin:left;transition:width 0.85s cubic-bezier(0.25,0.46,0.45,0.94);}
 .bar-fill{position:absolute;inset:0;border-radius:2px;transform-origin:left;overflow:hidden;transition:width 0.2s cubic-bezier(0.34,1.4,0.64,1);}
@@ -205,7 +205,7 @@ canvas{display:block;}
 @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 .bar-gloss{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(to bottom,rgba(255,255,255,0.1),transparent);border-radius:2px 2px 0 0;pointer-events:none;}
 .bar-chip-layer{position:absolute;inset:0;overflow:visible;pointer-events:none;}
-.hud-val{font-size:1.06rem;font-weight:700;min-width:48px;text-align:right;letter-spacing:0.04em;flex-shrink:0;font-family:'Cinzel',serif;}
+.hud-val{font-size:0.65rem;font-weight:700;min-width:28px;text-align:right;letter-spacing:0.02em;flex-shrink:0;font-family:'Cinzel',serif;}
 .hud-val.hp{color:#6dff88;text-shadow:0 0 10px rgba(60,255,110,0.7);}
 .hud-val.stamina{color:#ffd050;text-shadow:0 0 10px rgba(230,175,40,0.7);}
 .hud-val.mana{color:#b888ff;text-shadow:0 0 10px rgba(160,100,255,0.7);}
@@ -213,9 +213,9 @@ canvas{display:block;}
 .hud-panel .bar-fill{border-radius:4px;}
 .hud-divider{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,rgba(190,145,55,0.4),transparent);}
 .hud-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.hud-lv{font-size:0.9rem;letter-spacing:0.2em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
+.hud-lv{font-size:0.6rem;letter-spacing:0.1em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
 .hud-pot-wrap{display:flex;align-items:center;gap:7px;}
-.hud-score-sm{font-size:0.78rem;letter-spacing:0.07em;color:rgba(225,190,120,0.88);}
+.hud-score-sm{font-size:0.52rem;letter-spacing:0.04em;color:rgba(225,190,120,0.88);}
 .hud-exp-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
 .hud-level{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,180,80,0.85);font-weight:600;}
 .wave-hud{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,120,70,0.92);font-weight:600;}
@@ -882,8 +882,7 @@ function expForLevel(lv){ return Math.floor(100*Math.pow(lv,1.4)); }
 //  VIEWPORT / SETTINGS
 // ══════════════════════════════════════════
 function scaleViewport(){
-  // Canvas internal resolution stays 1280×720 — CSS stretches it to fill the screen.
-  // The viewport div just needs to cover the screen for menu/HUD positioning.
+  // Canvas internal res stays 1280×720; CSS stretches it to fill the screen.
   const vp=document.getElementById('viewport');
   vp.style.width  = window.innerWidth  + 'px';
   vp.style.height = window.innerHeight + 'px';
@@ -1139,7 +1138,7 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.36, FLOOR_PAD=88, JUMP_V=-10; // stronger gravity = snappier fall
+const GRAV=0.24, FLOOR_PAD=88, JUMP_V=-10;
 const AIR_ATK_GRAV_MULT   = 0.1; // gravity multiplier during airborne normal attacks (0.1 = 90% slower fall)
 const AIR_ATK_FREEZE_FRAMES = 60;  // frames the player hangs in the air on first air attack (~1s at 60fps)
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -1889,8 +1888,8 @@ const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
-const ENEMY_WINDUP_FRAMES = 28;  // faster telegraph (~0.47s at 60fps)
-const ENEMY_SWING_FRAMES  = 52;  // faster swing arc (~0.87s at 60fps)
+const ENEMY_WINDUP_FRAMES = 42;  // frames enemy telegraphs before swinging (~0.7s at 60fps)
+const ENEMY_SWING_FRAMES  = 72;  // total frames for the full swing arc (~1.2s at 60fps)
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
 const KNIGHT_COMBO_GAP    = 26;  // short gap between knight's two-hit combo swings
@@ -5296,9 +5295,9 @@ function _loopUpdate(){
   else if(player.evadeTimer>0){ player.vx=player.evadeDir*EVADE_SPEED*GAME_SPEED; }
   else if(player.airAtkFreezeTimer>0){ player.vx=goL?-AIR_ATK_FREEZE_DRIFT:goR?AIR_ATK_FREEZE_DRIFT:0; }
   else {
-    if(goL){player.vx-=0.8*GAME_SPEED;player.facing=-1;}
-    if(goR){player.vx+=0.8*GAME_SPEED;player.facing=1;}
-    player.vx=Math.max(-4*GAME_SPEED,Math.min(4*GAME_SPEED,player.vx));
+    if(goL){player.vx-=1.4*GAME_SPEED;player.facing=-1;}
+    if(goR){player.vx+=1.4*GAME_SPEED;player.facing=1;}
+    player.vx=Math.max(-6*GAME_SPEED,Math.min(6*GAME_SPEED,player.vx));
   }
   if(player.onGround){ player.jumpsLeft=2; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
   if(jumpEdge&&player.jumpsLeft>0&&!player.dead){player.vy=JUMP_V*GAME_SPEED;player.jumpsLeft--;player.juggleFollow=false;}
@@ -6920,41 +6919,37 @@ window.addEventListener('gamepaddisconnected', () => {
 
 
 // ══════════════════════════════════════════
-//  MOBILE CONTROLS — drawn on canvas, touched via canvas
+//  MOBILE CONTROLS — canvas drawn
 // ══════════════════════════════════════════
 let _mcBtns = [];
 const _mcPressed = {};
 
 function _buildMcLayout(){
   const W=canvas.width, H=canvas.height;
-  // Buttons sized relative to canvas internal res (1280×720)
-  // so they look the same regardless of physical screen size
-  const r   = Math.round(H * 0.075);   // ~54px at 720h
-  const rAtk= Math.round(H * 0.088);   // attack slightly bigger
-  const pad = Math.round(H * 0.055);
-  const gap = Math.round(r * 2.6);
+  const r   = Math.round(H * 0.072);   // base radius ~52px at 720h
+  const rBig= Math.round(H * 0.085);   // attack button slightly larger
+  const pad = Math.round(H * 0.052);
+  const gap = Math.round(r * 2.55);
 
-  // LEFT side: movement bottom row, grapple+parry row above
-  const lx = pad + r;
-  const ly = H - pad - r;
-
-  // RIGHT side: jump top, attack+magic+evade bottom cluster
-  const rx = W - pad - r;
-  const ry = H - pad - r;
+  // LEFT cluster: bottom-left
+  const lx = pad + r, ly = H - pad - r;
+  // RIGHT cluster: bottom-right
+  const rx = W - pad - r, ry = H - pad - r;
 
   _mcBtns = [
-    // LEFT — move
-    { id:'l',       x:lx,       y:ly,      r:r,    label:'◀', col:'rgba(255,255,255,0.14)' },
-    { id:'r',       x:lx+gap,   y:ly,      r:r,    label:'▶', col:'rgba(255,255,255,0.14)' },
-    // LEFT — grapple & parry above
-    { id:'grapple', x:lx,       y:ly-gap,  r:r,    label:'🪝', col:'rgba(255,200,60,0.14)'  },
-    { id:'parry',   x:lx+gap,   y:ly-gap,  r:r,    label:'🛡', col:'rgba(255,220,80,0.14)'  },
-    // RIGHT — jump
-    { id:'jump',    x:rx,       y:ry-gap,  r:r,    label:'▲', col:'rgba(255,255,255,0.14)' },
-    // RIGHT — attack (bigger), magic, evade
-    { id:'atk',     x:rx,       y:ry,      r:rAtk, label:'⚔', col:'rgba(220,60,60,0.18)'   },
-    { id:'magic',   x:rx-gap,   y:ry,      r:r,    label:'✨', col:'rgba(120,80,220,0.14)'  },
-    { id:'evade',   x:rx-gap,   y:ry-gap,  r:r,    label:'💨', col:'rgba(60,140,220,0.14)'  },
+    // LEFT — movement (bottom row)
+    { id:'l',      x:lx,       y:ly,      r:r,    label:'◀', col:'rgba(255,255,255,0.12)' },
+    { id:'r',      x:lx+gap,   y:ly,      r:r,    label:'▶', col:'rgba(255,255,255,0.12)' },
+    // LEFT — combat (row above)
+    { id:'grapple',x:lx,       y:ly-gap,  r:r,    label:'🪝', col:'rgba(255,200,60,0.12)'  },
+    { id:'parry',  x:lx+gap,   y:ly-gap,  r:r,    label:'🛡', col:'rgba(255,220,80,0.12)'  },
+    // RIGHT — jump top
+    { id:'jump',   x:rx,       y:ry-gap,  r:r,    label:'▲', col:'rgba(255,255,255,0.12)' },
+    // RIGHT — attack (bigger), then magic, evade, launch
+    { id:'atk',    x:rx,       y:ry,      r:rBig, label:'⚔', col:'rgba(220,60,60,0.16)'   },
+    { id:'magic',  x:rx-gap,   y:ry,      r:r,    label:'✨', col:'rgba(120,80,220,0.12)'  },
+    { id:'evade',  x:rx-gap,   y:ry-gap,  r:r,    label:'💨', col:'rgba(60,140,220,0.12)'  },
+    { id:'launch', x:rx-gap*2, y:ry,      r:r,    label:'↑',  col:'rgba(40,180,130,0.12)'  },
   ];
 }
 
@@ -6965,45 +6960,50 @@ function _drawMobileControls(){
   ctx.textAlign='center'; ctx.textBaseline='middle';
   for(const b of _mcBtns){
     const p = !!_mcPressed[b.id];
-    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.fillStyle   = p ? 'rgba(255,215,60,0.20)' : b.col;
-    ctx.strokeStyle = p ? 'rgba(255,215,60,0.90)' : 'rgba(255,255,255,0.22)';
-    ctx.lineWidth   = p ? 2 : 1.2;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.fillStyle   = p ? 'rgba(255,215,60,0.18)' : b.col;
+    ctx.strokeStyle = p ? 'rgba(255,215,60,0.88)' : 'rgba(255,255,255,0.20)';
+    ctx.lineWidth   = p ? 2 : 1;
     ctx.fill(); ctx.stroke();
-    ctx.font = Math.round(b.r*0.6)+'px serif';
-    ctx.globalAlpha = p ? 1 : 0.6;
-    ctx.fillStyle='#fff';
-    ctx.fillText(b.label, b.x, b.y+1);
-    ctx.globalAlpha=1;
+    ctx.font = Math.round(b.r * 0.58) + 'px serif';
+    ctx.globalAlpha = p ? 1 : 0.55;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(b.label, b.x, b.y + 1);
+    ctx.globalAlpha = 1;
   }
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.restore();
 }
 
 function _mcHit(cx,cy){
-  for(const b of _mcBtns){ const dx=cx-b.x,dy=cy-b.y; if(dx*dx+dy*dy<=b.r*b.r) return b.id; }
+  for(const b of _mcBtns){
+    const dx=cx-b.x, dy=cy-b.y;
+    if(dx*dx+dy*dy <= b.r*b.r) return b.id;
+  }
   return null;
 }
 
 function _mcOn(id){
-  _mcPressed[id]=true;
-  if(id==='l')       btnS.l=true;
-  else if(id==='r')  btnS.r=true;
-  else if(id==='jump'){ btnS.jump=true; jumpEdge=true; }
-  else if(id==='atk')  atkEdge=true;
-  else if(id==='magic') btnS.magic=true;
-  else if(id==='evade') evadeEdge=true;
-  else if(id==='parry'){ parryEdge=true; btnS.parry=true; }
+  _mcPressed[id] = true;
+  if     (id==='l')       btnS.l=true;
+  else if(id==='r')       btnS.r=true;
+  else if(id==='jump')  { btnS.jump=true; jumpEdge=true; }
+  else if(id==='atk')     atkEdge=true;
+  else if(id==='magic')   btnS.magic=true;
+  else if(id==='evade')   evadeEdge=true;
+  else if(id==='parry') { parryEdge=true; btnS.parry=true; }
   else if(id==='grapple') btnS.grapple=true;
+  else if(id==='launch')  btnS.launch=true;
 }
 function _mcOff(id){
   delete _mcPressed[id];
-  if(id==='l')        btnS.l=false;
-  else if(id==='r')   btnS.r=false;
-  else if(id==='jump') btnS.jump=false;
-  else if(id==='magic') btnS.magic=false;
-  else if(id==='parry') btnS.parry=false;
+  if     (id==='l')       btnS.l=false;
+  else if(id==='r')       btnS.r=false;
+  else if(id==='jump')    btnS.jump=false;
+  else if(id==='magic')   btnS.magic=false;
+  else if(id==='parry')   btnS.parry=false;
   else if(id==='grapple') btnS.grapple=false;
+  else if(id==='launch')  btnS.launch=false;
 }
 
 function toggleMobileControls(){
@@ -7018,11 +7018,9 @@ function _syncMobileBtn(){
 function initMobileControls(){
   const tmap={};
 
-  // Touch coords from browser are CSS pixels.
-  // Canvas is drawn at 1280×720 internally but displayed at full screen via CSS.
-  // We must scale touch coords to match canvas internal resolution.
   function toCanvas(sx,sy){
     const rect=canvas.getBoundingClientRect();
+    // canvas internal res is 1280×720; CSS may display it at a different size
     return {
       x: (sx-rect.left) / rect.width  * canvas.width,
       y: (sy-rect.top)  / rect.height * canvas.height,
@@ -7050,7 +7048,7 @@ function initMobileControls(){
       if(nid===oid) continue;
       if(oid) _mcOff(oid);
       if(nid){ tmap[t.identifier]=nid; _mcOn(nid); }
-      else delete tmap[t.identifier];
+      else    delete tmap[t.identifier];
     }
   },{passive:false});
 
