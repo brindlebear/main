@@ -516,6 +516,78 @@ canvas{display:block;}
 .gp-a{background:#3a9e46;color:#fff;}.gp-b{background:#b83030;color:#fff;}.gp-x{background:#2860a8;color:#fff;}.gp-y{background:#b08010;color:#fff;}
 .gp-pill{background:rgba(180,180,180,0.35);color:rgba(220,220,220,0.85);border:1px solid rgba(200,200,200,0.2);border-radius:4px;width:auto;height:17px;padding:0 5px;font-size:0.48rem;letter-spacing:0.04em;font-family:'Cinzel',serif;}
 .gp-dp{background:rgba(90,90,90,0.7);color:#ccc;border-radius:3px;font-size:0.65rem;font-family:sans-serif;}
+/* ── MOBILE CONTROLS ── */
+#mobileControls{
+  position:fixed;inset:0;pointer-events:none;z-index:12;
+  display:none;
+}
+#mobileControls.active{ display:block; }
+
+/* D-pad cluster — bottom left */
+.mc-dpad{
+  position:absolute;bottom:28px;left:24px;
+  width:160px;height:160px;
+  pointer-events:all;
+  -webkit-tap-highlight-color:transparent;
+}
+.mc-btn{
+  position:absolute;
+  background:rgba(20,12,4,0.72);
+  border:1px solid rgba(200,155,60,0.45);
+  border-radius:8px;
+  color:rgba(220,185,100,0.85);
+  font-size:1.3rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+  user-select:none;
+  transition:background 0.08s,border-color 0.08s;
+  pointer-events:all;
+}
+.mc-btn:active,.mc-btn.pressed{
+  background:rgba(200,155,60,0.22);
+  border-color:rgba(220,180,80,0.85);
+}
+/* Left / Right arrows */
+.mc-left { left:0;   top:56px; width:52px; height:52px; }
+.mc-right{ right:0;  top:56px; width:52px; height:52px; }
+/* Jump above d-pad */
+.mc-jump { left:56px;top:0;    width:52px; height:52px; border-radius:50%; }
+/* Down (unused but nice for completeness) */
+.mc-down { left:56px;bottom:0; width:52px; height:52px; }
+
+/* Action buttons — bottom right cluster */
+.mc-actions{
+  position:absolute;bottom:28px;right:24px;
+  width:220px;height:160px;
+  pointer-events:all;
+}
+/* Row 1 — main actions */
+.mc-atk    { right:0;   bottom:108px; width:58px;height:58px; border-radius:50%; color:#fff; background:rgba(180,40,40,0.72); border-color:rgba(255,80,80,0.5); font-size:1rem; }
+.mc-sp     { right:68px;bottom:108px; width:52px;height:52px; border-radius:50%; color:#ffd060; background:rgba(160,120,20,0.72); border-color:rgba(220,180,60,0.5); font-size:0.9rem; }
+.mc-magic  { right:128px;bottom:108px;width:52px;height:52px; border-radius:50%; color:#c0a0ff; background:rgba(80,40,160,0.72); border-color:rgba(140,90,220,0.5); font-size:0.9rem; }
+/* Row 2 — utility */
+.mc-evade  { right:0;   bottom:44px;  width:52px;height:52px; border-radius:50%; font-size:0.9rem; }
+.mc-parry  { right:60px;bottom:44px;  width:52px;height:52px; border-radius:50%; color:#ffe080; font-size:0.9rem; }
+.mc-launch { right:120px;bottom:44px; width:52px;height:52px; border-radius:50%; color:#40ffcc; font-size:0.85rem; }
+.mc-grapple{ right:180px;bottom:44px; width:52px;height:52px; border-radius:50%; color:#ffcc40; font-size:0.85rem; }
+
+/* Pause button top-right (always shown in gameplay, but we add one for mobile too) */
+.mc-pause{
+  position:absolute;top:14px;right:14px;
+  width:44px;height:44px;border-radius:8px;
+  font-size:1.1rem;
+  pointer-events:all;
+}
+/* Potion shortcut top-left */
+.mc-potion{
+  position:absolute;top:14px;left:14px;
+  width:44px;height:44px;border-radius:8px;
+  font-size:1.1rem;
+  pointer-events:all;
+}
+
 </style>
 </head>
 <body>
@@ -594,6 +666,13 @@ canvas{display:block;}
       <button class="diff-btn" onclick="changeDifficulty(10)">+</button>
     </div>
     <div class="diff-desc">Scales enemy stats &amp; rewards equally</div>
+    <div class="settings-divider"></div>
+    <div class="settings-section-lbl">Mobile Controls</div>
+    <button class="menu-btn settings-fs-btn" id="mobileCtrlBtn" onclick="toggleMobileControls()">
+      <span id="mobileCtrlIcon">📱</span>
+      <span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
+    </button>
+    <div class="diff-desc">Touch buttons for phones in landscape</div>
     <div class="settings-divider"></div>
     <button class="menu-btn danger" onclick="confirmReset()">☠ CLEANSE SAVE</button>
     <button class="menu-btn" onclick="closeSettings()" style="margin-top:4px">↩ BACK</button>
@@ -868,6 +947,7 @@ const DEFAULT_SAVE={
   unlockedSpells:['fireball'],
   clearedStages:[],
   difficulty:100,
+  mobileControls:false,
 };
 let save={...DEFAULT_SAVE};
 
@@ -889,6 +969,7 @@ function showSettings(){
   document.getElementById('settingsScreen').classList.remove('hidden');
   updateFsButton();
   _syncDiffDisplay();
+  _syncMobileControlsBtn();
 }
 function changeDifficulty(delta){
   save.difficulty=Math.max(100,Math.min(10000,(save.difficulty||100)+delta));
@@ -902,6 +983,75 @@ function _syncDiffDisplay(){
 function closeSettings(){
   document.getElementById('settingsScreen').classList.add('hidden');
   showMenu();
+}
+
+function toggleMobileControls(){
+  save.mobileControls = !save.mobileControls;
+  _syncMobileControlsBtn();
+  _applyMobileControls();
+  writeSave();
+}
+function _syncMobileControlsBtn(){
+  const on = !!save.mobileControls;
+  const lbl = document.getElementById('mobileCtrlLabel');
+  const btn = document.getElementById('mobileCtrlBtn');
+  if(lbl) lbl.textContent = on ? 'MOBILE CONTROLS: ON' : 'MOBILE CONTROLS: OFF';
+  if(btn) btn.classList.toggle('active', on);
+}
+function _applyMobileControls(){
+  const mc = document.getElementById('mobileControls');
+  if(!mc) return;
+  // Only show overlay during active gameplay (not in menus)
+  const inGame = !gameOver && !paused &&
+    document.getElementById('menuScreen')?.classList.contains('hidden') &&
+    document.getElementById('prepScreen')?.classList.contains('hidden');
+  if(save.mobileControls && inGame){
+    mc.classList.add('active');
+  } else {
+    mc.classList.remove('active');
+  }
+}
+
+function initMobileControls(){
+  // Map each button id to the btnS key it controls (and edge flags where needed)
+  const map = [
+    { id:'mc-left',    down:()=>{ btnS.l=true; },              up:()=>{ btnS.l=false; } },
+    { id:'mc-right',   down:()=>{ btnS.r=true; },              up:()=>{ btnS.r=false; } },
+    { id:'mc-jump',    down:()=>{ btnS.jump=true; jumpEdge=true; }, up:()=>{ btnS.jump=false; } },
+    { id:'mc-atk',     down:()=>{ atkEdge=true; },             up:()=>{} },
+    { id:'mc-sp',      down:()=>{ btnS.sp=true; },             up:()=>{ btnS.sp=false; } },
+    { id:'mc-magic',   down:()=>{ btnS.magic=true; },          up:()=>{ btnS.magic=false; } },
+    { id:'mc-evade',   down:()=>{ evadeEdge=true; },           up:()=>{} },
+    { id:'mc-parry',   down:()=>{ parryEdge=true; btnS.parry=true; }, up:()=>{ btnS.parry=false; } },
+    { id:'mc-launch',  down:()=>{ btnS.launch=true; },         up:()=>{ btnS.launch=false; } },
+    { id:'mc-grapple', down:()=>{ btnS.grapple=true; },        up:()=>{ btnS.grapple=false; } },
+    { id:'mc-pause',   down:()=>{ paused?resumeGame():pauseGame(); }, up:()=>{} },
+    { id:'mc-potion',  down:()=>{ usePotion(); },              up:()=>{} },
+  ];
+
+  map.forEach(({ id, down, up }) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+
+    const onDown = (e) => {
+      e.preventDefault();
+      el.classList.add('pressed');
+      down();
+    };
+    const onUp = (e) => {
+      e.preventDefault();
+      el.classList.remove('pressed');
+      up();
+    };
+
+    el.addEventListener('touchstart',  onDown, { passive:false });
+    el.addEventListener('touchend',    onUp,   { passive:false });
+    el.addEventListener('touchcancel', onUp,   { passive:false });
+    // Also support mouse for desktop testing
+    el.addEventListener('mousedown',   onDown);
+    el.addEventListener('mouseup',     onUp);
+    el.addEventListener('mouseleave',  onUp);
+  });
 }
 
 function exitGame(){
@@ -1967,6 +2117,7 @@ function floorY(){ return canvas.height-FLOOR_PAD; }
 function showMenu(){
   gameOver=true;
   cancelAnimationFrame(frameId);
+  document.getElementById('mobileControls')?.classList.remove('active');
   document.getElementById('hud').classList.add('hidden');
   document.getElementById('cdBar').classList.remove('visible');
   document.getElementById('dead').classList.remove('show');
@@ -1989,6 +2140,7 @@ function pauseGame(){
   paused=true;
   writeSave();
   document.getElementById('pauseScreen').classList.add('show');
+  document.getElementById('mobileControls')?.classList.remove('active');
 }
 
 function resumeGame(){
@@ -1997,6 +2149,7 @@ function resumeGame(){
   document.getElementById('pauseScreen').classList.remove('show');
   _lastT = performance.now();
   _accumulator = 0; // discard time elapsed while paused — prevents burst of ticks
+  _applyMobileControls();
 }
 
 function quitToMenu(){
@@ -2198,6 +2351,7 @@ function startRun(){
   cancelAnimationFrame(frameId);
   _lastT = performance.now();
   _accumulator = 0;
+  _applyMobileControls();
   frameId = requestAnimationFrame(loop);
 }
 
@@ -6917,11 +7071,34 @@ updateGamepad();
 //  BOOT
 // ══════════════════════════════════════════
 openDB().then(()=>{
-  loadSave().then(()=>{ scaleViewport(); showMenu(); }).catch(()=>{ scaleViewport(); showMenu(); });
+  loadSave().then(()=>{ scaleViewport(); showMenu(); _syncMobileControlsBtn(); }).catch(()=>{ scaleViewport(); showMenu(); });
 }).catch(()=>{
   scaleViewport(); showMenu();
 });
+initMobileControls();
 </script>
+<!-- ══ MOBILE CONTROLS OVERLAY ══ -->
+<div id="mobileControls">
+  <!-- D-pad -->
+  <div class="mc-dpad">
+    <div class="mc-btn mc-jump"   id="mc-jump"   >▲</div>
+    <div class="mc-btn mc-left"   id="mc-left"   >◀</div>
+    <div class="mc-btn mc-right"  id="mc-right"  >▶</div>
+  </div>
+  <!-- Action buttons -->
+  <div class="mc-actions">
+    <div class="mc-btn mc-atk"    id="mc-atk"    >⚔</div>
+    <div class="mc-btn mc-sp"     id="mc-sp"     >✦</div>
+    <div class="mc-btn mc-magic"  id="mc-magic"  >✨</div>
+    <div class="mc-btn mc-evade"  id="mc-evade"  >💨</div>
+    <div class="mc-btn mc-parry"  id="mc-parry"  >🛡</div>
+    <div class="mc-btn mc-launch" id="mc-launch" >↑</div>
+    <div class="mc-btn mc-grapple" id="mc-grapple">🪝</div>
+  </div>
+  <!-- Top buttons -->
+  <div class="mc-btn mc-pause"  id="mc-pause"  >⏸</div>
+  <div class="mc-btn mc-potion" id="mc-potion" >🧪</div>
+</div>
 </div><!-- #viewport -->
 </body>
 </html>
