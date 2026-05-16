@@ -12,13 +12,13 @@ canvas{display:block;}
 #viewport{position:fixed;inset:0;overflow:hidden;}
 #c{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:fill;}
 /* ── SETTINGS SCREEN ── */
-.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
-.settings-title{font-family:'Cinzel Decorative',serif;font-size:1.9rem;letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
+.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vh,18px);}
+.settings-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
 .settings-section-lbl{font-size:0.68rem;letter-spacing:0.42em;color:rgba(200,170,100,0.5);text-transform:uppercase;margin-bottom:-6px;}
 .settings-divider{width:240px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.35),transparent);}
 .settings-fs-btn{width:280px;display:flex;align-items:center;justify-content:center;gap:12px;}
 .settings-fs-btn .fs-icon{font-size:1.1rem;}
-.diff-row{display:flex;align-items:center;gap:0;width:280px;border:1px solid rgba(200,160,80,0.28);border-radius:3px;overflow:hidden;}
+.diff-row{display:flex;align-items:center;gap:0;width:clamp(200px,28vw,280px);border:1px solid rgba(200,160,80,0.28);border-radius:3px;overflow:hidden;}
 .diff-label{flex:1;text-align:left;padding:0 12px;font-size:0.65rem;letter-spacing:0.2em;color:rgba(200,170,100,0.7);}
 .diff-val{font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:0.12em;color:#e8c880;min-width:52px;text-align:center;}
 .diff-btn{background:rgba(200,160,60,0.08);border:none;border-left:1px solid rgba(200,160,80,0.2);color:rgba(220,190,100,0.75);font-size:1rem;width:38px;height:38px;cursor:pointer;font-family:'Cinzel',serif;transition:background 0.15s;}
@@ -35,8 +35,8 @@ canvas{display:block;}
 
 /* ── MAIN MENU ── */
 #menuScreen{
-  gap:28px;
-  padding-top:18vh;
+  gap:clamp(12px,3vh,28px);
+  padding-top:clamp(8vh,14vh,20vh);
   background-image:url('GFX/menu_bg.png');
   background-size:cover;
   background-position:center top;
@@ -58,7 +58,7 @@ canvas{display:block;}
 .menu-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,8vw,4rem);color:#e8d5a0;letter-spacing:0.18em;text-shadow:0 0 30px rgba(230,200,100,0.5),0 0 80px rgba(180,140,50,0.2);text-align:center;line-height:1.2;}
 .menu-subtitle{font-size:0.75rem;letter-spacing:0.35em;color:rgba(200,170,100,0.45);text-transform:uppercase;}
 .menu-divider{width:180px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.4),transparent);margin:4px 0;}
-.menu-btn{font-family:'Cinzel',serif;font-size:1.15rem;letter-spacing:0.2em;padding:18px 48px;background:linear-gradient(135deg,#1a1206,#0a0904);color:#d4aa48;border:1px solid rgba(200,150,40,0.45);border-radius:2px;cursor:pointer;width:240px;text-align:center;transition:all 0.18s;box-shadow:0 0 14px rgba(180,130,30,0.18);text-shadow:0 1px 6px rgba(0,0,0,0.8);}
+.menu-btn{font-family:'Cinzel',serif;font-size:clamp(0.75rem,2.2vw,1.15rem);letter-spacing:0.2em;padding:clamp(10px,2vh,18px) clamp(20px,4vw,48px);background:linear-gradient(135deg,#1a1206,#0a0904);color:#d4aa48;border:1px solid rgba(200,150,40,0.45);border-radius:2px;cursor:pointer;width:clamp(160px,20vw,240px);text-align:center;transition:all 0.18s;box-shadow:0 0 14px rgba(180,130,30,0.18);text-shadow:0 1px 6px rgba(0,0,0,0.8);}
 .menu-btn:hover,.menu-btn.gamepad-focused{color:#ffe080;border-color:rgba(255,200,60,0.65);box-shadow:0 0 24px rgba(220,170,40,0.35);background:linear-gradient(135deg,#2a1e08,#140f02);}
 .menu-btn.danger{color:#c04040;border-color:rgba(180,40,40,0.4);}
 .menu-btn.danger:hover{color:#ff6060;border-color:rgba(255,60,60,0.6);box-shadow:0 0 20px rgba(200,40,40,0.35);}
@@ -107,7 +107,7 @@ canvas{display:block;}
 
 /* ── PREP SCREEN ── */
 #prepScreen{align-items:stretch;padding:0;}
-.prep-wrap{width:min(520px,96vw);max-height:92vh;overflow-y:auto;overflow-x:hidden;padding:0 0 32px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;margin:auto;}
+.prep-wrap{width:min(520px,96vw);max-height:96vh;overflow-y:auto;overflow-x:hidden;padding:0 0 32px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;margin:auto;}
 .prep-wrap::-webkit-scrollbar{width:4px;}
 .prep-wrap::-webkit-scrollbar-track{background:transparent;}
 .prep-wrap::-webkit-scrollbar-thumb{background:rgba(200,150,40,0.25);border-radius:2px;}
@@ -175,7 +175,7 @@ canvas{display:block;}
   border:1px solid rgba(200,155,60,0.4);
   border-radius:6px;
   padding:var(--hud-p,8px 12px);
-  display:flex;flex-direction:column;gap:var(--hud-gap,5px);
+  display:flex;flex-direction:column;gap:var(--hud-gap,6px);
   box-shadow:0 4px 18px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,215,80,0.08);
   backdrop-filter:blur(8px);
 }
@@ -187,7 +187,7 @@ canvas{display:block;}
   content:'';position:absolute;bottom:0;left:25%;right:25%;height:1px;
   background:linear-gradient(90deg,transparent,rgba(185,140,50,0.4),transparent);
 }
-.hud-bar-row{display:flex;align-items:center;gap:var(--hud-gap,5px);}
+.hud-bar-row{display:flex;align-items:center;gap:var(--hud-gap,6px);}
 .hud-icon{font-size:var(--hud-icon,0.85rem);width:var(--hud-icon-w,16px);text-align:center;flex-shrink:0;line-height:1;}
 .hud-icon.h{color:#60ff80;text-shadow:0 0 9px rgba(60,255,110,0.9);}
 .hud-icon.s{color:#ffd050;text-shadow:0 0 9px rgba(230,175,40,0.9);}
@@ -353,6 +353,9 @@ canvas{display:block;}
   pointer-events:none;z-index:10;
 }
 #cdBar.visible{display:flex;}
+/* hide cdBar and gpHints when mobile controls active */
+body.mc-active #cdBar{display:none!important;}
+body.mc-active #gpHints{display:none!important;}
 .cdi{display:flex;align-items:center;gap:10px;opacity:0.42;transition:opacity 0.18s;}
 .cdi.on{opacity:1;}
 .cdi.dep .cdi-key{color:#f04040;text-shadow:0 0 10px rgba(240,40,40,0.7);}
@@ -1136,10 +1139,10 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10;
-const ENEMY_GRAV_MULT=1.2;
-const AIR_ATK_GRAV_MULT   = 0.1; // gravity multiplier during airborne normal attacks (0.1 = 90% slower fall)
-const AIR_ATK_FREEZE_FRAMES = 60;  // frames the player hangs in the air on first air attack (~1s at 60fps)
+const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10; // +10% from base
+const ENEMY_GRAV_MULT=1.2; // enemies fall 20% faster than hero
+const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
+const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
 const PW=30,PH=58, EW=28,EH=52;
 const SWORD_RANGE = 85; // kept for trail math — actual hit detection uses getSwordTip()
@@ -1170,14 +1173,10 @@ function getSwordTip(p){
 // Supported formats: .ogg  .wav  — set any field to null to play nothing.
 // ── Web Audio API sound system ────────────────────────────────────────────────
 // Fetch + decode starts immediately on page load — no user gesture needed for
-// ── AUDIO ENGINE ─────────────────────────
-// AudioContext is created lazily on first user gesture — required on iOS/Android.
-// A silent buffer is played immediately on unlock to fully activate the context on iOS.
-let _audioCtx = null;
-const _audioBuffers = {};
-let _audioUnlocked = false;
-
-const _ALL_SFX = [
+// ── AUDIO ENGINE (mobile-safe lazy init) ─────────────
+let _audioCtx=null, _audioUnlocked=false;
+const _audioBuffers={};
+const _ALL_SFX=[
   'Audio/sword.wav','Audio/sword_hit.wav','Audio/sword_sp.wav',
   'Audio/daggerhit.wav','Audio/dagger_sp.wav',
   'Audio/greatsword_hit.wav','Audio/greatsword_sp.wav',
@@ -1193,67 +1192,38 @@ const _ALL_SFX = [
   'Audio/parry.wav','Audio/parry2.wav',
   'Audio/magic_missile.wav','Audio/magic_missile_hit.wav',
 ];
-
 function _getAudioCtx(){
-  if(!_audioCtx){
-    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   return _audioCtx;
 }
-
-function _unlockAudio(){
-  if(_audioUnlocked) return;
-  const ctx = _getAudioCtx();
-  // Resume suspended context (required on Android Chrome)
-  const doUnlock = () => {
-    if(ctx.state === 'suspended') ctx.resume();
-    // Play a silent buffer — required on iOS Safari to fully activate context
-    const buf = ctx.createBuffer(1, 1, 22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    _audioUnlocked = true;
-    // Now kick off all fetches
-    _loadAllSfx();
-  };
-  if(ctx.state === 'suspended'){
-    ctx.resume().then(doUnlock).catch(doUnlock);
-  } else {
-    doUnlock();
-  }
-}
-
 function _loadAllSfx(){
-  const ctx = _getAudioCtx();
+  const ctx=_getAudioCtx();
   _ALL_SFX.forEach(file=>{
-    if(_audioBuffers[file]) return; // already loaded
-    fetch(file)
-      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-      .then(ab=>ctx.decodeAudioData(ab))
-      .then(buf=>{ _audioBuffers[file]=buf; })
-      .catch(()=>{}); // missing/broken files silently skipped
+    if(_audioBuffers[file]) return;
+    fetch(file).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
+      .then(ab=>ctx.decodeAudioData(ab)).then(buf=>{_audioBuffers[file]=buf;}).catch(()=>{});
   });
 }
-
-// Called from every user-gesture entry point (menu buttons, touch events)
-function preloadAllSfx(){
-  _unlockAudio();
+function _unlockAudio(){
+  if(_audioUnlocked) return;
+  const ctx=_getAudioCtx();
+  const go=()=>{
+    if(ctx.state==='suspended') ctx.resume();
+    const b=ctx.createBuffer(1,1,22050),s=ctx.createBufferSource();
+    s.buffer=b;s.connect(ctx.destination);s.start(0);
+    _audioUnlocked=true;_loadAllSfx();
+  };
+  ctx.state==='suspended'?ctx.resume().then(go).catch(go):go();
 }
-
-function playSfx(file, volume=1.0){
+function preloadAllSfx(){ _unlockAudio(); }
+function playSfx(file,volume=1.0){
   if(!file||!_audioUnlocked) return;
-  const ctx = _getAudioCtx();
-  if(ctx.state==='suspended'){ ctx.resume(); return; }
-  const buf=_audioBuffers[file];
-  if(!buf) return;
-  const src=ctx.createBufferSource();
-  src.buffer=buf;
-  const gain=ctx.createGain();
-  gain.gain.value=Math.max(0,Math.min(1,volume));
-  src.connect(gain);
-  gain.connect(ctx.destination);
-  src.start(0);
+  const ctx=_getAudioCtx();
+  if(ctx.state==='suspended'){ctx.resume();return;}
+  const buf=_audioBuffers[file]; if(!buf) return;
+  const src=ctx.createBufferSource(),gain=ctx.createGain();
+  src.buffer=buf;gain.gain.value=Math.max(0,Math.min(1,volume));
+  src.connect(gain);gain.connect(ctx.destination);src.start(0);
 }
 
 // ══════════════════════════════════════════
@@ -1266,7 +1236,7 @@ function weaponStats(w){
 let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
 
 // Base swing durations (in frames) — scaled by activeWeapon.atkSpeed
-const ATK_FRAMES_BASE = [25, 25, 25]; // halved = 2x attack speed
+const ATK_FRAMES_BASE = [23, 23, 23]; // 2× speed then +10% faster
 // ATK_FRAMES is recomputed by equipWeapon() each time a weapon is selected
 let ATK_FRAMES = [...ATK_FRAMES_BASE];
 
@@ -1907,7 +1877,7 @@ const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
-const JUGGLE_GRAV=0.05;
+const JUGGLE_GRAV=0.065; // +30% fall speed during juggle follow
 const JUGGLE_VY=-6; // upward velocity applied to juggled enemies
 // player vy for juggle follow — both use JUGGLE_GRAV so they rise together; 5% less vy = 5% lower peak
 const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
@@ -1921,51 +1891,51 @@ const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
-const ENEMY_WINDUP_FRAMES = 21;
-const ENEMY_SWING_FRAMES  = 36;
+const ENEMY_WINDUP_FRAMES = 19;  // 2× then +10% faster
+const ENEMY_SWING_FRAMES  = 32;  // 2× then +10% faster
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
-const KNIGHT_COMBO_GAP    = 13;
+const KNIGHT_COMBO_GAP    = 12;  // 2× then +10%
 // Boss constants
-const BOSS_WINDUP      = 35;
-const BOSS_SWING       = 55;
+const BOSS_WINDUP      = 32;   // 2× then +10%
+const BOSS_SWING       = 50;   // 2× then +10%
 const BOSS_ATK_RANGE   = 100;  // px distance to trigger boss windup
 const BOSS_ATK_COOLDOWN= 95;   // post-swing cooldown frames
 const BOSS_REACH       = 38;   // club-head radius used in hit check
 const BOSS_PIVOT_X     = 34;   // club pivot x from boss centre (local)
 const BOSS_PIVOT_Y     = -18;  // club pivot y from boss centre (local)
 // Boss attack pattern 1 — two-hit combo
-const BOSS_COMBO_WINDUP1 = 22;
-const BOSS_COMBO_SWING1  = 25;
-const BOSS_COMBO_GAP     = 28;
-const BOSS_COMBO_SWING2  = 28;
+const BOSS_COMBO_WINDUP1 = 20;
+const BOSS_COMBO_SWING1  = 23;
+const BOSS_COMBO_GAP     = 25;
+const BOSS_COMBO_SWING2  = 25;
 // Boss attack pattern 2 — spin charge
-const BOSS_SPIN_WINDUP   = 90;
+const BOSS_SPIN_WINDUP   = 82;
 const BOSS_SPIN_SPEED    = 11;
-const BOSS_SPIN_DURATION = 48;
+const BOSS_SPIN_DURATION = 43;
 const BOSS_SPIN_MIN_DIST = 230;// min distance to use spin (skip if closer)
 
 // ── STAGE 1 ENEMY CONSTANTS ──────────────────────────────────
 const DRUNKARD_THROW_RANGE  = 340;  // px — drunkard opens fire within this dist
-const DRUNKARD_THROW_WINDUP = 60;
+const DRUNKARD_THROW_WINDUP = 55;   // 2× then +10%
 const DRUNKARD_THROW_CD     = 200;  // cooldown frames between throws
 const DRUNKARD_THROW_ANIM   = 28;   // follow-through frames after bottle releases
 const BOTTLE_SPEED          = 7;    // px/frame launch speed
 const BOTTLE_LIFE           = 320;  // auto-expire frames
 // Captain Shamaz constants
-const SHAMAZ_WINDUP         = 28;
-const SHAMAZ_SWING          = 45;
+const SHAMAZ_WINDUP         = 25;
+const SHAMAZ_SWING          = 41;
 const SHAMAZ_ATK_RANGE      = 110;
 const SHAMAZ_ATK_COOLDOWN   = 90;
 const SHAMAZ_HOOK_REACH     = 52;
 const SHAMAZ_HOOK_PIVOT_X   = 32;
 const SHAMAZ_HOOK_PIVOT_Y   = -16;
-const SHAMAZ_COMBO_WINDUP1  = 21;
-const SHAMAZ_COMBO_SWING1   = 23;
-const SHAMAZ_COMBO_GAP1     = 24;
-const SHAMAZ_COMBO_SWING2   = 23;
-const SHAMAZ_COMBO_GAP2     = 24;
-const SHAMAZ_COMBO_SWING3   = 29;
+const SHAMAZ_COMBO_WINDUP1  = 19;
+const SHAMAZ_COMBO_SWING1   = 21;
+const SHAMAZ_COMBO_GAP1     = 22;
+const SHAMAZ_COMBO_SWING2   = 21;
+const SHAMAZ_COMBO_GAP2     = 22;
+const SHAMAZ_COMBO_SWING3   = 26;
 const SHAMAZ_CANNON_WINDUP  = 240;  // 4 s at 60 fps
 const SHAMAZ_CANNON_SPEED   = 14;
 const SHAMAZ_CANNON_RADIUS  = 22;
@@ -2087,7 +2057,7 @@ function openPrep(){
 }
 
 function confirmPrep(){
-  preloadAllSfx(); // ensure audio unlocked on this gesture
+  preloadAllSfx();
   // Apply stat point allocation
   save.stats.str += allocPending.str;
   save.stats.vit += allocPending.vit;
@@ -3015,7 +2985,7 @@ function grappleZip(target){
   triggerShake(5); rumble(80,0.5,0.8);
 }
 
-const GRAPPLE_AIR_FREEZE_FRAMES = 28; // frames enemy floats in place on aerial grapple arrival
+const GRAPPLE_AIR_FREEZE_FRAMES = 14; // halved — less hang after aerial grapple/evade
 
 function _grappleArriveZip(){
   player.vx*=0.12; player.vy*=0.12;
@@ -5417,8 +5387,8 @@ function _loopUpdate(){
     player.evadeTimer--;
     // Dash just ended in the air — suspend briefly so the player can follow up
     if(player.evadeTimer===0 && !player.onGround){
-      player.vy=0;
-      player.airGrappleSuspendTimer=GRAPPLE_AIR_FREEZE_FRAMES;
+      // Reduced hang — only brief suspend, no vy zeroing so gravity stays active
+      player.airGrappleSuspendTimer=Math.floor(GRAPPLE_AIR_FREEZE_FRAMES*0.5);
       player.airSuspendKeepEvade=true;
     }
   }
@@ -6927,42 +6897,11 @@ function _stageMusicStop(){
   }, 30);
 }
 
-// Re-resume AudioContext when page becomes visible again (mobile browser suspends it)
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='visible' && _audioCtx && _audioCtx.state==='suspended'){
-    _audioCtx.resume();
-  }
-});
-
-window.addEventListener('gamepadconnected', e => {
-  const status = document.getElementById('status');
-  if (status) {
-    status.textContent = `🎮 ${e.gamepad.id.slice(0, 30)}`;
-    status.style.opacity = '1';
-    status.style.display = 'block';
-    clearTimeout(status._hideTimer);
-    status._hideTimer = setTimeout(() => {
-      status.style.opacity = '0';
-      setTimeout(() => { status.style.display = 'none'; }, 600);
-    }, 3000);
-  }
-  const hints = document.getElementById('gpHints');
-  if (hints) hints.style.display = 'flex';
-  updateGpHints();
-});
-window.addEventListener('gamepaddisconnected', () => {
-  const status = document.getElementById('status');
-  if (status) status.style.display = 'none';
-  const hints = document.getElementById('gpHints');
-  if (hints) hints.style.display = 'none';
-  btnS.l = btnS.r = btnS.jump = btnS.sp = btnS.magic = btnS.launch = btnS.evade = btnS.grapple = false;
-  menuFocusedButton = null;
-  lastVisibleScreen = null;
-});
-
 
 function _applyHudScale(){
-  const mob=!!save.mobileControls, r=document.documentElement;
+  const mob=!!save.mobileControls,r=document.documentElement;
+  // Also toggle body class so cdBar/gpHints can be hidden via CSS
+  document.body.classList.toggle('mc-active',mob);
   if(mob){
     r.style.setProperty('--hud-pad','6px');r.style.setProperty('--hud-w','18vw');
     r.style.setProperty('--hud-minw','110px');r.style.setProperty('--hud-maxw','170px');
@@ -6981,10 +6920,7 @@ function _applyHudScale(){
     r.style.setProperty('--hud-score','0.52rem');
   }
 }
-
-// ── MOBILE CONTROLS ───────────────────────
-let _mcBtns=[];
-const _mcPressed={};
+let _mcBtns=[];const _mcPressed={};
 function _buildMcLayout(){
   const W=canvas.width,H=canvas.height;
   const r=Math.round(H*0.072),rBig=Math.round(H*0.085);
@@ -7023,12 +6959,10 @@ function _mcOn(id){
   _mcPressed[id]=true;
   if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
-  else if(id==='atk')atkEdge=true;
-  else if(id==='magic')btnS.magic=true;
+  else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
   else if(id==='parry'){parryEdge=true;btnS.parry=true;}
-  else if(id==='grapple')btnS.grapple=true;
-  else if(id==='launch')btnS.launch=true;
+  else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
 }
 function _mcOff(id){
   delete _mcPressed[id];
@@ -7054,11 +6988,34 @@ function initMobileControls(){
   canvas.addEventListener('touchcancel',(e)=>{e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
 }
 
-// Unlock audio on very first touch anywhere — catches all mobile entry paths
-document.addEventListener('touchstart', function _firstTouch(){
-  preloadAllSfx();
-  document.removeEventListener('touchstart', _firstTouch);
-}, {once:true, passive:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&_audioCtx&&_audioCtx.state==='suspended') _audioCtx.resume();
+});
+window.addEventListener('gamepadconnected', e => {
+  const status = document.getElementById('status');
+  if (status) {
+    status.textContent = `🎮 ${e.gamepad.id.slice(0, 30)}`;
+    status.style.opacity = '1';
+    status.style.display = 'block';
+    clearTimeout(status._hideTimer);
+    status._hideTimer = setTimeout(() => {
+      status.style.opacity = '0';
+      setTimeout(() => { status.style.display = 'none'; }, 600);
+    }, 3000);
+  }
+  const hints = document.getElementById('gpHints');
+  if (hints) hints.style.display = 'flex';
+  updateGpHints();
+});
+window.addEventListener('gamepaddisconnected', () => {
+  const status = document.getElementById('status');
+  if (status) status.style.display = 'none';
+  const hints = document.getElementById('gpHints');
+  if (hints) hints.style.display = 'none';
+  btnS.l = btnS.r = btnS.jump = btnS.sp = btnS.magic = btnS.launch = btnS.evade = btnS.grapple = false;
+  menuFocusedButton = null;
+  lastVisibleScreen = null;
+});
 
 // Start polling (handles already-connected gamepads)
 updateGamepad();
@@ -7072,6 +7029,7 @@ openDB().then(()=>{
   scaleViewport();_applyHudScale();showMenu();
 });
 initMobileControls();
+document.addEventListener('touchstart',function _ft(){preloadAllSfx();document.removeEventListener('touchstart',_ft);},{once:true,passive:true});
 </script>
 </div><!-- #viewport -->
 </body>
