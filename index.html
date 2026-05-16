@@ -520,6 +520,7 @@ canvas{display:block;}
 #mobileControls{
   position:fixed;inset:0;pointer-events:none;z-index:12;
   display:none;
+  touch-action:none;
 }
 #mobileControls.active{ display:block; }
 
@@ -528,6 +529,7 @@ canvas{display:block;}
   position:absolute;bottom:28px;left:24px;
   width:160px;height:160px;
   pointer-events:all;
+  touch-action:none;
   -webkit-tap-highlight-color:transparent;
 }
 .mc-btn{
@@ -542,6 +544,7 @@ canvas{display:block;}
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   user-select:none;
+  -webkit-user-select:none;
   transition:background 0.08s,border-color 0.08s;
   pointer-events:all;
 }
@@ -562,6 +565,7 @@ canvas{display:block;}
   position:absolute;bottom:28px;right:24px;
   width:220px;height:160px;
   pointer-events:all;
+  touch-action:none;
 }
 /* Row 1 — main actions */
 .mc-atk    { right:0;   bottom:108px; width:58px;height:58px; border-radius:50%; color:#fff; background:rgba(180,40,40,0.72); border-color:rgba(255,80,80,0.5); font-size:1rem; }
@@ -573,12 +577,13 @@ canvas{display:block;}
 .mc-launch { right:120px;bottom:44px; width:52px;height:52px; border-radius:50%; color:#40ffcc; font-size:0.85rem; }
 .mc-grapple{ right:180px;bottom:44px; width:52px;height:52px; border-radius:50%; color:#ffcc40; font-size:0.85rem; }
 
-/* Pause button top-right (always shown in gameplay, but we add one for mobile too) */
+/* Pause button top-right */
 .mc-pause{
   position:absolute;top:14px;right:14px;
   width:44px;height:44px;border-radius:8px;
   font-size:1.1rem;
   pointer-events:all;
+  touch-action:none;
 }
 /* Potion shortcut top-left */
 .mc-potion{
@@ -586,6 +591,7 @@ canvas{display:block;}
   width:44px;height:44px;border-radius:8px;
   font-size:1.1rem;
   pointer-events:all;
+  touch-action:none;
 }
 
 </style>
@@ -1013,44 +1019,80 @@ function _applyMobileControls(){
 }
 
 function initMobileControls(){
-  // Map each button id to the btnS key it controls (and edge flags where needed)
-  const map = [
-    { id:'mc-left',    down:()=>{ btnS.l=true; },              up:()=>{ btnS.l=false; } },
-    { id:'mc-right',   down:()=>{ btnS.r=true; },              up:()=>{ btnS.r=false; } },
-    { id:'mc-jump',    down:()=>{ btnS.jump=true; jumpEdge=true; }, up:()=>{ btnS.jump=false; } },
-    { id:'mc-atk',     down:()=>{ atkEdge=true; },             up:()=>{} },
-    { id:'mc-sp',      down:()=>{ btnS.sp=true; },             up:()=>{ btnS.sp=false; } },
-    { id:'mc-magic',   down:()=>{ btnS.magic=true; },          up:()=>{ btnS.magic=false; } },
-    { id:'mc-evade',   down:()=>{ evadeEdge=true; },           up:()=>{} },
-    { id:'mc-parry',   down:()=>{ parryEdge=true; btnS.parry=true; }, up:()=>{ btnS.parry=false; } },
-    { id:'mc-launch',  down:()=>{ btnS.launch=true; },         up:()=>{ btnS.launch=false; } },
-    { id:'mc-grapple', down:()=>{ btnS.grapple=true; },        up:()=>{ btnS.grapple=false; } },
-    { id:'mc-pause',   down:()=>{ paused?resumeGame():pauseGame(); }, up:()=>{} },
-    { id:'mc-potion',  down:()=>{ usePotion(); },              up:()=>{} },
-  ];
+  const map = {
+    'mc-left':    { down:()=>{ btnS.l=true; },                             up:()=>{ btnS.l=false; } },
+    'mc-right':   { down:()=>{ btnS.r=true; },                             up:()=>{ btnS.r=false; } },
+    'mc-jump':    { down:()=>{ btnS.jump=true; jumpEdge=true; },           up:()=>{ btnS.jump=false; } },
+    'mc-atk':     { down:()=>{ atkEdge=true; },                            up:()=>{} },
+    'mc-sp':      { down:()=>{ btnS.sp=true; },                            up:()=>{ btnS.sp=false; } },
+    'mc-magic':   { down:()=>{ btnS.magic=true; },                         up:()=>{ btnS.magic=false; } },
+    'mc-evade':   { down:()=>{ evadeEdge=true; },                          up:()=>{} },
+    'mc-parry':   { down:()=>{ parryEdge=true; btnS.parry=true; },         up:()=>{ btnS.parry=false; } },
+    'mc-launch':  { down:()=>{ btnS.launch=true; },                        up:()=>{ btnS.launch=false; } },
+    'mc-grapple': { down:()=>{ btnS.grapple=true; },                       up:()=>{ btnS.grapple=false; } },
+    'mc-pause':   { down:()=>{ paused?resumeGame():pauseGame(); },         up:()=>{} },
+    'mc-potion':  { down:()=>{ usePotion(); },                             up:()=>{} },
+  };
 
-  map.forEach(({ id, down, up }) => {
+  // Track which button each active touch identifier is pressing
+  const touchToBtn = {};
+
+  function btnIdFromTarget(target){
+    // Walk up the DOM to find a mc-btn with a known id
+    let el = target;
+    while(el && el !== document.body){
+      if(el.id && map[el.id]) return el.id;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function onTouchStart(e){
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = btnIdFromTarget(document.elementFromPoint(t.clientX, t.clientY));
+      if(!id) continue;
+      touchToBtn[t.identifier] = id;
+      document.getElementById(id)?.classList.add('pressed');
+      map[id].down();
+    }
+  }
+
+  function onTouchEnd(e){
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchToBtn[t.identifier];
+      if(!id) continue;
+      delete touchToBtn[t.identifier];
+      document.getElementById(id)?.classList.remove('pressed');
+      map[id].up();
+    }
+  }
+
+  function onTouchCancel(e){
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchToBtn[t.identifier];
+      if(!id) continue;
+      delete touchToBtn[t.identifier];
+      document.getElementById(id)?.classList.remove('pressed');
+      map[id].up();
+    }
+  }
+
+  // Single listener on the overlay — catches all touches including multi-touch
+  const overlay = document.getElementById('mobileControls');
+  overlay.addEventListener('touchstart',  onTouchStart,  { passive:false });
+  overlay.addEventListener('touchend',    onTouchEnd,    { passive:false });
+  overlay.addEventListener('touchcancel', onTouchCancel, { passive:false });
+
+  // Mouse fallback for desktop testing
+  Object.keys(map).forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
-
-    const onDown = (e) => {
-      e.preventDefault();
-      el.classList.add('pressed');
-      down();
-    };
-    const onUp = (e) => {
-      e.preventDefault();
-      el.classList.remove('pressed');
-      up();
-    };
-
-    el.addEventListener('touchstart',  onDown, { passive:false });
-    el.addEventListener('touchend',    onUp,   { passive:false });
-    el.addEventListener('touchcancel', onUp,   { passive:false });
-    // Also support mouse for desktop testing
-    el.addEventListener('mousedown',   onDown);
-    el.addEventListener('mouseup',     onUp);
-    el.addEventListener('mouseleave',  onUp);
+    el.addEventListener('mousedown', (e)=>{ e.preventDefault(); el.classList.add('pressed'); map[id].down(); });
+    el.addEventListener('mouseup',   (e)=>{ e.preventDefault(); el.classList.remove('pressed'); map[id].up(); });
+    el.addEventListener('mouseleave',(e)=>{ el.classList.remove('pressed'); map[id].up(); });
   });
 }
 
