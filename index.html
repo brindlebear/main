@@ -154,66 +154,70 @@ canvas{display:block;}
 
 /* ── PHONE LANDSCAPE ── */
 @media (orientation:landscape) and (max-height:500px){
-  /* Main menu: compact vertical, scrollable */
-  #menuScreen{
-    padding-top:4px!important;
-    gap:5px!important;
-    overflow-y:auto;
+  .screen{
     justify-content:flex-start;
-    padding-bottom:8px;
+    overflow-y:auto;
+    padding:8px 0 16px;
+    gap:6px!important;
+    align-items:center;
   }
-  .menu-title{font-size:1.2rem!important;letter-spacing:0.1em;}
-  .menu-subtitle{font-size:0.55rem!important;letter-spacing:0.2em;}
-  .menu-divider{margin:2px 0;}
+  /* Menu title block */
+  .menu-title{font-size:1.1rem!important;letter-spacing:0.08em;}
+  .menu-subtitle{font-size:0.52rem!important;letter-spacing:0.18em;}
+  .menu-divider{margin:1px 0;width:120px;}
+  /* All menu buttons: narrower and shorter */
   .menu-btn{
-    width:clamp(140px,28vw,190px)!important;
-    font-size:0.65rem!important;
-    padding:8px 12px!important;
-    letter-spacing:0.1em;
-  }
-  .save-info{font-size:0.58rem!important;line-height:1.5;padding:0 16px;}
-  /* Settings screen: two-column layout */
-  #settingsScreen .settings-wrap{
-    flex-direction:row;flex-wrap:wrap;
-    align-items:flex-start;justify-content:center;
-    gap:5px 20px;
-    overflow-y:auto;max-height:96vh;
-    padding:6px 12px;
-  }
-  .settings-title{width:100%;font-size:0.95rem!important;margin-bottom:0;}
-  .settings-section-lbl{font-size:0.55rem;}
-  .settings-divider{width:clamp(160px,36vw,240px);}
-  .diff-row{width:clamp(160px,36vw,220px);}
-  .menu-btn.settings-fs-btn,#settingsScreen .menu-btn{
-    width:clamp(140px,30vw,210px)!important;
+    width:clamp(150px,30vw,200px)!important;
     font-size:0.62rem!important;
     padding:7px 10px!important;
+    letter-spacing:0.1em;
   }
-  /* Boss rush & stage select: compact */
-  #bossRushScreen .boss-rush-wrap,
-  #stageSelectScreen .boss-rush-wrap{
-    max-height:92vh;overflow-y:auto;
-    padding:4px 8px 12px;gap:5px;
+  .save-info{font-size:0.55rem!important;line-height:1.4;padding:0 20px;text-align:center;max-width:100%;}
+  /* Settings: two-column grid */
+  #settingsScreen .settings-wrap{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:center;
+    gap:5px 16px;
+    padding:0 16px;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
   }
-  .boss-rush-title{font-size:0.9rem!important;margin-bottom:0;}
-  .boss-rush-sub{font-size:0.54rem;margin-bottom:4px;}
+  .settings-title{grid-column:1/-1;font-size:0.9rem!important;text-align:center;margin-bottom:0;}
+  .settings-section-lbl{font-size:0.52rem;justify-self:start;}
+  .settings-divider{grid-column:1/-1;width:100%;}
+  .diff-row{width:100%;}
+  .diff-desc{grid-column:1/-1;font-size:0.5rem;}
+  .menu-btn.settings-fs-btn,#settingsScreen .menu-btn{
+    width:100%!important;
+    font-size:0.58rem!important;
+    padding:6px 8px!important;
+  }
+  /* Boss rush & stage select */
+  .boss-rush-wrap{
+    width:min(460px,94vw);
+    padding:4px 12px 12px;
+    gap:5px;
+  }
+  .boss-rush-title{font-size:0.85rem!important;margin-bottom:0;}
+  .boss-rush-sub{font-size:0.52rem;margin-bottom:3px;}
   .boss-entry{padding:6px 10px;}
-  .boss-entry-name{font-size:0.68rem;}
-  .stage-card{height:62px;}
+  .boss-entry-name{font-size:0.65rem;}
+  .stage-card{height:58px;}
   /* Prep screen */
-  .prep-wrap{max-height:94vh;padding:0 0 12px;}
-  .prep-header{padding:6px 12px 6px;}
-  .prep-title{font-size:0.82rem!important;}
-  .prep-section-head{padding:6px 12px 4px;}
-  .stat-row{padding:6px 10px;}
-  .prep-actions{padding:6px 12px 0;}
-  .prep-tab{padding:8px 4px 7px;font-size:0.5rem;}
-  /* Pause screen */
-  #pauseScreen{gap:8px;}
-  #pauseScreen button{padding:8px 24px;font-size:0.7rem;width:175px;}
-  /* Dead screen */
-  #dead{gap:10px;}
-  #dead button{padding:9px 24px;font-size:0.72rem;}
+  .prep-wrap{max-height:92vh;padding:0 0 10px;}
+  .prep-header{padding:5px 12px 5px;}
+  .prep-title{font-size:0.78rem!important;}
+  .prep-section-head{padding:5px 12px 4px;}
+  .stat-row{padding:5px 10px;}
+  .prep-actions{padding:5px 12px 0;}
+  .prep-tab{padding:7px 4px 6px;font-size:0.48rem;}
+  /* Pause & Dead screens */
+  #pauseScreen{gap:7px;}
+  #pauseScreen button{padding:7px 20px;font-size:0.68rem;width:165px;}
+  #dead{gap:8px;}
+  #dead button{padding:7px 20px;font-size:0.68rem;}
 }
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
@@ -277,7 +281,7 @@ canvas{display:block;}
 .hud-divider{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,rgba(190,145,55,0.4),transparent);}
 .hud-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .hud-lv{font-size:var(--hud-lv,0.60rem);letter-spacing:0.1em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
-.hud-pot-wrap{display:flex;align-items:center;gap:4px;}
+.hud-pot-wrap{display:flex;align-items:center;gap:4px;pointer-events:all;cursor:pointer;}
 .hud-score-sm{font-size:var(--hud-score,0.52rem);letter-spacing:0.03em;color:rgba(225,190,120,0.88);}
 .hud-exp-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
 .hud-level{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,180,80,0.85);font-weight:600;}
@@ -789,7 +793,7 @@ body.mc-active #gpHints{display:none!important;}
     <div class="hud-divider"></div>
     <div class="hud-footer">
       <span class="hud-lv" id="lvlLabel">LV 1</span>
-      <div class="hud-pot-wrap">
+      <div class="hud-pot-wrap" onclick="usePotion()" ontouchstart="usePotion();event.stopPropagation()">
         <div id="potionFlask" class="potion-flask">
           <div class="vial-cap"></div>
           <div class="vial-neck"></div>
@@ -1167,8 +1171,6 @@ const HERO_SCALE = 1.15;  // ← edit this to resize
                     //   1.15 = ~110px tall (current)
                     //   1.5  = 144px tall (large)
                     //   2.0  = 192px tall (huge)
-// X anchor offset — sprites aren't perfectly centred, nudge right slightly
-const HERO_ANCHOR_X = 8; // pixels right of physics centre
 
 // Animation state for player
 const heroAnim = {
@@ -1203,7 +1205,7 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10; // +10% from base
+const GRAV=0.290, FLOOR_PAD=88, JUMP_V=-10; // +10% fall gravity from previous
 const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
@@ -1232,11 +1234,6 @@ function getSwordTip(p){
 // ══════════════════════════════════════════
 //  AUDIO
 // ══════════════════════════════════════════
-// Drop audio files next to ironveil.html and reference them by filename in each
-// weapon's hitSound / swingSound / spSound fields.
-// Supported formats: .ogg  .wav  — set any field to null to play nothing.
-// ── Web Audio API sound system ────────────────────────────────────────────────
-// Fetch + decode starts immediately on page load — no user gesture needed for
 // ── AUDIO ENGINE (mobile-safe lazy init) ─────────────
 let _audioCtx=null, _audioUnlocked=false;
 const _audioBuffers={};
@@ -1382,7 +1379,7 @@ const WEAPONS = {
     sheet: 'GFX/dagger_sheet.png',
     swingSound: null,
     hitSound:   'Audio/daggerhit.wav',
-    spSound:    'Audio/daggersp.wav',
+    spSound:    'Audio/dagger_sp.wav',
     spHitSound: 'Audio/daggerhit.wav',
     spSheet:      null,
     spFrameCount: 6,
@@ -1936,13 +1933,13 @@ const SLAM_LAND_SOUND   = 'Audio/slam_land.wav';   // ← plays when slammed ene
 const GRAPPLE_HOLD_FRAMES  = 18;                        // hold this many frames → zip; shorter → pull
 const GRAPPLE_COOLDOWN_MAX = 55;                        // frames between grapples
 const GRAPPLE_PULL_SPEED   = 14;                        // px/frame — enemy yanked to player
-const GRAPPLE_ZIP_SPEED    = 9;                         // px/frame — player zips to enemy
+const GRAPPLE_ZIP_SPEED    = 10.8;                      // px/frame — player zips to enemy (+20%)
 const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant hook is launched (both tap & hold)
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
 const JUGGLE_GRAV=0.065; // original juggle gravity — controls rise/follow height
-const JUGGLE_VY=-6; // upward velocity applied to juggled enemies
+const JUGGLE_VY=-6.6; // 10% faster upward launch for juggled enemies
 // player vy for juggle follow — both use JUGGLE_GRAV so they rise together; 5% less vy = 5% lower peak
 const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
 const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
@@ -1977,7 +1974,6 @@ const BOSS_COMBO_SWING2  = 25;
 const BOSS_SPIN_WINDUP   = 82;
 const BOSS_SPIN_SPEED    = 11;
 const BOSS_SPIN_DURATION = 43;
-const BOSS_SPIN_MIN_DIST = 230;// min distance to use spin (skip if closer)
 
 // ── STAGE 1 ENEMY CONSTANTS ──────────────────────────────────
 const DRUNKARD_THROW_RANGE  = 340;  // px — drunkard opens fire within this dist
@@ -2020,10 +2016,9 @@ const HIT_STREAK_TIMEOUT=480;
 let lastHitEnemy=null;
 let lockedTarget=null;
 let grappleTarget=null,grappleState='none',grappleTimer=0,grappleCooldown=0;
-let grappleHoldFrames=0,prevGrappleHeld=false;
+let grappleHoldFrames=0;
 let grappleRopeNodes=[], grappleRopeRestSeg=0, grappleRopeProgress=0;
 const GRAPPLE_NUM_NODES=12;
-let waveNum=1;
 let staggeredEnemies=[]; // queue of enemies to spawn
 let spawnedCount=0;
 let bossSpawned=false;
@@ -2213,10 +2208,11 @@ function startRun(){
 
   runKills=0; runGold=0; runExp=0;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
+  updateComboHud(0);
+  document.getElementById('streakHud').style.display='none';
   lastHitEnemy=null; lockedTarget=null; grappleTarget=null; grappleState='none'; grappleTimer=0; grappleCooldown=0; grappleHoldFrames=0;
   grappleRopeNodes=[]; grappleRopeProgress=0;
   gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[];
-  waveNum=1;
   heroAnim.name='idle'; heroAnim.frame=0; heroAnim.tick=0;
 
   const maxHp=calcMaxHp(), maxSt=calcMaxSt(), maxMp=calcMaxMp();
@@ -2228,7 +2224,6 @@ function startRun(){
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:2,
     atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSmashTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
-    legF:0,legT:0,
     comboStep:0,comboTimer:0,comboQueued:false,curStep:0,
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,
@@ -5357,7 +5352,6 @@ function _loopUpdate(){
     }
     grappleHoldFrames=0;
   }
-  prevGrappleHeld=grappleHeld;
 
   if(player.dead){ player.vx*=0.85; }
   else if(player.rsWindup){ player.vx*=0.85; }
@@ -5372,7 +5366,6 @@ function _loopUpdate(){
   if(player.onGround){ player.jumpsLeft=2; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
   if(jumpEdge&&player.jumpsLeft>0&&!player.dead){player.vy=JUMP_V*GAME_SPEED;player.jumpsLeft--;player.juggleFollow=false;}
   jumpEdge=false;
-  if(player.onGround&&Math.abs(player.vx)>.4){player.legT++;if(player.legT%3===0)player.legF++;}
 
   // STAMINA REGEN
   if(player.stRegenDelay>0){ player.stRegenDelay--; }
@@ -5618,7 +5611,10 @@ function _loopUpdate(){
   if(player.airAtkFreezeTimer>0) player.airAtkFreezeTimer--;
   if(player.airGrappleSuspendTimer>0){ player.airGrappleSuspendTimer--; player.vx*=0.7; if(player.airGrappleSuspendTimer===0) player.airSuspendKeepEvade=false; }
   if(player.onGround) player.airSuspendKeepEvade=false;
-  const _pGrav = player.airGrappleSuspendTimer>0 ? 0 : player.airAtkFreezeTimer>0 ? 0 : (!player.onGround&&player.atk) ? AIR_ATK_GRAV_MULT : player.juggleFollow ? JUGGLE_GRAV/GRAV : 1;
+  // Air-smash hang: zero gravity for first 10 frames of airSmashTimer (62→52), normal fall after
+  const _airSmashHang = player.airSmashTimer > 52;
+  const _pGrav = player.airGrappleSuspendTimer>0 ? 0 : player.airAtkFreezeTimer>0 ? 0 : _airSmashHang ? 0 : (!player.onGround&&player.atk) ? AIR_ATK_GRAV_MULT : player.juggleFollow ? JUGGLE_GRAV/GRAV : 1;
+  if(_airSmashHang) player.vy=0; // freeze vertical position during hang
   physics(player, true, _pGrav);
   updateGrapple();
   const maxCamX=Math.max(0, STAGE_RIGHT - canvas.width);
