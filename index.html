@@ -9,12 +9,13 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
-/* ── VIEWPORT — fills full screen, no black bars ── */
+/* ── VIEWPORT — fills screen, menus/HUD position relative to it ── */
 #viewport{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   overflow:hidden;
 }
-#c{position:fixed;top:0;left:0;width:100%;height:100%;}
+#c{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:fill;}
 /* ── SETTINGS SCREEN ── */
 .settings-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
 .settings-title{font-family:'Cinzel Decorative',serif;font-size:1.9rem;letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
@@ -594,8 +595,7 @@ canvas{display:block;}
     <div class="settings-divider"></div>
     <div class="settings-section-lbl">Mobile Controls</div>
     <button class="menu-btn settings-fs-btn" id="mobileCtrlBtn" onclick="toggleMobileControls()">
-      <span id="mobileCtrlIcon">📱</span>
-      <span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
+      <span>📱</span><span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
     </button>
     <div class="diff-desc">Touch HUD for phones in landscape</div>
     <div class="settings-divider"></div>
@@ -882,15 +882,14 @@ function expForLevel(lv){ return Math.floor(100*Math.pow(lv,1.4)); }
 //  VIEWPORT / SETTINGS
 // ══════════════════════════════════════════
 function scaleViewport(){
-  // Resize canvas to exactly fill the window — no black bars, no scaling
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  // Keep the viewport div filling the screen too (screens/menus use fixed positioning)
-  const vp = document.getElementById('viewport');
+  // Canvas internal resolution stays 1280×720 — CSS stretches it to fill the screen.
+  // The viewport div just needs to cover the screen for menu/HUD positioning.
+  const vp=document.getElementById('viewport');
   vp.style.width  = window.innerWidth  + 'px';
   vp.style.height = window.innerHeight + 'px';
+  vp.style.transform = '';
 }
-window.addEventListener('resize', scaleViewport);
+window.addEventListener('resize',scaleViewport);
 function showSettings(){
   document.getElementById('menuScreen').classList.add('hidden');
   document.getElementById('settingsScreen').classList.remove('hidden');
@@ -973,7 +972,8 @@ function updateSaveInfo(){
 // ══════════════════════════════════════════
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
-// Canvas size is set by scaleViewport() at boot and on every resize
+function resize(){ canvas.width=1280; canvas.height=720; }
+resize();
 // ── STAGE DEFINITIONS ─────────────────────────────────────────
 // bg:    image file for the stage background (cover-fitted to 1280×720)
 // music: audio file looped during gameplay
@@ -1139,7 +1139,7 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.38, FLOOR_PAD=88, JUMP_V=-10; // increased gravity for snappier jumps
+const GRAV=0.36, FLOOR_PAD=88, JUMP_V=-10; // stronger gravity = snappier fall
 const AIR_ATK_GRAV_MULT   = 0.1; // gravity multiplier during airborne normal attacks (0.1 = 90% slower fall)
 const AIR_ATK_FREEZE_FRAMES = 60;  // frames the player hangs in the air on first air attack (~1s at 60fps)
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -1889,8 +1889,8 @@ const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
-const ENEMY_WINDUP_FRAMES = 28;  // frames enemy telegraphs before swinging (~0.47s at 60fps)
-const ENEMY_SWING_FRAMES  = 50;  // total frames for the full swing arc (~0.83s at 60fps)
+const ENEMY_WINDUP_FRAMES = 28;  // faster telegraph (~0.47s at 60fps)
+const ENEMY_SWING_FRAMES  = 52;  // faster swing arc (~0.87s at 60fps)
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
 const KNIGHT_COMBO_GAP    = 26;  // short gap between knight's two-hit combo swings
@@ -6920,42 +6920,41 @@ window.addEventListener('gamepaddisconnected', () => {
 
 
 // ══════════════════════════════════════════
-//  MOBILE CONTROLS — canvas drawn + canvas touch
+//  MOBILE CONTROLS — drawn on canvas, touched via canvas
 // ══════════════════════════════════════════
 let _mcBtns = [];
 const _mcPressed = {};
 
 function _buildMcLayout(){
-  const W = canvas.width, H = canvas.height;
-  // Button radius scales with screen short-side, kept small & minimal
-  const r  = Math.round(Math.min(W,H) * 0.065); // ~6.5% of short side
-  const rL = Math.round(r * 1.15);               // attack is slightly bigger
-  const pad = Math.round(Math.min(W,H) * 0.05);
-  const gap = Math.round(r * 2.5);
+  const W=canvas.width, H=canvas.height;
+  // Buttons sized relative to canvas internal res (1280×720)
+  // so they look the same regardless of physical screen size
+  const r   = Math.round(H * 0.075);   // ~54px at 720h
+  const rAtk= Math.round(H * 0.088);   // attack slightly bigger
+  const pad = Math.round(H * 0.055);
+  const gap = Math.round(r * 2.6);
 
-  // ── LEFT CLUSTER ─────────────────────────────────
-  // move-left, move-right in a row at bottom-left
-  // grapple above-left, parry above-right
-  const lbx = pad + r;           // left base x
-  const lby = H - pad - r;       // left base y (bottom)
+  // LEFT side: movement bottom row, grapple+parry row above
+  const lx = pad + r;
+  const ly = H - pad - r;
 
-  // ── RIGHT CLUSTER ────────────────────────────────
-  // jump top, attack bottom-right, magic bottom-mid, evade bottom-left
-  const rbx = W - pad - r;
-  const rby = H - pad - r;
+  // RIGHT side: jump top, attack+magic+evade bottom cluster
+  const rx = W - pad - r;
+  const ry = H - pad - r;
 
   _mcBtns = [
-    // LEFT — movement
-    { id:'l',       x:lbx,         y:lby,       r:r,  label:'◀', col:'rgba(255,255,255,0.18)' },
-    { id:'r',       x:lbx+gap,     y:lby,       r:r,  label:'▶', col:'rgba(255,255,255,0.18)' },
-    // LEFT — combat (row above)
-    { id:'grapple', x:lbx,         y:lby-gap,   r:r,  label:'🪝', col:'rgba(255,200,60,0.18)' },
-    { id:'parry',   x:lbx+gap,     y:lby-gap,   r:r,  label:'🛡', col:'rgba(255,220,80,0.18)' },
-    // RIGHT — main actions
-    { id:'jump',    x:rbx,         y:rby-gap,   r:r,  label:'▲', col:'rgba(255,255,255,0.18)' },
-    { id:'atk',     x:rbx,         y:rby,       r:rL, label:'⚔', col:'rgba(220,60,60,0.22)'  },
-    { id:'magic',   x:rbx-gap,     y:rby,       r:r,  label:'✨', col:'rgba(120,80,220,0.18)' },
-    { id:'evade',   x:rbx-gap,     y:rby-gap,   r:r,  label:'💨', col:'rgba(80,160,220,0.18)' },
+    // LEFT — move
+    { id:'l',       x:lx,       y:ly,      r:r,    label:'◀', col:'rgba(255,255,255,0.14)' },
+    { id:'r',       x:lx+gap,   y:ly,      r:r,    label:'▶', col:'rgba(255,255,255,0.14)' },
+    // LEFT — grapple & parry above
+    { id:'grapple', x:lx,       y:ly-gap,  r:r,    label:'🪝', col:'rgba(255,200,60,0.14)'  },
+    { id:'parry',   x:lx+gap,   y:ly-gap,  r:r,    label:'🛡', col:'rgba(255,220,80,0.14)'  },
+    // RIGHT — jump
+    { id:'jump',    x:rx,       y:ry-gap,  r:r,    label:'▲', col:'rgba(255,255,255,0.14)' },
+    // RIGHT — attack (bigger), magic, evade
+    { id:'atk',     x:rx,       y:ry,      r:rAtk, label:'⚔', col:'rgba(220,60,60,0.18)'   },
+    { id:'magic',   x:rx-gap,   y:ry,      r:r,    label:'✨', col:'rgba(120,80,220,0.14)'  },
+    { id:'evade',   x:rx-gap,   y:ry-gap,  r:r,    label:'💨', col:'rgba(60,140,220,0.14)'  },
   ];
 }
 
@@ -6963,80 +6962,71 @@ function _drawMobileControls(){
   if(!save.mobileControls || gameOver || paused) return;
   _buildMcLayout();
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  _mcBtns.forEach(b=>{
-    const pressed = !!_mcPressed[b.id];
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-    // Minimal style: just a thin ring + faint fill, brighter when pressed
-    ctx.fillStyle   = pressed ? 'rgba(255,220,80,0.22)' : b.col;
-    ctx.strokeStyle = pressed ? 'rgba(255,220,80,0.85)' : 'rgba(255,255,255,0.28)';
-    ctx.lineWidth   = pressed ? 2.5 : 1.5;
-    ctx.fill();
-    ctx.stroke();
-    // Label
-    ctx.font = Math.round(b.r * 0.65) + 'px serif';
-    ctx.globalAlpha = pressed ? 1.0 : 0.65;
-    ctx.fillStyle = '#fff';
-    ctx.fillText(b.label, b.x, b.y + 1);
-    ctx.globalAlpha = 1;
-  });
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const b of _mcBtns){
+    const p = !!_mcPressed[b.id];
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle   = p ? 'rgba(255,215,60,0.20)' : b.col;
+    ctx.strokeStyle = p ? 'rgba(255,215,60,0.90)' : 'rgba(255,255,255,0.22)';
+    ctx.lineWidth   = p ? 2 : 1.2;
+    ctx.fill(); ctx.stroke();
+    ctx.font = Math.round(b.r*0.6)+'px serif';
+    ctx.globalAlpha = p ? 1 : 0.6;
+    ctx.fillStyle='#fff';
+    ctx.fillText(b.label, b.x, b.y+1);
+    ctx.globalAlpha=1;
+  }
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.restore();
 }
 
-function _mcHitTest(cx, cy){
-  for(const b of _mcBtns){
-    const dx=cx-b.x, dy=cy-b.y;
-    if(dx*dx+dy*dy <= b.r*b.r) return b.id;
-  }
+function _mcHit(cx,cy){
+  for(const b of _mcBtns){ const dx=cx-b.x,dy=cy-b.y; if(dx*dx+dy*dy<=b.r*b.r) return b.id; }
   return null;
 }
 
-function _mcActivate(id){
+function _mcOn(id){
   _mcPressed[id]=true;
-  if     (id==='l')      { btnS.l=true; }
-  else if(id==='r')      { btnS.r=true; }
-  else if(id==='jump')   { btnS.jump=true; jumpEdge=true; }
-  else if(id==='atk')    { atkEdge=true; }
-  else if(id==='magic')  { btnS.magic=true; }
-  else if(id==='evade')  { evadeEdge=true; }
-  else if(id==='parry')  { parryEdge=true; btnS.parry=true; }
-  else if(id==='grapple'){ btnS.grapple=true; }
+  if(id==='l')       btnS.l=true;
+  else if(id==='r')  btnS.r=true;
+  else if(id==='jump'){ btnS.jump=true; jumpEdge=true; }
+  else if(id==='atk')  atkEdge=true;
+  else if(id==='magic') btnS.magic=true;
+  else if(id==='evade') evadeEdge=true;
+  else if(id==='parry'){ parryEdge=true; btnS.parry=true; }
+  else if(id==='grapple') btnS.grapple=true;
 }
-
-function _mcDeactivate(id){
+function _mcOff(id){
   delete _mcPressed[id];
-  if     (id==='l')      { btnS.l=false; }
-  else if(id==='r')      { btnS.r=false; }
-  else if(id==='jump')   { btnS.jump=false; }
-  else if(id==='magic')  { btnS.magic=false; }
-  else if(id==='parry')  { btnS.parry=false; }
-  else if(id==='grapple'){ btnS.grapple=false; }
+  if(id==='l')        btnS.l=false;
+  else if(id==='r')   btnS.r=false;
+  else if(id==='jump') btnS.jump=false;
+  else if(id==='magic') btnS.magic=false;
+  else if(id==='parry') btnS.parry=false;
+  else if(id==='grapple') btnS.grapple=false;
 }
 
 function toggleMobileControls(){
-  save.mobileControls = !save.mobileControls;
-  _syncMobileBtn();
-  writeSave();
+  save.mobileControls=!save.mobileControls; _syncMobileBtn(); writeSave();
 }
 function _syncMobileBtn(){
-  const on  = !!save.mobileControls;
-  const lbl = document.getElementById('mobileCtrlLabel');
-  const btn = document.getElementById('mobileCtrlBtn');
-  if(lbl) lbl.textContent = on ? 'MOBILE CONTROLS: ON' : 'MOBILE CONTROLS: OFF';
-  if(btn) btn.classList.toggle('active', on);
+  const on=!!save.mobileControls;
+  const l=document.getElementById('mobileCtrlLabel');
+  if(l) l.textContent=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
 }
 
 function initMobileControls(){
-  const touchMap = {}; // touch identifier → button id
+  const tmap={};
 
-  function toCanvas(sx, sy){
-    const r = canvas.getBoundingClientRect();
-    // Canvas internal resolution == window size now, so this is 1:1
-    return { x: sx - r.left, y: sy - r.top };
+  // Touch coords from browser are CSS pixels.
+  // Canvas is drawn at 1280×720 internally but displayed at full screen via CSS.
+  // We must scale touch coords to match canvas internal resolution.
+  function toCanvas(sx,sy){
+    const rect=canvas.getBoundingClientRect();
+    return {
+      x: (sx-rect.left) / rect.width  * canvas.width,
+      y: (sy-rect.top)  / rect.height * canvas.height,
+    };
   }
 
   canvas.addEventListener('touchstart',(e)=>{
@@ -7044,11 +7034,9 @@ function initMobileControls(){
     if(!save.mobileControls) return;
     _buildMcLayout();
     for(const t of e.changedTouches){
-      const {x,y} = toCanvas(t.clientX, t.clientY);
-      const id = _mcHitTest(x,y);
-      if(!id) continue;
-      touchMap[t.identifier] = id;
-      _mcActivate(id);
+      const {x,y}=toCanvas(t.clientX,t.clientY);
+      const id=_mcHit(x,y); if(!id) continue;
+      tmap[t.identifier]=id; _mcOn(id);
     }
   },{passive:false});
 
@@ -7057,33 +7045,28 @@ function initMobileControls(){
     if(!save.mobileControls) return;
     _buildMcLayout();
     for(const t of e.changedTouches){
-      const {x,y} = toCanvas(t.clientX, t.clientY);
-      const newId = _mcHitTest(x,y);
-      const oldId = touchMap[t.identifier];
-      if(newId===oldId) continue;
-      if(oldId){ _mcDeactivate(oldId); }
-      if(newId){ touchMap[t.identifier]=newId; _mcActivate(newId); }
-      else { delete touchMap[t.identifier]; }
+      const {x,y}=toCanvas(t.clientX,t.clientY);
+      const nid=_mcHit(x,y), oid=tmap[t.identifier];
+      if(nid===oid) continue;
+      if(oid) _mcOff(oid);
+      if(nid){ tmap[t.identifier]=nid; _mcOn(nid); }
+      else delete tmap[t.identifier];
     }
   },{passive:false});
 
   canvas.addEventListener('touchend',(e)=>{
     e.preventDefault();
     for(const t of e.changedTouches){
-      const id = touchMap[t.identifier];
-      if(!id) continue;
-      delete touchMap[t.identifier];
-      _mcDeactivate(id);
+      const id=tmap[t.identifier]; if(!id) continue;
+      delete tmap[t.identifier]; _mcOff(id);
     }
   },{passive:false});
 
   canvas.addEventListener('touchcancel',(e)=>{
     e.preventDefault();
     for(const t of e.changedTouches){
-      const id = touchMap[t.identifier];
-      if(!id) continue;
-      delete touchMap[t.identifier];
-      _mcDeactivate(id);
+      const id=tmap[t.identifier]; if(!id) continue;
+      delete tmap[t.identifier]; _mcOff(id);
     }
   },{passive:false});
 }
@@ -7095,7 +7078,6 @@ initMobileControls();
 // ══════════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════════
-scaleViewport(); // size canvas immediately before any draw calls
 openDB().then(()=>{
   loadSave().then(()=>{ scaleViewport(); showMenu(); }).catch(()=>{ scaleViewport(); showMenu(); });
 }).catch(()=>{
