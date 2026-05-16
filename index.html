@@ -516,81 +516,6 @@ canvas{display:block;}
 .gp-a{background:#3a9e46;color:#fff;}.gp-b{background:#b83030;color:#fff;}.gp-x{background:#2860a8;color:#fff;}.gp-y{background:#b08010;color:#fff;}
 .gp-pill{background:rgba(180,180,180,0.35);color:rgba(220,220,220,0.85);border:1px solid rgba(200,200,200,0.2);border-radius:4px;width:auto;height:17px;padding:0 5px;font-size:0.48rem;letter-spacing:0.04em;font-family:'Cinzel',serif;}
 .gp-dp{background:rgba(90,90,90,0.7);color:#ccc;border-radius:3px;font-size:0.65rem;font-family:sans-serif;}
-/* ── MOBILE CONTROLS ── */
-#mobileControls{
-  position:fixed;inset:0;pointer-events:none;z-index:12;
-  display:none;
-  touch-action:none;
-}
-#mobileControls.active{ display:block; }
-
-/* D-pad cluster — bottom left */
-.mc-dpad{
-  position:absolute;bottom:20px;left:16px;
-  width:210px;height:210px;
-  pointer-events:all;
-  touch-action:none;
-  -webkit-tap-highlight-color:transparent;
-}
-.mc-btn{
-  position:absolute;
-  background:rgba(20,12,4,0.78);
-  border:2px solid rgba(200,155,60,0.5);
-  border-radius:10px;
-  color:rgba(220,185,100,0.9);
-  font-size:1.6rem;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  touch-action:none;
-  user-select:none;
-  -webkit-user-select:none;
-  transition:background 0.06s,border-color 0.06s;
-  pointer-events:all;
-}
-.mc-btn:active,.mc-btn.pressed{
-  background:rgba(200,155,60,0.28);
-  border-color:rgba(255,210,80,0.95);
-}
-/* Left / Right arrows — wider for easy reach */
-.mc-left { left:0;    top:73px; width:68px; height:68px; }
-.mc-right{ right:0;   top:73px; width:68px; height:68px; }
-/* Jump above centre */
-.mc-jump { left:71px; top:0;    width:68px; height:68px; border-radius:50%; }
-
-/* Action buttons — bottom right cluster */
-.mc-actions{
-  position:absolute;bottom:20px;right:16px;
-  width:290px;height:210px;
-  pointer-events:all;
-  touch-action:none;
-}
-/* Row 1 — main actions (right side, bigger) */
-.mc-atk    { right:0;    bottom:136px; width:74px;height:74px; border-radius:50%; color:#fff;    background:rgba(180,40,40,0.78);  border-color:rgba(255,80,80,0.55);  font-size:1.2rem; }
-.mc-sp     { right:84px; bottom:142px; width:64px;height:64px; border-radius:50%; color:#ffd060; background:rgba(160,120,20,0.78); border-color:rgba(220,180,60,0.55); font-size:1.1rem; }
-.mc-magic  { right:158px;bottom:142px; width:64px;height:64px; border-radius:50%; color:#c0a0ff; background:rgba(80,40,160,0.78);  border-color:rgba(140,90,220,0.55); font-size:1.1rem; }
-/* Row 2 — utility */
-.mc-evade  { right:0;    bottom:52px;  width:64px;height:64px; border-radius:50%; font-size:1.1rem; }
-.mc-parry  { right:74px; bottom:52px;  width:64px;height:64px; border-radius:50%; color:#ffe080; font-size:1.1rem; }
-.mc-launch { right:148px;bottom:52px;  width:64px;height:64px; border-radius:50%; color:#40ffcc; font-size:1rem; }
-.mc-grapple{ right:222px;bottom:52px;  width:64px;height:64px; border-radius:50%; color:#ffcc40; font-size:1rem; }
-
-/* Pause button top-right */
-.mc-pause{
-  position:absolute;top:14px;right:14px;
-  width:54px;height:54px;border-radius:10px;
-  font-size:1.3rem;
-  pointer-events:all;
-  touch-action:none;
-}
-/* Potion shortcut top-left */
-.mc-potion{
-  position:absolute;top:14px;left:14px;
-  width:54px;height:54px;border-radius:10px;
-  font-size:1.3rem;
-  pointer-events:all;
-  touch-action:none;
-}
 
 </style>
 </head>
@@ -1003,85 +928,191 @@ function _syncMobileControlsBtn(){
   if(btn) btn.classList.toggle('active', on);
 }
 function _applyMobileControls(){
-  const mc = document.getElementById('mobileControls');
-  if(!mc) return;
-  // Only show overlay during active gameplay (not in menus)
-  const inGame = !gameOver && !paused &&
-    document.getElementById('menuScreen')?.classList.contains('hidden') &&
-    document.getElementById('prepScreen')?.classList.contains('hidden');
-  if(save.mobileControls && inGame){
-    mc.classList.add('active');
-  } else {
-    mc.classList.remove('active');
+  // Canvas-drawn controls — nothing to show/hide in DOM.
+  // _drawMobileControls() in _loopDraw checks save.mobileControls directly.
+}
+
+
+
+
+// ══════════════════════════════════════════
+//  MOBILE CONTROLS (canvas-drawn + canvas touch)
+// ══════════════════════════════════════════
+
+// Button layout definitions — computed from canvas size at draw time
+let _mcBtns = []; // [{id, x, y, r, label, color}]  — rebuilt each draw call
+
+function _buildMcLayout(){
+  const W = canvas.width, H = canvas.height;
+  const S = Math.min(W, H); // scale reference
+  const bs = Math.floor(S * 0.095); // base button radius ~9.5% of short side
+  const pad = Math.floor(S * 0.06);
+
+  // D-pad: bottom-left
+  const dpx = pad + bs;
+  const dpy = H - pad - bs;
+  const gap = Math.floor(bs * 2.4);
+
+  // Action buttons: bottom-right
+  const ax = W - pad - bs;
+  const ay = H - pad - bs;
+
+  _mcBtns = [
+    // D-pad
+    { id:'l',      x:dpx - gap,   y:dpy,         r:bs,              label:'◀', color:'rgba(200,155,60,0.55)' },
+    { id:'r',      x:dpx + gap,   y:dpy,         r:bs,              label:'▶', color:'rgba(200,155,60,0.55)' },
+    { id:'jump',   x:dpx,         y:dpy - gap,   r:bs,              label:'▲', color:'rgba(200,155,60,0.55)' },
+    // Actions row 1
+    { id:'atk',    x:ax,          y:ay - gap,    r:Math.floor(bs*1.1), label:'⚔', color:'rgba(200,50,50,0.72)' },
+    { id:'sp',     x:ax - gap,    y:ay - gap,    r:bs,              label:'✦', color:'rgba(180,140,20,0.72)' },
+    { id:'magic',  x:ax - gap*2,  y:ay - gap,    r:bs,              label:'✨', color:'rgba(80,40,180,0.72)' },
+    // Actions row 2
+    { id:'evade',  x:ax,          y:ay,           r:bs,              label:'💨', color:'rgba(60,120,180,0.72)' },
+    { id:'parry',  x:ax - gap,    y:ay,           r:bs,              label:'🛡', color:'rgba(180,160,20,0.72)' },
+    { id:'launch', x:ax - gap*2,  y:ay,           r:bs,              label:'↑', color:'rgba(20,160,120,0.72)' },
+    { id:'grapple',x:ax - gap*3,  y:ay,           r:bs,              label:'🪝', color:'rgba(160,120,20,0.72)' },
+    // Top-right: pause
+    { id:'pause',  x:W - pad - Math.floor(bs*0.7), y:pad + Math.floor(bs*0.7), r:Math.floor(bs*0.7), label:'⏸', color:'rgba(100,80,40,0.72)' },
+    // Top-left: potion
+    { id:'potion', x:pad + Math.floor(bs*0.7),     y:pad + Math.floor(bs*0.7), r:Math.floor(bs*0.7), label:'🧪', color:'rgba(40,120,80,0.72)' },
+  ];
+}
+
+// Which buttons are currently pressed (set by touch handlers)
+const _mcPressed = {};
+
+function _drawMobileControls(){
+  if(!save.mobileControls || gameOver || paused) return;
+  _buildMcLayout();
+  ctx.save();
+  ctx.font = 'bold 14px Cinzel,serif';
+  _mcBtns.forEach(b=>{
+    const pressed = !!_mcPressed[b.id];
+    // Circle fill
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.fillStyle = pressed
+      ? 'rgba(220,175,60,0.35)'
+      : b.color;
+    ctx.fill();
+    // Border
+    ctx.lineWidth = pressed ? 3 : 2;
+    ctx.strokeStyle = pressed
+      ? 'rgba(255,220,80,0.95)'
+      : 'rgba(200,155,60,0.6)';
+    ctx.stroke();
+    // Label
+    const fontSize = Math.floor(b.r * 0.72);
+    ctx.font = fontSize + 'px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = pressed ? 1 : 0.85;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(b.label, b.x, b.y);
+    ctx.globalAlpha = 1;
+  });
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+}
+
+function _mcHitTest(tx, ty){
+  for(const b of _mcBtns){
+    const dx = tx - b.x, dy = ty - b.y;
+    if(dx*dx + dy*dy <= b.r*b.r) return b.id;
   }
+  return null;
+}
+
+function _mcDown(id){
+  _mcPressed[id] = true;
+  if(id==='l')       { btnS.l=true; }
+  else if(id==='r')  { btnS.r=true; }
+  else if(id==='jump'){ btnS.jump=true; jumpEdge=true; }
+  else if(id==='atk') { atkEdge=true; }
+  else if(id==='sp')  { btnS.sp=true; }
+  else if(id==='magic'){ btnS.magic=true; }
+  else if(id==='evade'){ evadeEdge=true; }
+  else if(id==='parry'){ parryEdge=true; btnS.parry=true; }
+  else if(id==='launch'){ btnS.launch=true; }
+  else if(id==='grapple'){ btnS.grapple=true; }
+  else if(id==='pause'){ paused?resumeGame():pauseGame(); }
+  else if(id==='potion'){ usePotion(); }
+}
+
+function _mcUp(id){
+  delete _mcPressed[id];
+  if(id==='l')        { btnS.l=false; }
+  else if(id==='r')   { btnS.r=false; }
+  else if(id==='jump') { btnS.jump=false; }
+  else if(id==='sp')   { btnS.sp=false; }
+  else if(id==='magic'){ btnS.magic=false; }
+  else if(id==='parry'){ btnS.parry=false; }
+  else if(id==='launch'){ btnS.launch=false; }
+  else if(id==='grapple'){ btnS.grapple=false; }
 }
 
 function initMobileControls(){
-  const map = {
-    'mc-left':    { down:()=>{ btnS.l=true; },                          up:()=>{ btnS.l=false; } },
-    'mc-right':   { down:()=>{ btnS.r=true; },                          up:()=>{ btnS.r=false; } },
-    'mc-jump':    { down:()=>{ btnS.jump=true; jumpEdge=true; },        up:()=>{ btnS.jump=false; } },
-    'mc-atk':     { down:()=>{ atkEdge=true; },                         up:()=>{} },
-    'mc-sp':      { down:()=>{ btnS.sp=true; },                         up:()=>{ btnS.sp=false; } },
-    'mc-magic':   { down:()=>{ btnS.magic=true; },                      up:()=>{ btnS.magic=false; } },
-    'mc-evade':   { down:()=>{ evadeEdge=true; },                       up:()=>{} },
-    'mc-parry':   { down:()=>{ parryEdge=true; btnS.parry=true; },      up:()=>{ btnS.parry=false; } },
-    'mc-launch':  { down:()=>{ btnS.launch=true; },                     up:()=>{ btnS.launch=false; } },
-    'mc-grapple': { down:()=>{ btnS.grapple=true; },                    up:()=>{ btnS.grapple=false; } },
-    'mc-pause':   { down:()=>{ paused?resumeGame():pauseGame(); },      up:()=>{} },
-    'mc-potion':  { down:()=>{ usePotion(); },                          up:()=>{} },
-  };
+  // Maps touch identifier -> button id
+  const touchMap = {};
 
-  // Each button gets its own listeners directly on the element.
-  // We track active touches per button so multi-touch works correctly
-  // and a finger lifting off still releases the right button.
-  const activeTouches = {}; // touchIdentifier -> buttonId
+  // Scale canvas coords from screen pixels (touch coords are in CSS pixels,
+  // but canvas is 1280x720 internally — need to convert)
+  function toCanvas(sx, sy){
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (sx - rect.left) * (canvas.width  / rect.width),
+      y: (sy - rect.top)  * (canvas.height / rect.height),
+    };
+  }
 
-  Object.keys(map).forEach(id => {
-    const el = document.getElementById(id);
-    if(!el) return;
+  canvas.addEventListener('touchstart', (e)=>{
+    e.preventDefault();
+    if(!save.mobileControls) return;
+    _buildMcLayout();
+    for(const t of e.changedTouches){
+      const {x,y} = toCanvas(t.clientX, t.clientY);
+      const id = _mcHitTest(x, y);
+      if(!id) continue;
+      touchMap[t.identifier] = id;
+      _mcDown(id);
+    }
+  }, { passive:false });
 
-    el.addEventListener('touchstart', (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      for(const t of e.changedTouches){
-        activeTouches[t.identifier] = id;
-      }
-      el.classList.add('pressed');
-      map[id].down();
-    }, { passive:false });
+  canvas.addEventListener('touchend', (e)=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchMap[t.identifier];
+      if(!id) continue;
+      delete touchMap[t.identifier];
+      _mcUp(id);
+    }
+  }, { passive:false });
 
-    el.addEventListener('touchend', (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      // Only release if no more fingers on this button
-      let stillPressed = false;
-      for(const t of e.touches){
-        if(activeTouches[t.identifier] === id){ stillPressed = true; break; }
-      }
-      for(const t of e.changedTouches){ delete activeTouches[t.identifier]; }
-      if(!stillPressed){
-        el.classList.remove('pressed');
-        map[id].up();
-      }
-    }, { passive:false });
+  canvas.addEventListener('touchcancel', (e)=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchMap[t.identifier];
+      if(!id) continue;
+      delete touchMap[t.identifier];
+      _mcUp(id);
+    }
+  }, { passive:false });
 
-    el.addEventListener('touchcancel', (e)=>{
-      e.preventDefault();
-      for(const t of e.changedTouches){ delete activeTouches[t.identifier]; }
-      el.classList.remove('pressed');
-      map[id].up();
-    }, { passive:false });
-
-    // Mouse fallback for desktop testing
-    el.addEventListener('mousedown',  (e)=>{ e.preventDefault(); el.classList.add('pressed');    map[id].down(); });
-    el.addEventListener('mouseup',    (e)=>{ e.preventDefault(); el.classList.remove('pressed'); map[id].up();   });
-    el.addEventListener('mouseleave', ()=>{                       el.classList.remove('pressed'); map[id].up();   });
-  });
-
-  // Prevent page scroll/zoom while any button is held
-  document.addEventListener('touchmove', (e)=>{
-    if(Object.keys(activeTouches).length > 0) e.preventDefault();
+  canvas.addEventListener('touchmove', (e)=>{
+    e.preventDefault();
+    if(!save.mobileControls) return;
+    _buildMcLayout();
+    // Allow sliding from button to button (e.g. swipe left->right for movement)
+    for(const t of e.changedTouches){
+      const {x,y} = toCanvas(t.clientX, t.clientY);
+      const newId = _mcHitTest(x, y);
+      const oldId = touchMap[t.identifier];
+      if(newId === oldId) continue;
+      if(oldId){ _mcUp(oldId); }
+      if(newId){ touchMap[t.identifier]=newId; _mcDown(newId); }
+      else { delete touchMap[t.identifier]; }
+    }
   }, { passive:false });
 }
 
@@ -2148,7 +2179,6 @@ function floorY(){ return canvas.height-FLOOR_PAD; }
 function showMenu(){
   gameOver=true;
   cancelAnimationFrame(frameId);
-  document.getElementById('mobileControls')?.classList.remove('active');
   document.getElementById('hud').classList.add('hidden');
   document.getElementById('cdBar').classList.remove('visible');
   document.getElementById('dead').classList.remove('show');
@@ -2171,7 +2201,6 @@ function pauseGame(){
   paused=true;
   writeSave();
   document.getElementById('pauseScreen').classList.add('show');
-  document.getElementById('mobileControls')?.classList.remove('active');
 }
 
 function resumeGame(){
@@ -6379,6 +6408,9 @@ function _loopDraw(){
   // Parry shield overlay
   if(!player.dead) drawParryShield(player);
 
+  // Mobile touch controls drawn on canvas
+  _drawMobileControls();
+
   ctx.restore();
 }
 
@@ -7108,28 +7140,6 @@ openDB().then(()=>{
 });
 initMobileControls();
 </script>
-<!-- ══ MOBILE CONTROLS OVERLAY ══ -->
-<div id="mobileControls">
-  <!-- D-pad -->
-  <div class="mc-dpad">
-    <div class="mc-btn mc-jump"   id="mc-jump"   >▲</div>
-    <div class="mc-btn mc-left"   id="mc-left"   >◀</div>
-    <div class="mc-btn mc-right"  id="mc-right"  >▶</div>
-  </div>
-  <!-- Action buttons -->
-  <div class="mc-actions">
-    <div class="mc-btn mc-atk"    id="mc-atk"    >⚔</div>
-    <div class="mc-btn mc-sp"     id="mc-sp"     >✦</div>
-    <div class="mc-btn mc-magic"  id="mc-magic"  >✨</div>
-    <div class="mc-btn mc-evade"  id="mc-evade"  >💨</div>
-    <div class="mc-btn mc-parry"  id="mc-parry"  >🛡</div>
-    <div class="mc-btn mc-launch" id="mc-launch" >↑</div>
-    <div class="mc-btn mc-grapple" id="mc-grapple">🪝</div>
-  </div>
-  <!-- Top buttons -->
-  <div class="mc-btn mc-pause"  id="mc-pause"  >⏸</div>
-  <div class="mc-btn mc-potion" id="mc-potion" >🧪</div>
-</div>
 </div><!-- #viewport -->
 </body>
 </html>
