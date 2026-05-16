@@ -151,6 +151,70 @@ canvas{display:block;}
 .prep-confirm-btn{width:100%;padding:16px;font-size:0.95rem;letter-spacing:0.28em;}
 .prep-back-btn{width:100%;font-size:0.72rem;padding:10px;opacity:0.6;}
 @media(max-width:420px){.weapon-grid{grid-template-columns:1fr!important;}}
+
+/* ── PHONE LANDSCAPE ── */
+@media (orientation:landscape) and (max-height:500px){
+  /* Main menu: compact vertical, scrollable */
+  #menuScreen{
+    padding-top:4px!important;
+    gap:5px!important;
+    overflow-y:auto;
+    justify-content:flex-start;
+    padding-bottom:8px;
+  }
+  .menu-title{font-size:1.2rem!important;letter-spacing:0.1em;}
+  .menu-subtitle{font-size:0.55rem!important;letter-spacing:0.2em;}
+  .menu-divider{margin:2px 0;}
+  .menu-btn{
+    width:clamp(140px,28vw,190px)!important;
+    font-size:0.65rem!important;
+    padding:8px 12px!important;
+    letter-spacing:0.1em;
+  }
+  .save-info{font-size:0.58rem!important;line-height:1.5;padding:0 16px;}
+  /* Settings screen: two-column layout */
+  #settingsScreen .settings-wrap{
+    flex-direction:row;flex-wrap:wrap;
+    align-items:flex-start;justify-content:center;
+    gap:5px 20px;
+    overflow-y:auto;max-height:96vh;
+    padding:6px 12px;
+  }
+  .settings-title{width:100%;font-size:0.95rem!important;margin-bottom:0;}
+  .settings-section-lbl{font-size:0.55rem;}
+  .settings-divider{width:clamp(160px,36vw,240px);}
+  .diff-row{width:clamp(160px,36vw,220px);}
+  .menu-btn.settings-fs-btn,#settingsScreen .menu-btn{
+    width:clamp(140px,30vw,210px)!important;
+    font-size:0.62rem!important;
+    padding:7px 10px!important;
+  }
+  /* Boss rush & stage select: compact */
+  #bossRushScreen .boss-rush-wrap,
+  #stageSelectScreen .boss-rush-wrap{
+    max-height:92vh;overflow-y:auto;
+    padding:4px 8px 12px;gap:5px;
+  }
+  .boss-rush-title{font-size:0.9rem!important;margin-bottom:0;}
+  .boss-rush-sub{font-size:0.54rem;margin-bottom:4px;}
+  .boss-entry{padding:6px 10px;}
+  .boss-entry-name{font-size:0.68rem;}
+  .stage-card{height:62px;}
+  /* Prep screen */
+  .prep-wrap{max-height:94vh;padding:0 0 12px;}
+  .prep-header{padding:6px 12px 6px;}
+  .prep-title{font-size:0.82rem!important;}
+  .prep-section-head{padding:6px 12px 4px;}
+  .stat-row{padding:6px 10px;}
+  .prep-actions{padding:6px 12px 0;}
+  .prep-tab{padding:8px 4px 7px;font-size:0.5rem;}
+  /* Pause screen */
+  #pauseScreen{gap:8px;}
+  #pauseScreen button{padding:8px 24px;font-size:0.7rem;width:175px;}
+  /* Dead screen */
+  #dead{gap:10px;}
+  #dead button{padding:9px 24px;font-size:0.72rem;}
+}
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
 .prep-tab{flex:1;padding:12px 6px 11px;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.2em;color:rgba(200,160,80,0.36);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;text-transform:uppercase;margin-bottom:-1px;}
@@ -483,7 +547,7 @@ body.mc-active #gpHints{display:none!important;}
 .weapon-card.selected.magic-card{background:rgba(120,80,200,0.1);border-color:rgba(140,90,220,0.52);box-shadow:0 0 14px rgba(120,80,200,0.14);}
 .weapon-card.locked{opacity:0.35;cursor:default;pointer-events:none;}
 /* Locked but player can afford — pulse gold border to signal it's purchasable */
-.weapon-card.locked.can-afford{opacity:0.78;border-color:rgba(255,200,60,0.5);box-shadow:0 0 12px rgba(200,150,20,0.25);}
+.weapon-card.locked.can-afford{opacity:0.78;border-color:rgba(255,200,60,0.5);box-shadow:0 0 12px rgba(200,150,20,0.25);pointer-events:all;cursor:pointer;}
 .weapon-card.locked.can-afford .weapon-name{color:#c8a040;}
 .weapon-card.locked.can-afford.gamepad-focused{opacity:1;border-color:rgba(255,215,60,0.85);box-shadow:0 0 22px rgba(220,170,30,0.5);background:rgba(200,150,20,0.1);}
 /* magic variant */
@@ -1140,7 +1204,7 @@ function tickHeroAnim(p){
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
 const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10; // +10% from base
-const ENEMY_GRAV_MULT=1.2; // enemies fall 20% faster than hero
+const ENEMY_GRAV_MULT=1.8; // enemies fall much faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -1236,7 +1300,7 @@ function weaponStats(w){
 let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
 
 // Base swing durations (in frames) — scaled by activeWeapon.atkSpeed
-const ATK_FRAMES_BASE = [23, 23, 23]; // 2× speed then +10% faster
+const ATK_FRAMES_BASE = [19, 19, 19]; // +20% faster attack speed from base
 // ATK_FRAMES is recomputed by equipWeapon() each time a weapon is selected
 let ATK_FRAMES = [...ATK_FRAMES_BASE];
 
@@ -1877,7 +1941,7 @@ const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
-const JUGGLE_GRAV=0.065; // +30% fall speed during juggle follow
+const JUGGLE_GRAV=0.16; // increased fall speed during juggle (was 0.065)
 const JUGGLE_VY=-6; // upward velocity applied to juggled enemies
 // player vy for juggle follow — both use JUGGLE_GRAV so they rise together; 5% less vy = 5% lower peak
 const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
