@@ -2673,11 +2673,10 @@ function launchAttack(step){
   if(step===0&&!player.onGround&&!player.airAtkUsed){ player.airAtkFreezeTimer=AIR_ATK_FREEZE_FRAMES; player.vy=0; player.vx=0; player.airAtkUsed=true; }
   if(step===2){
     player.comboStep=0; player.comboTimer=0; player.atkCD=38;
-    updateComboHud(3);                      // show TRIPLE THREAT for the finisher
-    setTimeout(()=>updateComboHud(0), 700); // then clear after the animation plays
+    // HUD shown on hit in tickAttackHits
     return;
   }
-  updateComboHud(player.comboStep);
+  // HUD shown on hit in tickAttackHits
 }
 
 // ── SEGMENT ↔ AABB intersection helpers ──────────────────────────────────────
@@ -2856,6 +2855,13 @@ function tickAttackHits(){
     if(isFinisher) iaidoLines(player.x+PW/2,player.y+PH*0.28,player.facing);
     if(!player.swingStreakCounted){
       player.swingStreakCounted=true;
+      // Show combo HUD on first confirmed hit of this swing
+      if(isFinisher){
+        updateComboHud(3);
+        setTimeout(()=>updateComboHud(0), 700);
+      } else {
+        updateComboHud(step+1);
+      }
       hitStreak++;
       hitStreakTimer=HIT_STREAK_TIMEOUT;
       const newTier=Math.floor(hitStreak/10);
@@ -3378,9 +3384,10 @@ function launchEnemy(){
   if(hit){
     rumble(180, 0.75, 0.44);
     if(anyJuggled){
-      // Immediately launch player upward to follow — 5% below enemy peak
+      // Immediately launch player upward to follow — start slightly below enemy
       player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
-      player.vx=0; // clear horizontal momentum so player rises straight up
+      player.vx=0;
+      player.y+=PH*0.35; // drop player down so they rise from below the enemy
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
       player.launchJumpReady=false;
