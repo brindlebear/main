@@ -9,13 +9,10 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
-/* ── VIEWPORT (constrained resolution + black bars) ── */
+/* ── VIEWPORT — fills full screen, no black bars ── */
 #viewport{
-  position:relative;
-  width:1920px;height:1080px;
-  transform-origin:center center;
+  position:fixed;inset:0;
   overflow:hidden;
-  flex-shrink:0;
 }
 #c{position:fixed;top:0;left:0;width:100%;height:100%;}
 /* ── SETTINGS SCREEN ── */
@@ -516,7 +513,6 @@ canvas{display:block;}
 .gp-a{background:#3a9e46;color:#fff;}.gp-b{background:#b83030;color:#fff;}.gp-x{background:#2860a8;color:#fff;}.gp-y{background:#b08010;color:#fff;}
 .gp-pill{background:rgba(180,180,180,0.35);color:rgba(220,220,220,0.85);border:1px solid rgba(200,200,200,0.2);border-radius:4px;width:auto;height:17px;padding:0 5px;font-size:0.48rem;letter-spacing:0.04em;font-family:'Cinzel',serif;}
 .gp-dp{background:rgba(90,90,90,0.7);color:#ccc;border-radius:3px;font-size:0.65rem;font-family:sans-serif;}
-
 </style>
 </head>
 <body>
@@ -601,7 +597,7 @@ canvas{display:block;}
       <span id="mobileCtrlIcon">📱</span>
       <span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
     </button>
-    <div class="diff-desc">Touch buttons for phones in landscape</div>
+    <div class="diff-desc">Touch HUD for phones in landscape</div>
     <div class="settings-divider"></div>
     <button class="menu-btn danger" onclick="confirmReset()">☠ CLEANSE SAVE</button>
     <button class="menu-btn" onclick="closeSettings()" style="margin-top:4px">↩ BACK</button>
@@ -886,21 +882,21 @@ function expForLevel(lv){ return Math.floor(100*Math.pow(lv,1.4)); }
 //  VIEWPORT / SETTINGS
 // ══════════════════════════════════════════
 function scaleViewport(){
-  const vp=document.getElementById('viewport');
-  const w=1920,h=1080;
-  vp.style.width=w+'px'; vp.style.height=h+'px';
-  // Use Math.max to fill the screen edge-to-edge (slight crop on non-16:9)
-  // Use Math.min to letterbox with black bars (no crop, original behaviour)
-  const s=Math.max(window.innerWidth/w, window.innerHeight/h);
-  vp.style.transform=`scale(${s})`;
+  // Resize canvas to exactly fill the window — no black bars, no scaling
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  // Keep the viewport div filling the screen too (screens/menus use fixed positioning)
+  const vp = document.getElementById('viewport');
+  vp.style.width  = window.innerWidth  + 'px';
+  vp.style.height = window.innerHeight + 'px';
 }
-window.addEventListener('resize',scaleViewport);
+window.addEventListener('resize', scaleViewport);
 function showSettings(){
   document.getElementById('menuScreen').classList.add('hidden');
   document.getElementById('settingsScreen').classList.remove('hidden');
   updateFsButton();
   _syncDiffDisplay();
-  _syncMobileControlsBtn();
+  _syncMobileBtn();
 }
 function changeDifficulty(delta){
   save.difficulty=Math.max(100,Math.min(10000,(save.difficulty||100)+delta));
@@ -914,208 +910,6 @@ function _syncDiffDisplay(){
 function closeSettings(){
   document.getElementById('settingsScreen').classList.add('hidden');
   showMenu();
-}
-
-function toggleMobileControls(){
-  save.mobileControls = !save.mobileControls;
-  _syncMobileControlsBtn();
-  _applyMobileControls();
-  writeSave();
-}
-function _syncMobileControlsBtn(){
-  const on = !!save.mobileControls;
-  const lbl = document.getElementById('mobileCtrlLabel');
-  const btn = document.getElementById('mobileCtrlBtn');
-  if(lbl) lbl.textContent = on ? 'MOBILE CONTROLS: ON' : 'MOBILE CONTROLS: OFF';
-  if(btn) btn.classList.toggle('active', on);
-}
-function _applyMobileControls(){
-  // Canvas-drawn controls — nothing to show/hide in DOM.
-  // _drawMobileControls() in _loopDraw checks save.mobileControls directly.
-}
-
-
-
-
-// ══════════════════════════════════════════
-//  MOBILE CONTROLS (canvas-drawn + canvas touch)
-// ══════════════════════════════════════════
-
-// Button layout definitions — computed from canvas size at draw time
-let _mcBtns = []; // [{id, x, y, r, label, color}]  — rebuilt each draw call
-
-function _buildMcLayout(){
-  const W = canvas.width, H = canvas.height;
-  const S = Math.min(W, H); // scale reference
-  const bs = Math.floor(S * 0.095); // base button radius ~9.5% of short side
-  const pad = Math.floor(S * 0.06);
-
-  // D-pad: bottom-left
-  const dpx = pad + bs;
-  const dpy = H - pad - bs;
-  const gap = Math.floor(bs * 2.4);
-
-  // Action buttons: bottom-right
-  const ax = W - pad - bs;
-  const ay = H - pad - bs;
-
-  _mcBtns = [
-    // D-pad
-    { id:'l',      x:dpx - gap,   y:dpy,         r:bs,              label:'◀', color:'rgba(200,155,60,0.55)' },
-    { id:'r',      x:dpx + gap,   y:dpy,         r:bs,              label:'▶', color:'rgba(200,155,60,0.55)' },
-    { id:'jump',   x:dpx,         y:dpy - gap,   r:bs,              label:'▲', color:'rgba(200,155,60,0.55)' },
-    // Actions row 1
-    { id:'atk',    x:ax,          y:ay - gap,    r:Math.floor(bs*1.1), label:'⚔', color:'rgba(200,50,50,0.72)' },
-    { id:'sp',     x:ax - gap,    y:ay - gap,    r:bs,              label:'✦', color:'rgba(180,140,20,0.72)' },
-    { id:'magic',  x:ax - gap*2,  y:ay - gap,    r:bs,              label:'✨', color:'rgba(80,40,180,0.72)' },
-    // Actions row 2
-    { id:'evade',  x:ax,          y:ay,           r:bs,              label:'💨', color:'rgba(60,120,180,0.72)' },
-    { id:'parry',  x:ax - gap,    y:ay,           r:bs,              label:'🛡', color:'rgba(180,160,20,0.72)' },
-    { id:'launch', x:ax - gap*2,  y:ay,           r:bs,              label:'↑', color:'rgba(20,160,120,0.72)' },
-    { id:'grapple',x:ax - gap*3,  y:ay,           r:bs,              label:'🪝', color:'rgba(160,120,20,0.72)' },
-    // Top-right: pause
-    { id:'pause',  x:W - pad - Math.floor(bs*0.7), y:pad + Math.floor(bs*0.7), r:Math.floor(bs*0.7), label:'⏸', color:'rgba(100,80,40,0.72)' },
-    // Top-left: potion
-    { id:'potion', x:pad + Math.floor(bs*0.7),     y:pad + Math.floor(bs*0.7), r:Math.floor(bs*0.7), label:'🧪', color:'rgba(40,120,80,0.72)' },
-  ];
-}
-
-// Which buttons are currently pressed (set by touch handlers)
-const _mcPressed = {};
-
-function _drawMobileControls(){
-  if(!save.mobileControls || gameOver || paused) return;
-  _buildMcLayout();
-  ctx.save();
-  ctx.font = 'bold 14px Cinzel,serif';
-  _mcBtns.forEach(b=>{
-    const pressed = !!_mcPressed[b.id];
-    // Circle fill
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-    ctx.fillStyle = pressed
-      ? 'rgba(220,175,60,0.35)'
-      : b.color;
-    ctx.fill();
-    // Border
-    ctx.lineWidth = pressed ? 3 : 2;
-    ctx.strokeStyle = pressed
-      ? 'rgba(255,220,80,0.95)'
-      : 'rgba(200,155,60,0.6)';
-    ctx.stroke();
-    // Label
-    const fontSize = Math.floor(b.r * 0.72);
-    ctx.font = fontSize + 'px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.globalAlpha = pressed ? 1 : 0.85;
-    ctx.fillStyle = '#fff';
-    ctx.fillText(b.label, b.x, b.y);
-    ctx.globalAlpha = 1;
-  });
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.restore();
-}
-
-function _mcHitTest(tx, ty){
-  for(const b of _mcBtns){
-    const dx = tx - b.x, dy = ty - b.y;
-    if(dx*dx + dy*dy <= b.r*b.r) return b.id;
-  }
-  return null;
-}
-
-function _mcDown(id){
-  _mcPressed[id] = true;
-  if(id==='l')       { btnS.l=true; }
-  else if(id==='r')  { btnS.r=true; }
-  else if(id==='jump'){ btnS.jump=true; jumpEdge=true; }
-  else if(id==='atk') { atkEdge=true; }
-  else if(id==='sp')  { btnS.sp=true; }
-  else if(id==='magic'){ btnS.magic=true; }
-  else if(id==='evade'){ evadeEdge=true; }
-  else if(id==='parry'){ parryEdge=true; btnS.parry=true; }
-  else if(id==='launch'){ btnS.launch=true; }
-  else if(id==='grapple'){ btnS.grapple=true; }
-  else if(id==='pause'){ paused?resumeGame():pauseGame(); }
-  else if(id==='potion'){ usePotion(); }
-}
-
-function _mcUp(id){
-  delete _mcPressed[id];
-  if(id==='l')        { btnS.l=false; }
-  else if(id==='r')   { btnS.r=false; }
-  else if(id==='jump') { btnS.jump=false; }
-  else if(id==='sp')   { btnS.sp=false; }
-  else if(id==='magic'){ btnS.magic=false; }
-  else if(id==='parry'){ btnS.parry=false; }
-  else if(id==='launch'){ btnS.launch=false; }
-  else if(id==='grapple'){ btnS.grapple=false; }
-}
-
-function initMobileControls(){
-  // Maps touch identifier -> button id
-  const touchMap = {};
-
-  // Scale canvas coords from screen pixels (touch coords are in CSS pixels,
-  // but canvas is 1280x720 internally — need to convert)
-  function toCanvas(sx, sy){
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: (sx - rect.left) * (canvas.width  / rect.width),
-      y: (sy - rect.top)  * (canvas.height / rect.height),
-    };
-  }
-
-  canvas.addEventListener('touchstart', (e)=>{
-    e.preventDefault();
-    if(!save.mobileControls) return;
-    _buildMcLayout();
-    for(const t of e.changedTouches){
-      const {x,y} = toCanvas(t.clientX, t.clientY);
-      const id = _mcHitTest(x, y);
-      if(!id) continue;
-      touchMap[t.identifier] = id;
-      _mcDown(id);
-    }
-  }, { passive:false });
-
-  canvas.addEventListener('touchend', (e)=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){
-      const id = touchMap[t.identifier];
-      if(!id) continue;
-      delete touchMap[t.identifier];
-      _mcUp(id);
-    }
-  }, { passive:false });
-
-  canvas.addEventListener('touchcancel', (e)=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){
-      const id = touchMap[t.identifier];
-      if(!id) continue;
-      delete touchMap[t.identifier];
-      _mcUp(id);
-    }
-  }, { passive:false });
-
-  canvas.addEventListener('touchmove', (e)=>{
-    e.preventDefault();
-    if(!save.mobileControls) return;
-    _buildMcLayout();
-    // Allow sliding from button to button (e.g. swipe left->right for movement)
-    for(const t of e.changedTouches){
-      const {x,y} = toCanvas(t.clientX, t.clientY);
-      const newId = _mcHitTest(x, y);
-      const oldId = touchMap[t.identifier];
-      if(newId === oldId) continue;
-      if(oldId){ _mcUp(oldId); }
-      if(newId){ touchMap[t.identifier]=newId; _mcDown(newId); }
-      else { delete touchMap[t.identifier]; }
-    }
-  }, { passive:false });
 }
 
 function exitGame(){
@@ -1179,8 +973,7 @@ function updateSaveInfo(){
 // ══════════════════════════════════════════
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
-function resize(){ canvas.width=1280; canvas.height=720; }
-resize();
+// Canvas size is set by scaleViewport() at boot and on every resize
 // ── STAGE DEFINITIONS ─────────────────────────────────────────
 // bg:    image file for the stage background (cover-fitted to 1280×720)
 // music: audio file looped during gameplay
@@ -1346,7 +1139,7 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.24, FLOOR_PAD=88, JUMP_V=-10;
+const GRAV=0.38, FLOOR_PAD=88, JUMP_V=-10; // increased gravity for snappier jumps
 const AIR_ATK_GRAV_MULT   = 0.1; // gravity multiplier during airborne normal attacks (0.1 = 90% slower fall)
 const AIR_ATK_FREEZE_FRAMES = 60;  // frames the player hangs in the air on first air attack (~1s at 60fps)
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -2096,8 +1889,8 @@ const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
-const ENEMY_WINDUP_FRAMES = 42;  // frames enemy telegraphs before swinging (~0.7s at 60fps)
-const ENEMY_SWING_FRAMES  = 72;  // total frames for the full swing arc (~1.2s at 60fps)
+const ENEMY_WINDUP_FRAMES = 28;  // frames enemy telegraphs before swinging (~0.47s at 60fps)
+const ENEMY_SWING_FRAMES  = 50;  // total frames for the full swing arc (~0.83s at 60fps)
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
 const KNIGHT_COMBO_GAP    = 26;  // short gap between knight's two-hit combo swings
@@ -2211,7 +2004,6 @@ function resumeGame(){
   document.getElementById('pauseScreen').classList.remove('show');
   _lastT = performance.now();
   _accumulator = 0; // discard time elapsed while paused — prevents burst of ticks
-  _applyMobileControls();
 }
 
 function quitToMenu(){
@@ -2413,7 +2205,6 @@ function startRun(){
   cancelAnimationFrame(frameId);
   _lastT = performance.now();
   _accumulator = 0;
-  _applyMobileControls();
   frameId = requestAnimationFrame(loop);
 }
 
@@ -6409,8 +6200,6 @@ function _loopDraw(){
   drawSpecialSprite(player);
   // Parry shield overlay
   if(!player.dead) drawParryShield(player);
-
-  // Mobile touch controls drawn on canvas
   _drawMobileControls();
 
   ctx.restore();
@@ -7129,18 +6918,189 @@ window.addEventListener('gamepaddisconnected', () => {
   lastVisibleScreen = null;
 });
 
+
+// ══════════════════════════════════════════
+//  MOBILE CONTROLS — canvas drawn + canvas touch
+// ══════════════════════════════════════════
+let _mcBtns = [];
+const _mcPressed = {};
+
+function _buildMcLayout(){
+  const W = canvas.width, H = canvas.height;
+  // Button radius scales with screen short-side, kept small & minimal
+  const r  = Math.round(Math.min(W,H) * 0.065); // ~6.5% of short side
+  const rL = Math.round(r * 1.15);               // attack is slightly bigger
+  const pad = Math.round(Math.min(W,H) * 0.05);
+  const gap = Math.round(r * 2.5);
+
+  // ── LEFT CLUSTER ─────────────────────────────────
+  // move-left, move-right in a row at bottom-left
+  // grapple above-left, parry above-right
+  const lbx = pad + r;           // left base x
+  const lby = H - pad - r;       // left base y (bottom)
+
+  // ── RIGHT CLUSTER ────────────────────────────────
+  // jump top, attack bottom-right, magic bottom-mid, evade bottom-left
+  const rbx = W - pad - r;
+  const rby = H - pad - r;
+
+  _mcBtns = [
+    // LEFT — movement
+    { id:'l',       x:lbx,         y:lby,       r:r,  label:'◀', col:'rgba(255,255,255,0.18)' },
+    { id:'r',       x:lbx+gap,     y:lby,       r:r,  label:'▶', col:'rgba(255,255,255,0.18)' },
+    // LEFT — combat (row above)
+    { id:'grapple', x:lbx,         y:lby-gap,   r:r,  label:'🪝', col:'rgba(255,200,60,0.18)' },
+    { id:'parry',   x:lbx+gap,     y:lby-gap,   r:r,  label:'🛡', col:'rgba(255,220,80,0.18)' },
+    // RIGHT — main actions
+    { id:'jump',    x:rbx,         y:rby-gap,   r:r,  label:'▲', col:'rgba(255,255,255,0.18)' },
+    { id:'atk',     x:rbx,         y:rby,       r:rL, label:'⚔', col:'rgba(220,60,60,0.22)'  },
+    { id:'magic',   x:rbx-gap,     y:rby,       r:r,  label:'✨', col:'rgba(120,80,220,0.18)' },
+    { id:'evade',   x:rbx-gap,     y:rby-gap,   r:r,  label:'💨', col:'rgba(80,160,220,0.18)' },
+  ];
+}
+
+function _drawMobileControls(){
+  if(!save.mobileControls || gameOver || paused) return;
+  _buildMcLayout();
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  _mcBtns.forEach(b=>{
+    const pressed = !!_mcPressed[b.id];
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    // Minimal style: just a thin ring + faint fill, brighter when pressed
+    ctx.fillStyle   = pressed ? 'rgba(255,220,80,0.22)' : b.col;
+    ctx.strokeStyle = pressed ? 'rgba(255,220,80,0.85)' : 'rgba(255,255,255,0.28)';
+    ctx.lineWidth   = pressed ? 2.5 : 1.5;
+    ctx.fill();
+    ctx.stroke();
+    // Label
+    ctx.font = Math.round(b.r * 0.65) + 'px serif';
+    ctx.globalAlpha = pressed ? 1.0 : 0.65;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(b.label, b.x, b.y + 1);
+    ctx.globalAlpha = 1;
+  });
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+}
+
+function _mcHitTest(cx, cy){
+  for(const b of _mcBtns){
+    const dx=cx-b.x, dy=cy-b.y;
+    if(dx*dx+dy*dy <= b.r*b.r) return b.id;
+  }
+  return null;
+}
+
+function _mcActivate(id){
+  _mcPressed[id]=true;
+  if     (id==='l')      { btnS.l=true; }
+  else if(id==='r')      { btnS.r=true; }
+  else if(id==='jump')   { btnS.jump=true; jumpEdge=true; }
+  else if(id==='atk')    { atkEdge=true; }
+  else if(id==='magic')  { btnS.magic=true; }
+  else if(id==='evade')  { evadeEdge=true; }
+  else if(id==='parry')  { parryEdge=true; btnS.parry=true; }
+  else if(id==='grapple'){ btnS.grapple=true; }
+}
+
+function _mcDeactivate(id){
+  delete _mcPressed[id];
+  if     (id==='l')      { btnS.l=false; }
+  else if(id==='r')      { btnS.r=false; }
+  else if(id==='jump')   { btnS.jump=false; }
+  else if(id==='magic')  { btnS.magic=false; }
+  else if(id==='parry')  { btnS.parry=false; }
+  else if(id==='grapple'){ btnS.grapple=false; }
+}
+
+function toggleMobileControls(){
+  save.mobileControls = !save.mobileControls;
+  _syncMobileBtn();
+  writeSave();
+}
+function _syncMobileBtn(){
+  const on  = !!save.mobileControls;
+  const lbl = document.getElementById('mobileCtrlLabel');
+  const btn = document.getElementById('mobileCtrlBtn');
+  if(lbl) lbl.textContent = on ? 'MOBILE CONTROLS: ON' : 'MOBILE CONTROLS: OFF';
+  if(btn) btn.classList.toggle('active', on);
+}
+
+function initMobileControls(){
+  const touchMap = {}; // touch identifier → button id
+
+  function toCanvas(sx, sy){
+    const r = canvas.getBoundingClientRect();
+    // Canvas internal resolution == window size now, so this is 1:1
+    return { x: sx - r.left, y: sy - r.top };
+  }
+
+  canvas.addEventListener('touchstart',(e)=>{
+    e.preventDefault();
+    if(!save.mobileControls) return;
+    _buildMcLayout();
+    for(const t of e.changedTouches){
+      const {x,y} = toCanvas(t.clientX, t.clientY);
+      const id = _mcHitTest(x,y);
+      if(!id) continue;
+      touchMap[t.identifier] = id;
+      _mcActivate(id);
+    }
+  },{passive:false});
+
+  canvas.addEventListener('touchmove',(e)=>{
+    e.preventDefault();
+    if(!save.mobileControls) return;
+    _buildMcLayout();
+    for(const t of e.changedTouches){
+      const {x,y} = toCanvas(t.clientX, t.clientY);
+      const newId = _mcHitTest(x,y);
+      const oldId = touchMap[t.identifier];
+      if(newId===oldId) continue;
+      if(oldId){ _mcDeactivate(oldId); }
+      if(newId){ touchMap[t.identifier]=newId; _mcActivate(newId); }
+      else { delete touchMap[t.identifier]; }
+    }
+  },{passive:false});
+
+  canvas.addEventListener('touchend',(e)=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchMap[t.identifier];
+      if(!id) continue;
+      delete touchMap[t.identifier];
+      _mcDeactivate(id);
+    }
+  },{passive:false});
+
+  canvas.addEventListener('touchcancel',(e)=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const id = touchMap[t.identifier];
+      if(!id) continue;
+      delete touchMap[t.identifier];
+      _mcDeactivate(id);
+    }
+  },{passive:false});
+}
+
 // Start polling (handles already-connected gamepads)
 updateGamepad();
+initMobileControls();
 
 // ══════════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════════
+scaleViewport(); // size canvas immediately before any draw calls
 openDB().then(()=>{
-  loadSave().then(()=>{ scaleViewport(); showMenu(); _syncMobileControlsBtn(); }).catch(()=>{ scaleViewport(); showMenu(); });
+  loadSave().then(()=>{ scaleViewport(); showMenu(); }).catch(()=>{ scaleViewport(); showMenu(); });
 }).catch(()=>{
   scaleViewport(); showMenu();
 });
-initMobileControls();
 </script>
 </div><!-- #viewport -->
 </body>
