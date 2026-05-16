@@ -260,12 +260,15 @@ canvas{display:block;}
     max-height:100vh;
     margin:0 auto;
     padding:0 0 10px;
+    align-self:center;
   }
   .prep-header{padding:4px 12px;}
   .prep-title{font-size:0.74rem!important;}
   .prep-section-head{padding:4px 12px 3px;}
   .stat-row{padding:4px 10px;}
-  .prep-actions{padding:4px 12px 0;}
+  .prep-actions{padding:4px 12px 0;align-items:center;}
+  .prep-confirm-btn{width:min(340px,86vw)!important;}
+  .prep-back-btn{width:min(340px,86vw)!important;}
   .prep-tab{padding:6px 4px 5px;font-size:0.46rem;}
   .weapon-grid{padding:0 10px;}
 
@@ -1261,7 +1264,7 @@ function tickHeroAnim(p){
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.334, FLOOR_PAD=88, JUMP_V=-10; // +15% fall gravity (0.290 × 1.15)
+const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-10; // +20% fall gravity (0.334 × 1.20)
 const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
@@ -1358,7 +1361,7 @@ const ATK_FRAMES_BASE = [19, 19, 19]; // +20% faster attack speed from base
 let ATK_FRAMES = [...ATK_FRAMES_BASE];
 
 const COMBO_WINDOW=42;
-const FREEZE_FRAMES=[10,14,22];
+const FREEZE_FRAMES=[5,7,11]; // halved from [10,14,22]
 const SHAKE_MAGS=[6,8,18];
 // Combo: [swingStart, swingEnd, pivotX, pivotY]
 // hit0: downward cut (shoulder pivot, up→down)
@@ -2005,7 +2008,7 @@ const EVADE_COOLDOWN      = 50;  // cooldown frames before next evade is allowed
 const PARRY_WINDOW        = 48;  // frames the parry is active after button press (must overlap ENEMY_WINDUP_FRAMES=42 + start of swing)
 const PARRY_COOLDOWN      = 72;  // cooldown frames before next parry is allowed
 const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
-const PARRY_FREEZE        = 52;  // screen-freeze frames on successful parry
+const PARRY_FREEZE        = 26;  // halved from 52 — snappier parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
 const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
 const ENEMY_WINDUP_FRAMES = 19;  // 2× then +10% faster
@@ -3374,7 +3377,14 @@ function launchEnemy(){
   });
   if(hit){
     rumble(180, 0.75, 0.44);
-    if(!player.juggleFollowUsed && anyJuggled) player.launchJumpReady = true;
+    if(anyJuggled){
+      // Immediately launch player upward to follow — 5% below enemy peak
+      player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
+      player.juggleFollow=true;
+      player.juggleFollowUsed=true;
+      player.launchJumpReady=false;
+      player.onGround=false;
+    }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
     playSfx(LAUNCH_SOUND); triggerFreeze(6); triggerShake(5);
     hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
@@ -5519,19 +5529,13 @@ function _loopUpdate(){
 
   if(launchHeld){
     launchHoldFrames++;
-    // Juggle follow-up jump
-    if(launchHoldFrames>=22&&player.launchJumpReady&&!player.dead){
-      player.vy=JUGGLE_PLAYER_VY*GAME_SPEED; player.launchJumpReady=false; player.juggleFollow=true; player.juggleFollowUsed=true;
-      launchHoldFrames=0; player.airSlamArmed=false;
-    }
     // Air slam: held 30 frames (~0.5s) while armed
     if(launchHoldFrames>=30&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
     }
   } else {
-    // Button released — decide based on how long it was held
+    // Button released — quick tap in air → re-juggle upward
     if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<30&&!player.dead){
-      // Quick tap in air → re-juggle upward
       launchEnemy();
     }
     launchHoldFrames=0; player.launchJumpReady=false;
