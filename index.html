@@ -1204,7 +1204,7 @@ function tickHeroAnim(p){
 // ══════════════════════════════════════════
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
 const GRAV=0.264, FLOOR_PAD=88, JUMP_V=-10; // +10% from base
-const ENEMY_GRAV_MULT=1.8; // enemies fall much faster than hero when airborne
+const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
@@ -1941,7 +1941,7 @@ const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
-const JUGGLE_GRAV=0.16; // increased fall speed during juggle (was 0.065)
+const JUGGLE_GRAV=0.065; // original juggle gravity — controls rise/follow height
 const JUGGLE_VY=-6; // upward velocity applied to juggled enemies
 // player vy for juggle follow — both use JUGGLE_GRAV so they rise together; 5% less vy = 5% lower peak
 const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
