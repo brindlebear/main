@@ -889,7 +889,9 @@ function scaleViewport(){
   const vp=document.getElementById('viewport');
   const w=1920,h=1080;
   vp.style.width=w+'px'; vp.style.height=h+'px';
-  const s=Math.min(window.innerWidth/w, window.innerHeight/h);
+  // Use Math.max to fill the screen edge-to-edge (slight crop on non-16:9)
+  // Use Math.min to letterbox with black bars (no crop, original behaviour)
+  const s=Math.max(window.innerWidth/w, window.innerHeight/h);
   vp.style.transform=`scale(${s})`;
 }
 window.addEventListener('resize',scaleViewport);
