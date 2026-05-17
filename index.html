@@ -2832,7 +2832,7 @@ function tickAttackHits(){
       lastHitEnemyExp=e.exp; lastHitEnemy=e;
       const roll=dmg+(Math.random()*12|0);
       const prev=e.hp;
-      e.hp-=roll; e.hitCD=22;
+      e.hp-=roll; e.hitCD=isStrike ? 14 : 22;
       e.ghostHp=prev; e.ghostDrainDelay=62;
       spawnEnemyBarChips(e,prev,e.hp);
       e.vx+=player.facing*[10,10,20][step]; e.vy-=isFinisher?5:3;
@@ -3386,14 +3386,13 @@ function launchEnemy(){
   if(hit){
     rumble(180, 0.75, 0.44);
     if(anyJuggled){
-      // Immediately launch player upward to follow — start slightly below enemy
       player.onGround=false;
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
       player.launchJumpReady=false;
       player.vx=0;
+      player.y-=6; // nudge up just enough to clear the floor snap
       player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
-      player.y+=PH*0.35; // offset down so player rises from below the enemy
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
     playSfx(LAUNCH_SOUND); triggerFreeze(4); triggerShake(5);
