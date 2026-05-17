@@ -394,35 +394,35 @@ canvas{display:block;}
 
 /* ── COMBO HUD (center top) ── */
 .combo-hud{
-  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  position:fixed;top:46px;left:50%;transform:translateX(-50%);
   pointer-events:none;z-index:10;display:none;
 }
 .combo-inner{
-  display:inline-flex;flex-direction:column;align-items:center;gap:6px;
-  padding:10px 24px 8px;
+  display:inline-flex;flex-direction:column;align-items:center;gap:2px;
+  padding:3px 10px 2px;
 }
 .combo-icons{
-  font-size:1.55rem;letter-spacing:0.14em;line-height:1;display:block;
-  filter:drop-shadow(0 0 6px rgba(255,220,100,0.45));transition:filter 0.15s,font-size 0.15s;
+  font-size:0.68rem;letter-spacing:0.1em;line-height:1;display:block;
+  filter:drop-shadow(0 0 3px rgba(255,220,100,0.4));transition:filter 0.15s,font-size 0.15s;
 }
 .combo-lbl{
-  font-family:'Cinzel',serif;font-size:0.7rem;font-weight:700;
-  letter-spacing:0.32em;text-transform:uppercase;display:block;line-height:1;
-  color:rgba(240,205,100,0.88);text-shadow:0 0 10px rgba(220,175,60,0.5);
+  font-family:'Cinzel',serif;font-size:0.36rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;display:block;line-height:1;
+  color:rgba(240,205,100,0.82);text-shadow:0 0 6px rgba(220,175,60,0.4);
   transition:color 0.15s,font-size 0.15s,text-shadow 0.15s;
 }
 /* Step 2 — double */
-.combo-hud.c2 .combo-icons{color:#ffd060;filter:drop-shadow(0 0 9px rgba(255,195,40,0.75));}
-.combo-hud.c2 .combo-lbl{color:#ffd878;text-shadow:0 0 12px rgba(255,195,40,0.65);}
+.combo-hud.c2 .combo-icons{color:#ffd060;filter:drop-shadow(0 0 5px rgba(255,195,40,0.7));}
+.combo-hud.c2 .combo-lbl{color:#ffd878;text-shadow:0 0 8px rgba(255,195,40,0.6);}
 /* Step 3 — ITTO-RIKI */
 .combo-hud.c3 .combo-icons{
-  font-size:2.1rem;color:#ff8844;
-  filter:drop-shadow(0 0 12px rgba(255,100,20,0.9));
+  font-size:0.9rem;color:#ff8844;
+  filter:drop-shadow(0 0 8px rgba(255,100,20,0.85));
   animation:ittoPop 0.24s cubic-bezier(0.34,1.6,0.64,1);
 }
 .combo-hud.c3 .combo-lbl{
-  font-size:0.9rem;letter-spacing:0.22em;color:#ff7050;
-  text-shadow:0 0 18px rgba(255,80,30,0.9),0 0 44px rgba(255,40,10,0.4);
+  font-size:0.44rem;letter-spacing:0.18em;color:#ff7050;
+  text-shadow:0 0 10px rgba(255,80,30,0.85),0 0 24px rgba(255,40,10,0.35);
 }
 @keyframes comboIn{
   0%{opacity:0;transform:translateX(-50%) translateY(-10px) scale(0.88);}
@@ -434,40 +434,40 @@ canvas{display:block;}
 
 /* ── STREAK HUD (top-right) ── */
 #streakHud{
-  position:fixed;top:14px;right:14px;display:none;
-  text-align:right;pointer-events:none;z-index:10;min-width:140px;
+  position:fixed;top:10px;right:14px;display:none;
+  text-align:right;pointer-events:none;z-index:10;min-width:80px;
 }
 #streakInner{
-  padding:12px 16px 10px;
+  padding:6px 10px 6px;
 }
 .streak-num{
   font-family:'Cinzel Decorative',serif;display:block;
-  font-size:5.5rem;font-weight:700;color:#fff;letter-spacing:-0.02em;
+  font-size:1.8rem;font-weight:700;color:#fff;letter-spacing:-0.02em;
   line-height:0.88;transition:color 0.25s,text-shadow 0.25s;
-  text-shadow:0 2px 18px rgba(0,0,0,0.8),0 0 32px rgba(200,220,255,0.25);
+  text-shadow:0 2px 12px rgba(0,0,0,0.8),0 0 20px rgba(200,220,255,0.2);
 }
-.streak-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px;}
+.streak-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:5px;}
 .streak-lbl{
-  font-family:'Cinzel',serif;font-size:0.85rem;font-weight:700;
-  letter-spacing:0.22em;color:rgba(235,200,130,0.92);text-transform:uppercase;
-  text-shadow:0 1px 8px rgba(0,0,0,0.9);
+  font-family:'Cinzel',serif;font-size:0.58rem;font-weight:700;
+  letter-spacing:0.18em;color:rgba(235,200,130,0.92);text-transform:uppercase;
+  text-shadow:0 1px 6px rgba(0,0,0,0.9);
 }
-.streak-sep{width:1px;height:14px;background:rgba(200,155,60,0.5);}
+.streak-sep{width:1px;height:10px;background:rgba(200,155,60,0.5);}
 .streak-x{
-  font-family:'Cinzel Decorative',serif;font-size:1.05rem;
+  font-family:'Cinzel Decorative',serif;font-size:0.75rem;
   letter-spacing:0.06em;color:#ffcc2e;
-  text-shadow:0 0 12px rgba(255,185,20,0.85),0 1px 8px rgba(0,0,0,0.9);transition:color 0.25s,text-shadow 0.25s;
+  text-shadow:0 0 10px rgba(255,185,20,0.85),0 1px 6px rgba(0,0,0,0.9);transition:color 0.25s,text-shadow 0.25s;
 }
 .streak-bar-wrap{
-  height:8px;margin-top:11px;
+  height:5px;margin-top:6px;
   background:rgba(20,8,2,0.8);border:1px solid rgba(160,110,40,0.35);
-  border-radius:4px;overflow:hidden;
-  box-shadow:inset 0 2px 4px rgba(0,0,0,0.6);
+  border-radius:3px;overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.6);
 }
 .streak-bar-fill{
-  height:100%;width:100%;border-radius:4px;
+  height:100%;width:100%;border-radius:3px;
   background:linear-gradient(90deg,#b83800,#ffd020);
-  box-shadow:0 0 10px rgba(255,160,10,0.75),0 0 3px rgba(255,200,60,0.5);
+  box-shadow:0 0 8px rgba(255,160,10,0.6),0 0 2px rgba(255,200,60,0.4);
   transition:background 0.35s;
 }
 @keyframes streakMilestonePop{0%{transform:scale(1)}14%{transform:scale(1.26)}48%{transform:scale(0.94)}100%{transform:scale(1)}}
@@ -534,22 +534,22 @@ body.mc-active #gpHints{display:none!important;}
 .bar-inner.mana{background:linear-gradient(90deg,#0a0a3a 0%,#1a0c6e 25%,#4420cc 55%,#9060ff 85%,#c0a0ff 100%);}
 .bar-inner.mana::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 50%,rgba(255,255,255,0.14),transparent);animation:shine 2.2s ease-in-out infinite;}
 /* ── BOSS HP BAR ─────────────────────────────────────────── */
-#bossBar{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  width:min(480px,62vw);
-  padding:4px 14px 8px;
+#bossBar{position:fixed;top:8px;left:50%;transform:translateX(-50%);
+  width:min(320px,44vw);
+  padding:3px 12px 6px;
   background:none;
   border-radius:4px;pointer-events:none;z-index:9;display:none;}
 #bossBar.show{display:block;}
-.boss-name-lbl{font-family:'Cinzel Decorative',serif;font-size:0.72rem;
-  letter-spacing:0.28em;color:rgba(255,255,255,0.82);
+.boss-name-lbl{font-family:'Cinzel Decorative',serif;font-size:0.56rem;
+  letter-spacing:0.18em;color:rgba(255,255,255,0.75);
   text-shadow:
     -1px -1px 0 #000, 1px -1px 0 #000,
     -1px  1px 0 #000, 1px  1px 0 #000,
-    0 0 10px rgba(255,80,60,0.35);
-  text-align:center;margin-bottom:4px;text-transform:uppercase;}
-.boss-track{position:relative;height:10px;background:#060104;
+    0 0 8px rgba(255,80,60,0.3);
+  text-align:center;margin-bottom:3px;text-transform:uppercase;}
+.boss-track{position:relative;height:7px;background:#060104;
   border:1px solid rgba(200,50,20,0.4);border-radius:2px;overflow:hidden;
-  box-shadow:0 0 14px rgba(200,20,0,0.3),inset 0 1px 6px rgba(0,0,0,0.75);}
+  box-shadow:0 0 10px rgba(200,20,0,0.25),inset 0 1px 4px rgba(0,0,0,0.75);}
 .boss-ghost{position:absolute;inset:0;background:rgba(255,170,150,0.3);width:100%;}
 .boss-fill-bar{position:absolute;inset:0;width:100%;
   background:linear-gradient(90deg,#3a0008 0%,#7a0015 20%,#bb001e 50%,#ee1f30 80%,#ff6050 100%);
@@ -1996,7 +1996,7 @@ const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
 const JUGGLE_GRAV=0.10;  // moderate fall — crisper than before but not too fast
-const JUGGLE_VY=-6.8;    // close to original height, slight boost for higher gravity
+const JUGGLE_VY=-9.8;    // enemy launches higher so they stay above the following player
 // player rises to 95% of enemy peak — stays just below so attacks can reach
 const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
 const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
