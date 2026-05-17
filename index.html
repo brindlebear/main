@@ -1411,7 +1411,6 @@ const WEAPONS = {
     spHitSound: 'Audio/sword_hit.wav',
     spSheet:      'GFX/sword_sp_sheet.png',
     spFrameCount: 6,
-    // Special — Bladestorm: purple AOE burst hits all nearby enemies
     special(p){
       const {bladeLen}=getSwordTip(p); const range=bladeLen*1.8; let hit=false;
       enemies.forEach(e=>{
@@ -1427,7 +1426,9 @@ const WEAPONS = {
           life:1,decay:.055,r:3,color:`hsl(${270+Math.random()*30|0},100%,${65+Math.random()*20|0}%)`});}
     },
     swingType: 'slash',
+    // Balanced: 19 frames base — reliable arc, medium margin, 5 sweep samples
     atkSpeed: 1.0, dmgMult: 1.0, stCostMult: 1.0,
+    hitMargin: 8, sweepSteps: 5, hitCD: 20,
     desc: 'A balanced blade. Reliable in all situations.',
     unlocked: true, cost: 0,
   },
@@ -1440,7 +1441,6 @@ const WEAPONS = {
     spHitSound: 'Audio/daggerhit.wav',
     spSheet:      null,
     spFrameCount: 6,
-    // Special — Shadowstrike: teleport behind nearest enemy, 3 rapid hits
     special(p){
       const alive=enemies.filter(e=>!e.dead);
       if(!alive.length)return;
@@ -1454,7 +1454,9 @@ const WEAPONS = {
           life:1,decay:.07,r:2,color:`hsl(160,100%,${60+Math.random()*25|0}%)`});}
     },
     swingType: 'stab',
-    atkSpeed: 0.5, dmgMult: 0.7, stCostMult: 0.6,
+    // Very fast stab: ~10 frames. High sweep count to catch fast tunnel-through. Small margin (short blade).
+    atkSpeed: 0.52, dmgMult: 0.75, stCostMult: 0.6,
+    hitMargin: 10, sweepSteps: 8, hitCD: 10,
     desc: 'Strikes twice as fast. Low damage, low stamina cost.',
     unlocked: true, cost: 80,
   },
@@ -1467,7 +1469,6 @@ const WEAPONS = {
     spHitSound: 'Audio/greatsword_hit.wav',
     spSheet:      null,
     spFrameCount: 6,
-    // Special — Ground Smash: shockwave forward, massive knockback
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -1484,7 +1485,9 @@ const WEAPONS = {
           life:1,decay:.06+i*.003,r:3+i*.2,color:`hsl(40,100%,${55+Math.random()*20|0}%)`});}
     },
     swingType: 'slash',
-    atkSpeed: 1.0, dmgMult: 1.9, stCostMult: 1.5,
+    // Slow and heavy: 28 frames. Long blade arc — very wide margin, fewer sweeps needed.
+    atkSpeed: 1.45, dmgMult: 2.1, stCostMult: 1.5,
+    hitMargin: 16, sweepSteps: 4, hitCD: 26,
     desc: 'Slow and punishing. Devastating on the third combo hit.',
     unlocked: true, cost: 200,
   },
@@ -1497,7 +1500,6 @@ const WEAPONS = {
     spHitSound: null,
     spSheet:      null,
     spFrameCount: 6,
-    // Special — Whirlwind: hits ALL enemies on screen
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -1511,7 +1513,9 @@ const WEAPONS = {
           life:1,decay:.045,r:4,color:`hsl(${20+Math.random()*30|0},100%,${55+Math.random()*20|0}%)`});}
     },
     swingType: 'slash',
-    atkSpeed: 1.2, dmgMult: 1.4, stCostMult: 1.2,
+    // Medium-heavy chop: 24 frames. Wide head — large margin, good sweep.
+    atkSpeed: 1.25, dmgMult: 1.55, stCostMult: 1.2,
+    hitMargin: 14, sweepSteps: 5, hitCD: 22,
     desc: 'Heavy and relentless. Builds pressure on each combo step.',
     unlocked: true, cost: 150,
   },
@@ -1524,7 +1528,6 @@ const WEAPONS = {
     spHitSound: 'Audio/sword_hit.wav',
     spSheet:    null,
     spFrameCount: 4,
-    // Special — Beam Blade: fires a horizontal slash that travels across the screen hitting all enemies for half damage
     special(p){
       const dmg=Math.round(calcBaseDmg()*activeWeapon.dmgMult*0.5+(Math.random()*8|0));
       beams.push({
@@ -1545,7 +1548,9 @@ const WEAPONS = {
       }
     },
     swingType: 'slash',
-    atkSpeed: 0.9, dmgMult: 0.9, stCostMult: 1.6,
+    // Fast precise slash: 17 frames. Thin but long blade — small margin, high sweep.
+    atkSpeed: 0.88, dmgMult: 0.95, stCostMult: 0.95,
+    hitMargin: 6, sweepSteps: 7, hitCD: 16,
     desc: 'Swift and precise. Special fires a beam blade through all enemies.',
     unlocked: true, cost: 120,
   },
@@ -1558,14 +1563,15 @@ const WEAPONS = {
     spHitSound: 'Audio/cestus_sp_hit.wav',
     spSheet:    null,
     spFrameCount: 4,
-    // Special — Resolved Steel: 1.5s windup then a colossal horizontal punch
     special(p){
       if(p.rsWindup) return;
       p.rsWindup=true; p.rsF=0;
       rumble(120, 0.25, 0.1);
     },
     swingType: 'strike',
-    atkSpeed: 0.65, dmgMult: 2.0, stCostMult: 0.9,
+    // Fast punches: 13 frames. Blunt fist — biggest margin, most sweep samples, shortest hitCD.
+    atkSpeed: 0.68, dmgMult: 1.8, stCostMult: 0.9,
+    hitMargin: 20, sweepSteps: 10, hitCD: 12,
     desc: 'Iron-bound fists. Devastatingly short range, bone-shattering power.',
     unlocked: true, cost: 175,
   },
@@ -2811,10 +2817,11 @@ function tickAttackHits(){
 
   const isFinisher = step === 2;
   const dmg = Math.round(calcBaseDmg() * COMBO[step].dmgMult * activeWeapon.dmgMult);
-  // Strike (cestus) hits with a fist — larger margin and more sweep samples to prevent tunnelling
   const isStrike = swingType === 'strike';
-  const margin = isStrike ? 18 : isFinisher ? 10 : 6;
-  const SWEEP_STEPS = isStrike ? 8 : 4;
+  // Per-weapon tuning — fall back to sensible defaults if not set
+  const margin = activeWeapon.hitMargin ?? (isStrike ? 18 : isFinisher ? 10 : 6);
+  const SWEEP_STEPS = activeWeapon.sweepSteps ?? (isStrike ? 8 : 4);
+  const weaponHitCD = activeWeapon.hitCD ?? (isStrike ? 14 : 22);
 
   if(!player.swingHitSet) player.swingHitSet = new Set();
   let hitAny = false;
@@ -2833,7 +2840,7 @@ function tickAttackHits(){
       lastHitEnemyExp=e.exp; lastHitEnemy=e;
       const roll=dmg+(Math.random()*12|0);
       const prev=e.hp;
-      e.hp-=roll; e.hitCD=isStrike ? 14 : 22;
+      e.hp-=roll; e.hitCD=weaponHitCD;
       e.ghostHp=prev; e.ghostDrainDelay=62;
       spawnEnemyBarChips(e,prev,e.hp);
       e.vx+=player.facing*[10,10,20][step]; e.vy-=isFinisher?5:3;
@@ -3433,7 +3440,8 @@ function launchEnemy(){
   });
   if(hit){
     rumble(220, 0.85, 0.55);
-    if(anyJuggled){
+    if(anyJuggled && launchHeld){
+      // Only follow if button is still held — tap = launch only, hold = follow
       player.onGround=false;
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
