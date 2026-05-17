@@ -2983,43 +2983,46 @@ function slamGroundEffect(cx,cy){
 }
 
 function airSlamEnemy(){
-  // Find nearest non-boss enemy in range (juggled or close in air)
+  // Find nearest enemy in range — airborne preferred, recently landed accepted
   let target=null,bestDist=Infinity;
   enemies.forEach(e=>{
     if(e.dead) return;
     const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
-    const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
-    if(!e.onGround&&dx<LAUNCH_RANGE+30&&dy<220){const d=dx+dy;if(d<bestDist){bestDist=d;target=e;}}
+    const dy=(e.y+EH/2)-(player.y+PH/2);
+    if(dx<LAUNCH_RANGE+60&&Math.abs(dy)<340){const d=dx+Math.abs(dy);if(d<bestDist){bestDist=d;target=e;}}
   });
   if(!target) return;
-  // Spike damage at the moment of the slam
-  const _spikeDmg=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
+  const _spikeDmg=Math.round(calcBaseDmg()*0.7+(Math.random()*10|0));
   const _spikePrev=target.hp;
   target.hp=Math.max(0,target.hp-_spikeDmg);
   target.ghostHp=_spikePrev; target.ghostDrainDelay=62;
   spawnEnemyBarChips(target,_spikePrev,target.hp);
-  floatText(target.x+EW/2-12,target.y-18,`↓${_spikeDmg}`,'#40ffcc',false);
-  // Spike the enemy straight down
-  target.vy=SLAM_VY;
-  target.vx*=0.08;
+  floatText(target.x+EW/2-12,target.y-24,`⬇${_spikeDmg}`,'#ff4400',true);
+  // Spike enemy hard downward
+  target.vy=SLAM_VY*1.3;
+  target.vx=0;
   target.slammed=true;
   target.juggled=true;
   target.onGround=false;
   target.hitCD=8;
+  // Player: short hang then drop fast
   player.airSlamUsed=true;
   player.airSlamArmed=false;
-  player.airSmashTimer=62; // hold slam pose ~1 s before returning to fall
+  player.juggleFollow=false;
+  player.airSmashTimer=30; // shorter hang — snappier
+  player.vy=2; // start falling immediately after hang
   launchHoldFrames=0;
-  // Add to hit streak / combo
+  // Impact effects
+  bloodBurst(target.x+EW/2,target.y+EH*0.35,22);
+  sparkBurst(target.x+EW/2,target.y+EH*0.2,18,true);
+  goreBurst(target.x+EW/2,target.y+EH*0.35,player.facing,true);
+  playSfx(AIR_SMASH_SOUND);
+  triggerFreeze(12); triggerShake(18);
+  rumble(250,1.0,0.7);
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
   const _slamTier=Math.floor(hitStreak/10);
   if(_slamTier>hitStreakTier){hitStreakTier=_slamTier;onStreakMilestone(_slamTier,lastHitEnemyExp);}
   updateStreakHud();
-  // Immediate impact burst where the slam connects
-  playSfx(AIR_SMASH_SOUND);
-  triggerFreeze(10);
-  rumble(180,0.9,0.55);
-  sparkBurst(target.x+EW/2,target.y+EH*0.35,14,false);
   if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
 }
 
@@ -3357,26 +3360,26 @@ function drawGrappleLine(){
 }
 
 function _airRelaunch(){
-  if(player.launchCD>0||player.dead) return;
+  if(player.dead) return;
   if(player.stamina<LAUNCH_STAMINA||player.stDepleted) return;
   let anyHit=false;
   enemies.forEach(e=>{
-    if(e.dead||e.hitCD>0||e.onGround) return;
+    if(e.dead||e.hitCD>0) return;
     const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
     const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
-    if(dx<LAUNCH_RANGE+20&&dy<160){
-      const dmg=Math.round(calcBaseDmg()*0.45+(Math.random()*6|0));
+    if(dx<LAUNCH_RANGE+30&&dy<280){
+      const dmg=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=14;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      // Re-launch: full JUGGLE_VY upward again
-      e.vy=JUGGLE_VY*0.9;
-      e.vx=player.facing*12;
+      e.vy=JUGGLE_VY; // full relaunch — same height each time
+      e.vx=player.facing*14;
       e.juggled=true; e.juggleTimer=200; e.onGround=false;
       spawnEnemyBarChips(e,prev,e.hp);
-      floatText(e.x+EW/2-12,e.y-18,`↑${dmg}`,'#80ffee',false);
-      sparkBurst(e.x+EW/2,e.y+EH*0.3,10,false);
+      bloodBurst(e.x+EW/2,e.y+EH*0.35,12);
+      sparkBurst(e.x+EW/2,e.y+EH*0.25,10,false);
+      floatText(e.x+EW/2-12,e.y-22,`↑${dmg}`,'#80ffee',true);
       lastHitEnemy=e; anyHit=true;
       if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
     }
@@ -3385,13 +3388,14 @@ function _airRelaunch(){
     player.stamina=Math.max(0,player.stamina-LAUNCH_STAMINA);
     if(player.stamina<8) player.stDepleted=true;
     setStBar(player.stamina,player.maxStamina);
-    player.launchCD=Math.round(LAUNCH_COOLDOWN*0.6); // shorter CD for air chains
-    // Player follows back up — maintain juggleFollow
+    player.launchCD=Math.round(LAUNCH_COOLDOWN*0.5);
+    player.onGround=false;
     player.vy=JUGGLE_PLAYER_VY;
     player.juggleFollow=true;
-    rumble(140,0.6,0.35);
+    player.juggleFollowUsed=true;
+    rumble(180,0.7,0.45);
     playSfx(LAUNCH_SOUND);
-    triggerFreeze(3); triggerShake(4);
+    triggerFreeze(6); triggerShake(6);
     hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
     const newTier=Math.floor(hitStreak/10);
     if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemy?.exp||0);}
@@ -3428,18 +3432,20 @@ function launchEnemy(){
     }
   });
   if(hit){
-    rumble(180, 0.75, 0.44);
+    rumble(220, 0.85, 0.55);
     if(anyJuggled){
       player.onGround=false;
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
       player.launchJumpReady=false;
       player.vx=0;
-      player.y-=6; // nudge up just enough to clear the floor snap
+      player.y-=10;
       player.vy=JUGGLE_PLAYER_VY;
+      bloodBurst(player.x+PW/2, player.y+PH*0.3, 10);
+      sparkBurst(player.x+PW/2, player.y+PH*0.3, 8, false);
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
-    playSfx(LAUNCH_SOUND); triggerFreeze(4); triggerShake(5);
+    playSfx(LAUNCH_SOUND); triggerFreeze(8); triggerShake(7);
     hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
     const newTier=Math.floor(hitStreak/10);
     if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
