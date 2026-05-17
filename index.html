@@ -3385,13 +3385,13 @@ function launchEnemy(){
     rumble(180, 0.75, 0.44);
     if(anyJuggled){
       // Immediately launch player upward to follow — start slightly below enemy
-      player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
-      player.vx=0;
-      player.y+=PH*0.35; // drop player down so they rise from below the enemy
+      player.onGround=false;
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
       player.launchJumpReady=false;
-      player.onGround=false;
+      player.vx=0;
+      player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
+      player.y+=PH*0.35; // offset down so player rises from below the enemy
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
     playSfx(LAUNCH_SOUND); triggerFreeze(4); triggerShake(5);
