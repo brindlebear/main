@@ -1070,7 +1070,7 @@ document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); update
 function calcMaxHp(){ return 80 + save.stats.vit*20; }
 function calcMaxSt(){ return 60 + save.stats.end*20; }
 function calcBaseDmg(){ return 28 + save.stats.str*5; }
-function calcStRegen(){ return 0.35 + save.stats.agi*0.15; }
+function calcStRegen(){ return 0.385 + save.stats.agi*0.15; }
 function calcMaxMp(){ return 30 + (save.stats.int||1)*15; }
 function calcMpRegen(){ return 0.06 + (save.stats.int||1)*0.01; }
 
@@ -5493,8 +5493,8 @@ function _loopUpdate(){
   else if(player.evadeTimer>0){ player.vx=player.evadeDir*EVADE_SPEED*GAME_SPEED; }
   else if(player.airAtkFreezeTimer>0){ player.vx=goL?-AIR_ATK_FREEZE_DRIFT:goR?AIR_ATK_FREEZE_DRIFT:0; }
   else {
-    if(goL){player.vx-=1.4*GAME_SPEED;player.facing=-1;}
-    if(goR){player.vx+=1.4*GAME_SPEED;player.facing=1;}
+    if(goL){player.vx-=1.6*GAME_SPEED;player.facing=-1;}
+    if(goR){player.vx+=1.6*GAME_SPEED;player.facing=1;}
     player.vx=Math.max(-6*GAME_SPEED,Math.min(6*GAME_SPEED,player.vx));
   }
   if(player.onGround){ player.jumpsLeft=2; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
@@ -5750,7 +5750,7 @@ function _loopUpdate(){
   const _pGrav = player.airGrappleSuspendTimer>0 ? 0
     : player.airAtkFreezeTimer>0 ? 0
     : _airSmashHang ? 0
-    : _airSmashFall ? 1
+    : _airSmashFall ? 0.6
     : (!player.onGround&&player.atk) ? AIR_ATK_GRAV_MULT
     : player.juggleFollow ? JUGGLE_GRAV/GRAV
     : 1;
@@ -6098,7 +6098,7 @@ function _loopUpdate(){
     // Slam landing
     if(e.slammed&&e.onGround){
       e.slammed=false;
-      if(!e.boss) e.stunTimer=SLAM_STUN_FRAMES; // bosses feel the impact but aren't stunned
+      if(!e.boss) e.stunTimer=SLAM_STUN_FRAMES;
       e.vx=0;
       const _slamDmg=Math.round(calcBaseDmg()*1.2+(Math.random()*10|0));
       const _prev=e.hp;
@@ -6106,6 +6106,25 @@ function _loopUpdate(){
       e.hitCD=18;
       e.ghostHp=_prev; e.ghostDrainDelay=62;
       spawnEnemyBarChips(e,_prev,e.hp);
+      // AOE shockwave — damages nearby enemies, no launch
+      const _slamCX=e.x+EW/2, _slamCY=e.y+EH;
+      enemies.forEach(other=>{
+        if(other===e||other.dead||other.hitCD>0) return;
+        const _odx=Math.abs((other.x+EW/2)-_slamCX);
+        const _ody=Math.abs((other.y+EH/2)-_slamCY);
+        if(_odx<140&&_ody<80){
+          const _aoeDmg=Math.round(_slamDmg*0.35+(Math.random()*6|0));
+          const _oprev=other.hp;
+          other.hp=Math.max(0,other.hp-_aoeDmg);
+          other.hitCD=14;
+          other.ghostHp=_oprev; other.ghostDrainDelay=62;
+          spawnEnemyBarChips(other,_oprev,other.hp);
+          // Stagger only — no vy change, no juggle
+          other.vx+=((other.x+EW/2>_slamCX)?1:-1)*3;
+          floatText(other.x+EW/2-10,other.y-12,`${_aoeDmg}`,'#ff8840',false);
+          if(other.hp<=0&&!other.dead){other.dead=true;onEnemyKilled(other);}
+        }
+      });
       slamGroundEffect(e.x+EW/2, e.y+EH);
       triggerShake(55);
       rumble(700,1.0,0.9); setTimeout(()=>rumble(350,0.6,0.3),120);
@@ -7240,7 +7259,20 @@ openDB().then(()=>{
   scaleViewport();_applyHudScale();showMenu();
 });
 initMobileControls();
-document.addEventListener('touchstart',function _ft(){preloadAllSfx();document.removeEventListener('touchstart',_ft);},{once:true,passive:true});
+// Auto fullscreen on load — browsers require a user gesture so try immediately
+// then fall back to first interaction
+function _tryFullscreen(){
+  const el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(req) req.call(el).catch(()=>{});
+}
+_tryFullscreen();
+document.addEventListener('click',_tryFullscreen,{once:true});
+document.addEventListener('touchstart',function _ft(){
+  preloadAllSfx();
+  _tryFullscreen();
+  document.removeEventListener('touchstart',_ft);
+},{once:true,passive:true});
 </script>
 </div><!-- #viewport -->
 </body>
