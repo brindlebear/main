@@ -5537,20 +5537,23 @@ function _loopUpdate(){
   // Ground: immediate juggle on press
   if(launchEdge&&!player.dead&&player.onGround) launchEnemy();
 
-  if(launchHeld){
+  if(launchHeld && !player.juggleFollow){
     launchHoldFrames++;
     // Air slam: held 30 frames (~0.5s) while armed
     if(launchHoldFrames>=30&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
     }
-  } else {
+  } else if(!launchHeld) {
     // Button released — quick tap in air → re-juggle upward
-    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<30&&!player.dead){
+    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<30&&!player.dead&&!player.juggleFollow){
       launchEnemy();
     }
     launchHoldFrames=0; player.launchJumpReady=false;
     // Arm the slam for the next hold press
     if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
+  } else {
+    // juggleFollow active + button held — just count frames for slam arming, no re-launch
+    launchHoldFrames=0;
   }
   if(player.launchCD>0) player.launchCD--;
 
