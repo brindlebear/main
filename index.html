@@ -5600,9 +5600,8 @@ function _loopUpdate(){
 
   if(launchHeld){
     launchHoldFrames++;
-    // Arm slam only when airborne and NOT juggleFollowing
-    // Slam requires a deliberate re-press after going airborne
-    if(!player.onGround&&!player.airSlamUsed&&!player.juggleFollow) player.airSlamArmed=true;
+    // Arm slam when airborne — juggleFollow check removed so re-press after follow works
+    if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
     // Air slam: hold 22 frames while armed
     if(launchHoldFrames>=22&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
@@ -5614,8 +5613,7 @@ function _loopUpdate(){
       _airRelaunch();
     }
     launchHoldFrames=0; player.launchJumpReady=false;
-    // Arm slam on release when airborne — ready for next hold
-    if(!player.onGround&&!player.airSlamUsed&&!player.juggleFollow) player.airSlamArmed=true;
+    player.airSlamArmed=false; // disarm on release — requires fresh hold to slam
   }
   if(player.launchCD>0) player.launchCD--;
 
