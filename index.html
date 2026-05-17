@@ -3410,7 +3410,7 @@ function _airRelaunch(){
   }
 }
 
-function launchEnemy(){
+function launchEnemy(held=false){
   if(player.launchCD>0||player.dead) return;
   if(player.stamina<LAUNCH_STAMINA||player.stDepleted) return;
   player.stamina=Math.max(0,player.stamina-LAUNCH_STAMINA);
@@ -3440,7 +3440,7 @@ function launchEnemy(){
   });
   if(hit){
     rumble(220, 0.85, 0.55);
-    if(anyJuggled && launchHeld){
+    if(anyJuggled && held){
       // Only follow if button is still held — tap = launch only, hold = follow
       player.onGround=false;
       player.juggleFollow=true;
@@ -5592,7 +5592,7 @@ function _loopUpdate(){
   if(player.parryCD>0) player.parryCD--;
 
   // Ground launch on tap
-  if(launchEdge&&!player.dead&&player.onGround) launchEnemy();
+  if(launchEdge&&!player.dead&&player.onGround) launchEnemy(launchHeld);
 
   if(launchHeld){
     launchHoldFrames++;
