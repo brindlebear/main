@@ -1995,10 +1995,13 @@ const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant
 const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
 const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
-const JUGGLE_GRAV=0.10;  // moderate fall — crisper than before but not too fast
-const JUGGLE_VY=-9.8;    // enemy launches higher so they stay above the following player
-// player rises to 95% of enemy peak — stays just below so attacks can reach
-const JUGGLE_PLAYER_VY=-(Math.abs(JUGGLE_VY)*Math.sqrt(0.95));
+const JUGGLE_GRAV=0.10;  // gravity applied to both player and enemy during juggle
+// Enemy launches at full VY; player follows at 90% so enemy is always ~10% higher
+const JUGGLE_VY=-9.8;
+const JUGGLE_PLAYER_VY=JUGGLE_VY*0.90; // player peaks 10% lower — enemy always above
+// Gravity multiplier to pass to physics() for juggled enemies — cancels ENEMY_GRAV_MULT
+// so enemy and player fall at identical rates during juggle
+const JUGGLE_ENEMY_GRAV_MULT=JUGGLE_GRAV/(0.401*1.5); // = JUGGLE_GRAV/(GRAV*ENEMY_GRAV_MULT)
 const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
@@ -3390,7 +3393,7 @@ function launchEnemy(){
       player.launchJumpReady=false;
       player.vx=0;
       player.y-=6; // nudge up just enough to clear the floor snap
-      player.vy=JUGGLE_PLAYER_VY*GAME_SPEED;
+      player.vy=JUGGLE_PLAYER_VY;
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
     playSfx(LAUNCH_SOUND); triggerFreeze(4); triggerShake(5);
@@ -5713,7 +5716,7 @@ function _loopUpdate(){
       if(e.boss) e.comboFirstParried=false;
       else { e.comboPhase=0; e.comboFirstParried=false; }
       if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
-      physics(e, false, e.juggled ? JUGGLE_GRAV/GRAV : 1);
+      physics(e, false, e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 1);
       return;
     }
     if(!e.juggled){
@@ -6055,7 +6058,7 @@ function _loopUpdate(){
       e.vx=0; e.vy=0;
       physics(e,false,0); // gravMult=0 — floats in place
     } else {
-      physics(e,false,e.juggled?JUGGLE_GRAV/GRAV:1);
+      physics(e,false,e.juggled?JUGGLE_ENEMY_GRAV_MULT:1);
     }
   });
   if(player.hitCD>0) player.hitCD--;
