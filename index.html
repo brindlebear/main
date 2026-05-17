@@ -1428,7 +1428,7 @@ const WEAPONS = {
     swingType: 'slash',
     // Balanced: 19 frames base — reliable arc, medium margin, 5 sweep samples
     atkSpeed: 1.0, dmgMult: 1.0, stCostMult: 1.0,
-    hitMargin: 8, sweepSteps: 5, hitCD: 20,
+    hitMargin: 8, sweepSteps: 5, hitCD: 20, knockback: [4,5,12],
     desc: 'A balanced blade. Reliable in all situations.',
     unlocked: true, cost: 0,
   },
@@ -1456,7 +1456,7 @@ const WEAPONS = {
     swingType: 'stab',
     // Very fast stab: ~10 frames. High sweep count to catch fast tunnel-through. Small margin (short blade).
     atkSpeed: 0.52, dmgMult: 0.75, stCostMult: 0.6,
-    hitMargin: 10, sweepSteps: 8, hitCD: 10,
+    hitMargin: 10, sweepSteps: 8, hitCD: 10, knockback: [2,3,6],
     desc: 'Strikes twice as fast. Low damage, low stamina cost.',
     unlocked: true, cost: 80,
   },
@@ -1487,7 +1487,7 @@ const WEAPONS = {
     swingType: 'slash',
     // Slow and heavy: 28 frames. Long blade arc — very wide margin, fewer sweeps needed.
     atkSpeed: 1.45, dmgMult: 2.1, stCostMult: 1.5,
-    hitMargin: 16, sweepSteps: 4, hitCD: 26,
+    hitMargin: 16, sweepSteps: 4, hitCD: 26, knockback: [8,10,28],
     desc: 'Slow and punishing. Devastating on the third combo hit.',
     unlocked: true, cost: 200,
   },
@@ -1515,7 +1515,7 @@ const WEAPONS = {
     swingType: 'slash',
     // Medium-heavy chop: 24 frames. Wide head — large margin, good sweep.
     atkSpeed: 1.25, dmgMult: 1.55, stCostMult: 1.2,
-    hitMargin: 14, sweepSteps: 5, hitCD: 22,
+    hitMargin: 14, sweepSteps: 5, hitCD: 22, knockback: [6,7,18],
     desc: 'Heavy and relentless. Builds pressure on each combo step.',
     unlocked: true, cost: 150,
   },
@@ -1550,7 +1550,7 @@ const WEAPONS = {
     swingType: 'slash',
     // Fast precise slash: 17 frames. Thin but long blade — small margin, high sweep.
     atkSpeed: 0.88, dmgMult: 0.95, stCostMult: 0.95,
-    hitMargin: 6, sweepSteps: 7, hitCD: 16,
+    hitMargin: 6, sweepSteps: 7, hitCD: 16, knockback: [3,4,10],
     desc: 'Swift and precise. Special fires a beam blade through all enemies.',
     unlocked: true, cost: 120,
   },
@@ -1571,7 +1571,7 @@ const WEAPONS = {
     swingType: 'strike',
     // Fast punches: 13 frames. Blunt fist — biggest margin, most sweep samples, shortest hitCD.
     atkSpeed: 0.68, dmgMult: 1.8, stCostMult: 0.9,
-    hitMargin: 20, sweepSteps: 10, hitCD: 12,
+    hitMargin: 20, sweepSteps: 10, hitCD: 12, knockback: [3,4,8],
     desc: 'Iron-bound fists. Devastatingly short range, bone-shattering power.',
     unlocked: true, cost: 175,
   },
@@ -2003,7 +2003,7 @@ const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player laun
 const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
 const JUGGLE_GRAV=0.10;  // gravity applied to both player and enemy during juggle
 // Enemy launches at full VY; player follows at 90% so enemy is always ~10% higher
-const JUGGLE_VY=-9.8;
+const JUGGLE_VY=-8.8;    // slightly lower arc than before
 const JUGGLE_PLAYER_VY=JUGGLE_VY*0.95; // player peaks 5% lower — enemy always above
 // Gravity multiplier to pass to physics() for juggled enemies — cancels ENEMY_GRAV_MULT
 // so enemy and player fall at identical rates during juggle
@@ -2843,7 +2843,8 @@ function tickAttackHits(){
       e.hp-=roll; e.hitCD=weaponHitCD;
       e.ghostHp=prev; e.ghostDrainDelay=62;
       spawnEnemyBarChips(e,prev,e.hp);
-      e.vx+=player.facing*[10,10,20][step]; e.vy-=isFinisher?5:3;
+      const kb = (activeWeapon.knockback ?? [10,10,20])[step];
+      e.vx+=player.facing*kb; e.vy-=isFinisher?5:3;
       bloodBurst(e.x+EW/2,e.y+EH*.35,isFinisher?26:14);
       sparkBurst(e.x+EW/2,e.y+EH*.25,isFinisher?18:9);
       goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
@@ -5591,14 +5592,18 @@ function _loopUpdate(){
   if(player.parryTimer>0) player.parryTimer--;
   if(player.parryCD>0) player.parryCD--;
 
-  // Ground launch on tap
-  if(launchEdge&&!player.dead&&player.onGround) launchEnemy(launchHeld);
+  // Ground launch on tap/hold
+  if(launchEdge&&!player.dead&&player.onGround){
+    launchEnemy(launchHeld);
+    if(launchHeld) launchHoldFrames=0; // reset so hold-to-follow doesn't bleed into slam
+  }
 
   if(launchHeld){
     launchHoldFrames++;
-    // Arm slam once airborne (even during juggleFollow)
-    if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
-    // Air slam: hold 22 frames while armed and airborne
+    // Arm slam only when airborne and NOT juggleFollowing
+    // Slam requires a deliberate re-press after going airborne
+    if(!player.onGround&&!player.airSlamUsed&&!player.juggleFollow) player.airSlamArmed=true;
+    // Air slam: hold 22 frames while armed
     if(launchHoldFrames>=22&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
       launchHoldFrames=0;
@@ -5609,7 +5614,8 @@ function _loopUpdate(){
       _airRelaunch();
     }
     launchHoldFrames=0; player.launchJumpReady=false;
-    if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
+    // Arm slam on release when airborne — ready for next hold
+    if(!player.onGround&&!player.airSlamUsed&&!player.juggleFollow) player.airSlamArmed=true;
   }
   if(player.launchCD>0) player.launchCD--;
 
