@@ -2802,16 +2802,18 @@ function tickAttackHits(){
 
   // Active sweep window — skip windup and follow-through
   const swingType = (activeWeapon && activeWeapon.swingType) || 'slash';
-  const WIN_START = swingType === 'stab' ? 0.15 : swingType === 'strike' ? 0.20 : 0.08;
-  const WIN_END   = swingType === 'stab' ? 0.72 : swingType === 'strike' ? 0.62 : 0.88;
+  const WIN_START = swingType === 'stab' ? 0.15 : swingType === 'strike' ? 0.15 : 0.08;
+  const WIN_END   = swingType === 'stab' ? 0.72 : swingType === 'strike' ? 0.72 : 0.88;
   if(curProg < WIN_START || prevProg > WIN_END) return;
   const from = Math.max(prevProg, WIN_START);
   const to   = Math.min(curProg,  WIN_END);
 
   const isFinisher = step === 2;
   const dmg = Math.round(calcBaseDmg() * COMBO[step].dmgMult * activeWeapon.dmgMult);
-  const margin = isFinisher ? 10 : 6;
-  const SWEEP_STEPS = 4; // intermediate samples across the swept arc this frame
+  // Strike (cestus) hits with a fist — larger margin and more sweep samples to prevent tunnelling
+  const isStrike = swingType === 'strike';
+  const margin = isStrike ? 18 : isFinisher ? 10 : 6;
+  const SWEEP_STEPS = isStrike ? 8 : 4;
 
   if(!player.swingHitSet) player.swingHitSet = new Set();
   let hitAny = false;
@@ -7058,19 +7060,26 @@ function _applyHudScale(){
 let _mcBtns=[];const _mcPressed={};
 function _buildMcLayout(){
   const W=canvas.width,H=canvas.height;
-  const r=Math.round(H*0.072),rBig=Math.round(H*0.085);
+  const r=Math.round(H*0.085);       // movement buttons +18% larger
+  const rBig=Math.round(H*0.105);    // attack button +24% larger
+  const rSm=Math.round(H*0.072);     // smaller utility buttons
   const pad=Math.round(H*0.052),gap=Math.round(r*2.55);
-  const lx=pad+r,ly=H-pad-r,rx=W-pad-r,ry=H-pad-r;
+  const gapSm=Math.round(rSm*2.55);
+  const lx=pad+r,ly=H-pad-r,rx=W-pad-rBig,ry=H-pad-rBig;
   _mcBtns=[
-    {id:'l',      x:lx,      y:ly,     r:r,    label:'◀',col:'rgba(255,255,255,0.11)'},
-    {id:'r',      x:lx+gap,  y:ly,     r:r,    label:'▶',col:'rgba(255,255,255,0.11)'},
-    {id:'grapple',x:lx,      y:ly-gap, r:r,    label:'🪝',col:'rgba(255,200,60,0.11)'},
-    {id:'parry',  x:lx+gap,  y:ly-gap, r:r,    label:'🛡',col:'rgba(255,220,80,0.11)'},
-    {id:'jump',   x:rx,      y:ry-gap, r:r,    label:'▲',col:'rgba(255,255,255,0.11)'},
-    {id:'atk',    x:rx,      y:ry,     r:rBig, label:'⚔',col:'rgba(220,60,60,0.15)'},
-    {id:'magic',  x:rx-gap,  y:ry,     r:r,    label:'✨',col:'rgba(120,80,220,0.11)'},
-    {id:'evade',  x:rx-gap,  y:ry-gap, r:r,    label:'💨',col:'rgba(60,140,220,0.11)'},
-    {id:'launch', x:rx-gap*2,y:ry,     r:r,    label:'↑', col:'rgba(40,180,130,0.11)'},
+    // Left cluster — movement (larger)
+    {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.11)'},
+    {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.11)'},
+    {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.11)'},
+    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,220,80,0.11)'},
+    {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.11)'},
+    // Right cluster — actions
+    {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.11)'},
+    {id:'atk',    x:rx,           y:ry,          r:rBig, label:'⚔',col:'rgba(220,60,60,0.15)'},
+    {id:'magic',  x:rx-gap,       y:ry,          r:rSm,  label:'✨',col:'rgba(120,80,220,0.11)'},
+    {id:'evade',  x:rx-gap,       y:ry-gap,      r:rSm,  label:'💨',col:'rgba(60,140,220,0.11)'},
+    {id:'launch', x:rx-gap*2,     y:ry,          r:rSm,  label:'↑', col:'rgba(40,180,130,0.11)'},
+    {id:'sp',     x:rx-gap*2,     y:ry-gapSm,    r:rSm,  label:'★', col:'rgba(255,160,20,0.13)'},
   ];
 }
 function _drawMobileControls(){
@@ -7098,13 +7107,15 @@ function _mcOn(id){
   else if(id==='evade')evadeEdge=true;
   else if(id==='parry'){parryEdge=true;btnS.parry=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
+  else if(id==='sp')btnS.sp=true;
+  else if(id==='target')cycleLockedTarget();
 }
 function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
   else if(id==='parry')btnS.parry=false;else if(id==='grapple')btnS.grapple=false;
-  else if(id==='launch')btnS.launch=false;
+  else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
 function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();writeSave();}
 function _syncMobileBtn(){const on=!!save.mobileControls;const l=document.getElementById('mobileCtrlLabel');if(l)l.textContent=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';}
