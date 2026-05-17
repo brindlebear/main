@@ -1998,7 +1998,7 @@ const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
 const JUGGLE_GRAV=0.10;  // gravity applied to both player and enemy during juggle
 // Enemy launches at full VY; player follows at 90% so enemy is always ~10% higher
 const JUGGLE_VY=-9.8;
-const JUGGLE_PLAYER_VY=JUGGLE_VY*0.90; // player peaks 10% lower — enemy always above
+const JUGGLE_PLAYER_VY=JUGGLE_VY*0.95; // player peaks 5% lower — enemy always above
 // Gravity multiplier to pass to physics() for juggled enemies — cancels ENEMY_GRAV_MULT
 // so enemy and player fall at identical rates during juggle
 const JUGGLE_ENEMY_GRAV_MULT=JUGGLE_GRAV/(0.401*1.5); // = JUGGLE_GRAV/(GRAV*ENEMY_GRAV_MULT)
@@ -3354,6 +3354,49 @@ function drawGrappleLine(){
   }
 
   ctx.restore();
+}
+
+function _airRelaunch(){
+  if(player.launchCD>0||player.dead) return;
+  if(player.stamina<LAUNCH_STAMINA||player.stDepleted) return;
+  let anyHit=false;
+  enemies.forEach(e=>{
+    if(e.dead||e.hitCD>0||e.onGround) return;
+    const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
+    const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
+    if(dx<LAUNCH_RANGE+20&&dy<160){
+      const dmg=Math.round(calcBaseDmg()*0.45+(Math.random()*6|0));
+      const prev=e.hp;
+      e.hp=Math.max(0,e.hp-dmg);
+      e.hitCD=14;
+      e.ghostHp=prev; e.ghostDrainDelay=62;
+      // Re-launch: full JUGGLE_VY upward again
+      e.vy=JUGGLE_VY*0.9;
+      e.vx=player.facing*12;
+      e.juggled=true; e.juggleTimer=200; e.onGround=false;
+      spawnEnemyBarChips(e,prev,e.hp);
+      floatText(e.x+EW/2-12,e.y-18,`↑${dmg}`,'#80ffee',false);
+      sparkBurst(e.x+EW/2,e.y+EH*0.3,10,false);
+      lastHitEnemy=e; anyHit=true;
+      if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+    }
+  });
+  if(anyHit){
+    player.stamina=Math.max(0,player.stamina-LAUNCH_STAMINA);
+    if(player.stamina<8) player.stDepleted=true;
+    setStBar(player.stamina,player.maxStamina);
+    player.launchCD=Math.round(LAUNCH_COOLDOWN*0.6); // shorter CD for air chains
+    // Player follows back up — maintain juggleFollow
+    player.vy=JUGGLE_PLAYER_VY;
+    player.juggleFollow=true;
+    rumble(140,0.6,0.35);
+    playSfx(LAUNCH_SOUND);
+    triggerFreeze(3); triggerShake(4);
+    hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
+    const newTier=Math.floor(hitStreak/10);
+    if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemy?.exp||0);}
+    updateStreakHud();
+  }
 }
 
 function launchEnemy(){
@@ -5534,26 +5577,25 @@ function _loopUpdate(){
   if(player.parryTimer>0) player.parryTimer--;
   if(player.parryCD>0) player.parryCD--;
 
-  // Ground: immediate juggle on press
+  // Ground launch on tap
   if(launchEdge&&!player.dead&&player.onGround) launchEnemy();
 
-  if(launchHeld && !player.juggleFollow){
+  if(launchHeld){
     launchHoldFrames++;
-    // Air slam: held 30 frames (~0.5s) while armed
-    if(launchHoldFrames>=30&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
+    // Arm slam once airborne (even during juggleFollow)
+    if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
+    // Air slam: hold 22 frames while armed and airborne
+    if(launchHoldFrames>=22&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
+      launchHoldFrames=0;
     }
-  } else if(!launchHeld) {
-    // Button released — quick tap in air → re-juggle upward
-    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<30&&!player.dead&&!player.juggleFollow){
-      launchEnemy();
+  } else {
+    // Button released in air — quick tap re-juggles enemy upward
+    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<22&&!player.dead){
+      _airRelaunch();
     }
     launchHoldFrames=0; player.launchJumpReady=false;
-    // Arm the slam for the next hold press
     if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
-  } else {
-    // juggleFollow active + button held — just count frames for slam arming, no re-launch
-    launchHoldFrames=0;
   }
   if(player.launchCD>0) player.launchCD--;
 
@@ -5874,11 +5916,13 @@ function _loopUpdate(){
           }
         } else if(adx>_atkRange){
           e.vx+=e.facing*e.speed*0.5*speedMult;
-        } else if(e.atkCD<=0){
+        } else if(e.atkCD<=0&&e.hitCD<=0){
           e.windupTimer=ENEMY_WINDUP_FRAMES;
         }
       } else {
         e.windupTimer=0;
+        // Cancel windup if hit during it
+        if(e.hitCD>0) e.windupTimer=0;
         e.pTimer--;if(e.pTimer<=0){e.pDir*=-1;e.pTimer=70+(Math.random()*110|0);}
         e.vx+=e.pDir*.15;e.facing=e.pDir;
       }
