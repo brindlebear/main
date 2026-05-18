@@ -1451,6 +1451,10 @@ const HERO_FRAMES = {
   hurt:   cells(0,   288, 1),
   defeat: cells(0,  288, 4),
   attack: cells(0,   384, 4),
+  // 'throw' — used while a spin-throw weapon is in flight.
+  // Locked to the FIRST attack frame so the character holds a stable, visible pose
+  // for the full duration of the throw regardless of how many frames the sheet has.
+  throw:  cells(0,   384, 1),
   launch:   cells(0,   480, 4), // 2-frame launch animation  (row 5, slots 0-1)
   airSmash: cells(288, 192, 1), // 2-frame air-smash hold    (row 5, slots 2-3)
   evade:  cells(0,   576, 2),  // dodge roll — row 6, bottom of sheet
@@ -1472,18 +1476,22 @@ const heroAnim = {
 
 function tickHeroAnim(p){
   const a=heroAnim;
-  let next=p.dead?'defeat':p.hitCD>28?'hurt':
+  let next=p.dead?'defeat':p.hitCD>18?'hurt':
     p.airSmashTimer>0?'airSmash':
     Date.now()<p.launchUntil?'launch':
     p.evadeTimer>0?'evade':
     (p.airGrappleSuspendTimer>0&&p.airSuspendKeepEvade)?'evade':
+    // Spin-throw: weapon is a flying projectile — lock to the first attack frame so
+    // the character holds a clean "throw" pose instead of cycling through attack frames
+    // that may include transparent/empty sprite cells.
+    ((p.atk||p.atkCD>0)&&(getStep(p.curStep||0).motion||'arc')==='spin-throw')?'throw':
     (p.atk||p.atkCD>0||p.spAtk)?'attack':
     !p.onGround?(p.vy<0?'jump':'fall'):
     Math.abs(p.vx)>0.5?'walk':'idle';
   const frames=HERO_FRAMES[next];if(!frames)return;
   if(a.name!==next){if(a.name==='defeat')return;a.name=next;a.frame=0;a.tick=0;}
   a.tick++;
-  const spd={idle:18,walk:10,jump:99,fall:6,attack:30,evade:14,hurt:5,defeat:10,launch:12,airSmash:99}[next]||6;
+  const spd={idle:18,walk:10,jump:99,fall:6,attack:30,throw:99,evade:14,hurt:5,defeat:10,launch:12,airSmash:99}[next]||6;
   if(a.tick>=spd){
     a.tick=0;
     if(next==='defeat'||next==='hurt'||next==='launch'||next==='evade'||next==='airSmash')a.frame=Math.min(a.frame+1,frames.length-1);
@@ -1717,11 +1725,11 @@ const WEAPONS = {
     },
     atkSpeed: 1.0,
     steps:[
-      {motion:'arc', startAngle:-115,endAngle:120, easing:'linear', pivotX:20,pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1.0, stamCost:18, hitMargin:8,  sweepSteps:5, hitCD:20, knockback:[4,5,12]},
-      {motion:'arc', startAngle:  58,endAngle:-108, easing:'in',   pivotX:16,pivotY:0.42, swingH: 98, frameIdx:1, duration:19, dmgMult:1.3, stamCost:22, hitMargin:8,  sweepSteps:5, hitCD:20, knockback:[4,5,12]},
-      {motion:'thrust',                            easing:'out', pivotX:14,pivotY:0.30, swingH:104, frameIdx:2, duration:19, dmgMult:2.0, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, knockback:[6,7,18]},
+      {motion:'arc',        startAngle:-115,endAngle:120,  easing:'out',    pivotX:20,pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1.0,  stamCost:18, hitMargin:8,  sweepSteps:5, hitCD:20, knockback:[4,5,12]},
+      {motion:'sweep',      startAngle:-162,endAngle: 12,  easing:'out',    pivotX:16,pivotY:0.62, swingH:102, frameIdx:1, duration:20, dmgMult:1.2,  stamCost:20, hitMargin:9,  sweepSteps:6, hitCD:20, knockback:[5,6,10]},
+      {motion:'dash-slash', startAngle:-115,endAngle:110,  easing:'out',    pivotX:18,pivotY:0.22, swingH:106, frameIdx:2, duration:20, dmgMult:2.0,  dashDist:58, stamCost:28, hitMargin:9,  sweepSteps:7, hitCD:18, knockback:[6,8,18]},
     ],
-    desc: 'A balanced blade. Reliable in all situations.',
+    desc: 'Slash — low sweep — lunging dash finish. A complete three-hit set.',
     elemental: null,
     unlocked: true, cost: 0,
   },
@@ -1745,10 +1753,10 @@ const WEAPONS = {
           life:1,decay:.07,r:2,color:`hsl(160,100%,${60+Math.random()*25|0}%)`});}
     },
     atkSpeed: 0.52,
-    steps:[
-      { motion:'thrust', startAngle:0, endAngle:0, easing:'out', pivotX:23, pivotY:0.48, swingH:104, frameIdx:2, duration:19, dmgMult:0.1, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, hitCount:5, knockback:[6,7,18] }
+ steps: [
+    { motion:'thrust', startAngle:0, endAngle:0, easing:'out', pivotX:16, pivotY:0.30, swingH:108, frameIdx:0, duration:19, dmgMult:1.00, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] }
     ],
-    desc: 'Five rapid stabs. Low damage per hit, high total output.',
+    desc: 'Two lunging stabs — uppercut launch — hurls the blade spinning out and back.',
     elemental: null,
     unlocked: true, cost: 80,
   },
@@ -1776,10 +1784,12 @@ const WEAPONS = {
     },
     atkSpeed: 1.45,
     steps:[
-      {motion:'arc', startAngle:-120,endAngle:110, easing:'linear', pivotX:22,pivotY:0.16, swingH:120, frameIdx:0, duration:28, dmgMult:1.6, stamCost:28, hitMargin:16, sweepSteps:4, hitCD:26, knockback:[8,10,28]},
-      {motion:'arc', startAngle:  65,endAngle:-116, easing:'in',   pivotX:18,pivotY:0.44, swingH:116, frameIdx:1, duration:28, dmgMult:2.6, stamCost:36, hitMargin:16, sweepSteps:4, hitCD:26, knockback:[10,12,32]},
+      {motion:'slam',       startAngle:-130,endAngle:112,  easing:'in',     pivotX:22,pivotY:0.14, swingH:124, frameIdx:0, duration:30, dmgMult:1.8,  shockRadius:72, slamVx:10, stamCost:30, hitMargin:18, sweepSteps:4, hitCD:28, knockback:[ 9,11,30]},
+      {motion:'sweep',      startAngle:-160,endAngle: 10,  easing:'out',    pivotX:20,pivotY:0.66, swingH:120, frameIdx:1, duration:26, dmgMult:1.6,  stamCost:26, hitMargin:16, sweepSteps:5, hitCD:24, knockback:[7,9,18]},
+      {motion:'uppercut',   startAngle: 70, endAngle:-120, easing:'in',     pivotX:18,pivotY:0.46, swingH:118, frameIdx:1, duration:28, dmgMult:2.2,  launchPower:12, stamCost:36, hitMargin:16, sweepSteps:4, hitCD:26, knockback:[10,12,32]},
+      {motion:'dash-slash', startAngle:-130,endAngle:116,  easing:'out',    pivotX:24,pivotY:0.16, swingH:128, frameIdx:2, duration:34, dmgMult:3.6,  dashDist:76, stamCost:46, hitMargin:20, sweepSteps:5, hitCD:30, knockback:[15,17,44]},
     ],
-    desc: 'Two brutal strikes. Slow but earth-shattering power.',
+    desc: 'Overhead slam — low sweep — uppercut launch — bull-rush finisher. Every hit a different threat.',
     elemental: null,
     unlocked: true, cost: 200,
   },
@@ -1804,11 +1814,12 @@ const WEAPONS = {
     },
     atkSpeed: 1.25,
     steps:[
-      {motion:'arc', startAngle:-110,endAngle:106, easing:'linear', pivotX:20,pivotY:0.14, swingH:112, frameIdx:0, duration:24, dmgMult:1.2, stamCost:22, hitMargin:14, sweepSteps:5, hitCD:22, knockback:[6,7,18]},
-      {motion:'arc', startAngle:  62,endAngle:-112, easing:'in',   pivotX:18,pivotY:0.40, swingH:110, frameIdx:1, duration:24, dmgMult:1.4, stamCost:24, hitMargin:14, sweepSteps:5, hitCD:22, knockback:[6,7,18]},
-      {motion:'arc', startAngle:-105,endAngle:112, easing:'linear', pivotX:22,pivotY:0.16, swingH:116, frameIdx:0, duration:26, dmgMult:1.9, stamCost:30, hitMargin:16, sweepSteps:5, hitCD:24, knockback:[8,9,22]},
+      {motion:'slam',       startAngle:-115,endAngle:108, easing:'in',     pivotX:20,pivotY:0.14, swingH:114, frameIdx:0, duration:26, dmgMult:1.4, shockRadius:68, slamVx:9,  stamCost:24, hitMargin:15, sweepSteps:5, hitCD:24, knockback:[7,8,20]},
+      {motion:'arc',        startAngle:  62,endAngle:-112, easing:'in',    pivotX:18,pivotY:0.40, swingH:110, frameIdx:1, duration:24, dmgMult:1.5, stamCost:24, hitMargin:14, sweepSteps:5, hitCD:22, knockback:[6,7,18]},
+      {motion:'sweep',      startAngle:-158,endAngle:  8,  easing:'out',   pivotX:18,pivotY:0.64, swingH:112, frameIdx:0, duration:22, dmgMult:1.3, stamCost:20, hitMargin:14, sweepSteps:5, hitCD:20, knockback:[5,7,14]},
+      {motion:'spin-throw', startAngle:0,endAngle:0,                       pivotX:20,pivotY:0.22, swingH:112, frameIdx:2, duration:180, dmgMult:2.6, throwSpeed:11, throwRange:380, throwRiseVy:2.2, stamCost:32, hitMargin:18, sweepSteps:1, hitCD:1, knockback:[10,12,26]},
     ],
-    desc: 'Heavy and relentless. Three-hit overhead chain.',
+    desc: 'Overhead slam — back arc — low sweep — hurls the axe spinning out and back.',
     elemental: null,
     unlocked: true, cost: 150,
   },
@@ -1835,12 +1846,12 @@ const WEAPONS = {
     },
     atkSpeed: 0.88,
     steps:[
-      {motion:'arc', startAngle:-115,endAngle: 98, easing:'linear', pivotX:18,pivotY:0.16, swingH: 98, frameIdx:0, duration:17, dmgMult:0.80, stamCost:14, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
-      {motion:'arc', startAngle:  55,endAngle:-106, easing:'in',   pivotX:14,pivotY:0.42, swingH: 95, frameIdx:1, duration:17, dmgMult:0.90, stamCost:15, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
-      {motion:'arc', startAngle:-112,endAngle:102, easing:'linear', pivotX:18,pivotY:0.18, swingH:100, frameIdx:0, duration:17, dmgMult:1.00, stamCost:16, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[4,5,12]},
-      {motion:'thrust',                            easing:'inout', pivotX:14,pivotY:0.30, swingH:104, frameIdx:2, duration:20, dmgMult:1.80, stamCost:28, hitMargin:8, sweepSteps:7, hitCD:18, knockback:[6,7,16]},
+      {motion:'arc',        startAngle:-115,endAngle: 98,  easing:'out',    pivotX:18,pivotY:0.16, swingH: 98, frameIdx:0, duration:17, dmgMult:0.80, stamCost:14, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
+      {motion:'uppercut',   startAngle: 58, endAngle:-106, easing:'in',     pivotX:14,pivotY:0.44, swingH: 95, frameIdx:1, duration:17, dmgMult:0.90, launchPower:8, stamCost:15, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
+      {motion:'sweep',      startAngle:-155,endAngle: 14,  easing:'out',    pivotX:16,pivotY:0.60, swingH: 98, frameIdx:0, duration:18, dmgMult:1.10, stamCost:16, hitMargin:7, sweepSteps:7, hitCD:16, knockback:[4,5,10]},
+      {motion:'dash-slash', startAngle:-118,endAngle: 95,  easing:'out',    pivotX:18,pivotY:0.22, swingH:106, frameIdx:2, duration:22, dmgMult:2.00, dashDist:64, stamCost:28, hitMargin:9, sweepSteps:8, hitCD:18, knockback:[7,9,18]},
     ],
-    desc: 'Four flowing cuts ending in a decisive thrust. Fires a beam on special.',
+    desc: 'Slash — uppercut launch — low sweep — lunging finisher. Four distinct threats in one flow.',
     elemental: null,
     unlocked: true, cost: 120,
   },
@@ -1882,6 +1893,428 @@ const WEAPONS = {
     desc: 'Iron-bound fists. Jab–cross–hook, body shot, rising uppercut, reset, backfist, elbow, heavy overhand — haymaker.',
     elemental: null,
     unlocked: true, cost: 175,
+  },
+
+  // ── SPEAR — 2-hit extended-reach thrusts ─────────────────────────────────
+  spear: {
+    name: 'Spear', icon: '🔱',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
+        if(dx<200&&dy<90){
+          _spHit(e,Math.round(calcBaseDmg()*2.4+(Math.random()*22|0)),'#ffe060','⚔'); hit=true;
+          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy=-9;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(18);triggerShake(16);triggerHitFlash();}
+      for(let i=0;i<32;i++){
+        const a=(i/32)*Math.PI*2;
+        particles.push({type:'spark',x:p.x+PW/2,y:p.y+PH*0.38,
+          vx:Math.cos(a)*(8+Math.random()*6),vy:Math.sin(a)*(8+Math.random()*6)-3,
+          life:1,decay:0.036,r:2+Math.random()*4,
+          color:`hsl(${38+Math.random()*18|0},100%,${60+Math.random()*22|0}%)`});
+      }
+      p.vy=-8;
+    },
+    atkSpeed: 1.15,
+    steps:[
+      {motion:'lunge-thrust', easing:'out',   pivotX:20,pivotY:0.28, swingH:118, frameIdx:2, duration:18, dmgMult:1.2,  dashDist:48, stamCost:16, hitMargin:14, sweepSteps:7, hitCD:18, knockback:[5,6,14]},
+      {motion:'lunge-thrust', easing:'in',    pivotX:22,pivotY:0.30, swingH:124, frameIdx:2, duration:22, dmgMult:1.8,  dashDist:58, stamCost:22, hitMargin:16, sweepSteps:7, hitCD:22, knockback:[7,8,18]},
+      {motion:'sweep',        startAngle:-165,endAngle:8, easing:'out', pivotX:20,pivotY:0.64, swingH:122, frameIdx:0, duration:22, dmgMult:1.4,  stamCost:20, hitMargin:15, sweepSteps:6, hitCD:20, knockback:[6,8,14]},
+      {motion:'spin-throw',   startAngle:0, endAngle:0, easing:'out', pivotX:22, pivotY:0.28, swingH:132, frameIdx:2, duration:180, dmgMult:2.8, throwSpeed:13, throwRange:420, throwRiseVy:1.8, stamCost:30, hitMargin:16, sweepSteps:1, hitCD:1, knockback:[10,12,28]},
+    ],
+    desc: 'Two lunging thrusts — low ground sweep — hurls the spear across the field and back.',
+    elemental: null,
+    unlocked: true, cost: 110,
+  },
+
+  // ── SCYTHE — 3-hit wide sweeping dark arcs ───────────────────────────────
+  scythe: {
+    name: 'Scythe', icon: '💀',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
+    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      // Soul Vortex — dark spiral that pulls and shreds all enemies
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=(p.x+PW/2)-(e.x+EW/2), dy=(p.y+PH/2)-(e.y+EH/2);
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<280){
+          _spHit(e,Math.round(calcBaseDmg()*3.2+(Math.random()*28|0)),'#d060ff','💀'); hit=true;
+          e.vx+=dx/dist*10; e.vy+=dy/dist*8-4;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(20);triggerShake(18);triggerHitFlash();}
+      for(let i=0;i<40;i++){
+        const a=(i/40)*Math.PI*2;
+        const r=30+i*3.8;
+        particles.push({type:'spark',
+          x:p.x+PW/2+Math.cos(a)*r*0.5, y:p.y+PH*0.45+Math.sin(a)*r*0.3,
+          vx:Math.cos(a+Math.PI/2)*7+Math.cos(a)*(-1.5),
+          vy:Math.sin(a+Math.PI/2)*5+Math.sin(a)*(-1)-1,
+          life:1,decay:0.038+i*0.0005,r:2+Math.random()*3,
+          color:`hsl(${270+Math.random()*30|0},100%,${30+Math.random()*22|0}%)`});
+      }
+    },
+    atkSpeed: 1.5,
+    steps:[
+      {motion:'sweep',      startAngle:-168,endAngle: 12,  easing:'out',    pivotX:22,pivotY:0.68, swingH:134, frameIdx:0, duration:28, dmgMult:1.4, stamCost:24, hitMargin:20, sweepSteps:5, hitCD:24, knockback:[ 6, 8,18]},
+      {motion:'arc',        startAngle:  75,endAngle:-130, easing:'in',     pivotX:20,pivotY:0.46, swingH:128, frameIdx:1, duration:26, dmgMult:1.8, stamCost:28, hitMargin:18, sweepSteps:4, hitCD:24, knockback:[ 8,10,26]},
+      {motion:'slam',       startAngle:-135,endAngle: 130, easing:'in',     pivotX:24,pivotY:0.18, swingH:136, frameIdx:0, duration:32, dmgMult:2.6, shockRadius:90, slamVx:10, stamCost:36, hitMargin:20, sweepSteps:4, hitCD:28, knockback:[12,14,36]},
+      {motion:'dash-slash', startAngle:-140,endAngle: 130, easing:'out',    pivotX:24,pivotY:0.14, swingH:142, frameIdx:2, duration:28, dmgMult:3.5, dashDist:80, stamCost:44, hitMargin:22, sweepSteps:5, hitCD:28, knockback:[14,16,44]},
+    ],
+    desc: 'Low reaping sweep — upswing — soul slam shockwave — reaper lunge. Dark elemental.',
+    elemental: 'dark',
+    unlocked: true, cost: 260,
+  },
+
+  // ── TWIN BLADES — 6-hit blazing alternating combo ─────────────────────────
+  twinblades: {
+    name: 'Twin Blades', icon: '⚔',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
+    special(p){
+      // Blazing Rush — dash through all enemies with a fire tornado
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
+        if(dx<320&&dy<80){
+          _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*14|0)),'#ff6030','🔥'); hit=true;
+          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*6; e.vy-=4;
+          for(let i=0;i<8;i++){
+            particles.push({type:'spark',x:e.x+EW/2+(Math.random()-0.5)*22,y:e.y+EH*0.38,
+              vx:(Math.random()-0.5)*5,vy:-Math.random()*8-2,
+              life:1,decay:0.038+Math.random()*0.03,r:3+Math.random()*4,
+              color:`hsl(${10+Math.random()*30|0},100%,${55+Math.random()*25|0}%)`});
+          }
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(12);triggerShake(12);triggerHitFlash();}
+      const t0=Date.now()*0.001;
+      for(let i=0;i<24;i++){
+        const a=(i/24)*Math.PI*2+t0;
+        particles.push({type:'spark',x:p.x+PW/2+Math.cos(a)*28,y:p.y+PH*0.45+Math.sin(a)*14,
+          vx:Math.cos(a+Math.PI/2)*8,vy:Math.sin(a+Math.PI/2)*4-5,
+          life:1,decay:0.05,r:3+Math.random()*3,
+          color:`hsl(${15+Math.random()*25|0},100%,${58+Math.random()*20|0}%)`});
+      }
+    },
+    atkSpeed: 1.0,
+    steps: [
+    { motion:'arc', startAngle:-115, endAngle:70, easing:'out', pivotX:20, pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1.00, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'arc', startAngle:58, endAngle:-88, easing:'in', pivotX:16, pivotY:0.42, swingH:98, frameIdx:1, duration:19, dmgMult:1.30, stamCost:22, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'thrust', startAngle:0, endAngle:0, easing:'out', pivotX:14, pivotY:0.30, swingH:104, frameIdx:2, duration:19, dmgMult:2.00, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, hitCount:1, knockback:[6,7,18] },
+    { motion:'spin-throw', startAngle:0, endAngle:0, easing:'out', pivotX:18, pivotY:0.22, swingH:108, frameIdx:0, duration:19, dmgMult:1.00, throwSpeed:11, throwRange:360, throwRiseVy:2.0, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'spin-throw', startAngle:0, endAngle:0, easing:'out', pivotX:18, pivotY:0.22, swingH:108, frameIdx:0, duration:19, dmgMult:1.00, throwSpeed:11, throwRange:360, throwRiseVy:2.0, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] }
+    ],
+    desc: 'Arc — back-arc — lunge stab — arc — low sweep — twin-blade throw. Six-hit blazing chain.',
+    elemental: 'fire',
+    unlocked: true, cost: 220,
+  },
+
+  // ── WAR HAMMER — 2-hit earth-shaking overhead smash ──────────────────────
+  hammer: {
+    name: 'War Hammer', icon: '🔨',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
+    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      // Ground Slam — floor shockwave launches all grounded enemies
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        if(Math.abs((e.x+EW/2)-(p.x+PW/2))<300){
+          _spHit(e,Math.round(calcBaseDmg()*3.5+(Math.random()*30|0)),'#ff8020','💥'); hit=true;
+          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*12; e.vy=-14;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(24);triggerShake(26);triggerHitFlash();}
+      for(let side=-1;side<=1;side+=2){
+        for(let i=0;i<22;i++){
+          particles.push({type:'spark',x:p.x+PW/2+side*i*14,y:p.y+PH-8,
+            vx:side*(4+i*0.7),vy:-(Math.random()*9+3),
+            life:1,decay:0.028+i*0.003,r:4+Math.random()*5,
+            color:`hsl(${28+Math.random()*20|0},100%,${48+Math.random()*22|0}%)`});
+        }
+      }
+      for(let i=0;i<18;i++){
+        particles.push({type:'spark',x:p.x+PW/2+(Math.random()-0.5)*34,y:p.y+PH-4,
+          vx:(Math.random()-0.5)*8,vy:-Math.random()*6-1,
+          life:1,decay:0.022,r:7+Math.random()*9,
+          color:`rgba(180,160,100,0.5)`});
+      }
+    },
+    atkSpeed: 1.8,
+    steps:[
+      {motion:'slam',       startAngle:-145,endAngle: 130, easing:'in',     pivotX:24,pivotY:0.12, swingH:130, frameIdx:0, duration:34, dmgMult:2.2, shockRadius:84, slamVx:13, stamCost:34, hitMargin:20, sweepSteps:3, hitCD:30, knockback:[11,13,34]},
+      {motion:'sweep',      startAngle:-162,endAngle:  8,  easing:'out',    pivotX:22,pivotY:0.68, swingH:126, frameIdx:1, duration:28, dmgMult:1.8, stamCost:28, hitMargin:20, sweepSteps:4, hitCD:28, knockback:[9,11,24]},
+      {motion:'uppercut',   startAngle:  80,endAngle:-140, easing:'in',     pivotX:22,pivotY:0.48, swingH:126, frameIdx:1, duration:34, dmgMult:2.8, launchPower:15, stamCost:40, hitMargin:22, sweepSteps:3, hitCD:30, knockback:[14,16,40]},
+      {motion:'dash-slash', startAngle:-145,endAngle: 130, easing:'out',    pivotX:26,pivotY:0.12, swingH:136, frameIdx:2, duration:38, dmgMult:4.2, dashDist:70, stamCost:52, hitMargin:22, sweepSteps:3, hitCD:34, knockback:[16,18,52]},
+    ],
+    desc: 'Overhead slam — low sweep — launcher uppercut — bull-rush finisher. Slowest, hardest hits.',
+    elemental: null,
+    unlocked: true, cost: 300,
+  },
+
+  // ── FROST STAFF — 3-hit ice magic, stun on special ───────────────────────
+  froststaff: {
+    name: 'Frost Staff', icon: '❄',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
+    special(p){
+      // Ice Nova — three expanding frost rings that stun enemies
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
+        if(dx<260&&dy<100){
+          _spHit(e,Math.round(calcBaseDmg()*2.6+(Math.random()*20|0)),'#70e8ff','❄'); hit=true;
+          e.stunTimer=Math.max(e.stunTimer||0,70);
+          e.vx*=0.15; e.vy*=0.15;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(18);triggerShake(14);triggerHitFlash();}
+      for(let ring=0;ring<3;ring++){
+        const r=35+ring*32;
+        for(let i=0;i<28;i++){
+          const a=(i/28)*Math.PI*2;
+          particles.push({type:'spark',
+            x:p.x+PW/2+Math.cos(a)*r, y:p.y+PH*0.45+Math.sin(a)*r*0.55,
+            vx:Math.cos(a)*4*(ring+1), vy:Math.sin(a)*2*(ring+1)-1,
+            life:1,decay:0.028+ring*0.012,r:2+Math.random()*3,
+            color:`hsl(${195+Math.random()*25|0},90%,${72+Math.random()*20|0}%)`});
+        }
+      }
+    },
+    atkSpeed: 1.2,
+    steps:[
+      {motion:'arc',          startAngle:-108,endAngle: 100, easing:'out',   pivotX:18,pivotY:0.18, swingH:106, frameIdx:0, duration:22, dmgMult:1.0, stamCost:18, hitMargin:10, sweepSteps:5, hitCD:20, knockback:[4,5,12]},
+      {motion:'lunge-thrust', easing:'out',                  pivotX:18,pivotY:0.28, swingH:112, frameIdx:2, duration:20, dmgMult:1.4, dashDist:50, stamCost:20, hitMargin:12, sweepSteps:6, hitCD:20, knockback:[6,7,14]},
+      {motion:'slam',         startAngle:-120,endAngle:108,  easing:'in',    pivotX:20,pivotY:0.16, swingH:114, frameIdx:1, duration:28, dmgMult:2.2, shockRadius:70, slamVx:8, stamCost:32, hitMargin:14, sweepSteps:4, hitCD:24, knockback:[7,9,20]},
+    ],
+    desc: 'Ice arc — lunge thrust — frost slam shockwave. Methodical and punishing.',
+    elemental: 'ice',
+    unlocked: true, cost: 340,
+  },
+
+  // ── CHAIN FLAIL — 4-hit whip combo, pulls enemies ────────────────────────
+  flail: {
+    name: 'Chain Flail', icon: '⛓',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/sword_hit.wav',
+    special(p){
+      // Chain Pull — yank every enemy on screen toward player
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=(p.x+PW/2)-(e.x+EW/2), dy=(p.y+PH/2)-(e.y+EH/2);
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<380&&dist>20){
+          _spHit(e,Math.round(calcBaseDmg()*1.5+(Math.random()*12|0)),'#c0a060','⛓'); hit=true;
+          e.vx=dx/dist*18; e.vy=dy/dist*12-3; e.onGround=false;
+          const steps=10;
+          for(let i=0;i<steps;i++){
+            const t=i/steps;
+            particles.push({type:'spark',
+              x:e.x+EW/2+dx*t+(Math.random()-0.5)*14, y:e.y+EH/2+dy*t+(Math.random()-0.5)*9,
+              vx:(Math.random()-0.5)*3,vy:(Math.random()-0.5)*3,
+              life:1,decay:0.11,r:1.5+Math.random()*2,
+              color:`hsl(${38+Math.random()*16|0},80%,${55+Math.random()*20|0}%)`});
+          }
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(14);triggerShake(14);triggerHitFlash();}
+    },
+    atkSpeed: 1.05,
+    steps: [
+    { motion:'sweep',      startAngle:-160, endAngle: 14,  easing:'out',    pivotX:22, pivotY:0.64, swingH:122, frameIdx:0, duration:24,  dmgMult:0.9,  stamCost:16, hitMargin:13, sweepSteps:5, hitCD:22, knockback:[5, 7,14] },
+    { motion:'arc',        startAngle:  65, endAngle:-115, easing:'in',     pivotX:20, pivotY:0.44, swingH:118, frameIdx:1, duration:24,  dmgMult:1.1,  stamCost:20, hitMargin:12, sweepSteps:4, hitCD:22, knockback:[6, 7,16] },
+    { motion:'sweep',      startAngle:-164, endAngle:  8,  easing:'out',    pivotX:24, pivotY:0.66, swingH:124, frameIdx:0, duration:26,  dmgMult:1.5,  stamCost:24, hitMargin:14, sweepSteps:5, hitCD:24, knockback:[7, 9,18] },
+    { motion:'spin-throw', startAngle:0,    endAngle:0,    easing:'out',    pivotX:20, pivotY:0.28, swingH:130, frameIdx:2, duration:180, dmgMult:2.8, throwSpeed:11, throwRange:400, throwRiseVy:1.8, stamCost:30, hitMargin:18, sweepSteps:1, hitCD:1, knockback:[10,12,26] },
+    ],
+    desc: 'Low sweep — arc — low sweep — hurls the flail. Ground-clearing chain crowd control.',
+    elemental: null,
+    unlocked: true, cost: 380,
+  },
+
+  // ── THUNDER LANCE — lightning, chain lightning special ────────────────────
+  lance: {
+    name: 'Thunder Lance', icon: '⚡',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      // Chain Lightning — arcs through all enemies in order of distance
+      const alive=enemies.filter(e=>!e.dead);
+      if(!alive.length) return;
+      alive.sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
+      alive.forEach((e,idx)=>{
+        _spHit(e,Math.round(calcBaseDmg()*(2.6-idx*0.25)+(Math.random()*20|0)),'#ffff50','⚡');
+        e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*8; e.vy-=6;
+        for(let i=0;i<14;i++){
+          const a=Math.random()*Math.PI*2;
+          particles.push({type:'spark',x:e.x+EW/2,y:e.y+EH*0.3,
+            vx:Math.cos(a)*(4+Math.random()*9),vy:Math.sin(a)*(4+Math.random()*9)-2,
+            life:1,decay:0.075,r:1.5+Math.random()*2,
+            color:`hsl(${50+Math.random()*20|0},100%,${80+Math.random()*18|0}%)`});
+        }
+        if(idx<alive.length-1){
+          const nx=alive[idx+1];
+          for(let i=0;i<12;i++){
+            const t=i/12;
+            particles.push({type:'spark',
+              x:e.x+EW/2+(nx.x+EW/2-e.x-EW/2)*t+(Math.random()-0.5)*22,
+              y:e.y+EH/2+(nx.y+EH/2-e.y-EH/2)*t+(Math.random()-0.5)*22,
+              vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,
+              life:1,decay:0.16,r:1.5+Math.random()*2,
+              color:`hsl(${52+Math.random()*14|0},100%,${84+Math.random()*14|0}%)`});
+          }
+        }
+      });
+      playSfx(activeWeapon.spHitSound);triggerFreeze(16);triggerShake(14);triggerHitFlash();
+    },
+    atkSpeed: 1.3,
+    steps:[
+      {motion:'lunge-thrust', easing:'out',   pivotX:20,pivotY:0.28, swingH:116, frameIdx:2, duration:20, dmgMult:1.2,  dashDist:50, stamCost:18, hitMargin:14, sweepSteps:6, hitCD:18, knockback:[6, 7,16]},
+      {motion:'lunge-thrust', easing:'in',    pivotX:22,pivotY:0.26, swingH:122, frameIdx:2, duration:22, dmgMult:1.6,  dashDist:62, stamCost:22, hitMargin:15, sweepSteps:6, hitCD:20, knockback:[8, 9,20]},
+      {motion:'sweep',        startAngle:-160,endAngle:10, easing:'out', pivotX:20,pivotY:0.62, swingH:118, frameIdx:0, duration:22, dmgMult:1.4, stamCost:20, hitMargin:14, sweepSteps:5, hitCD:20, knockback:[6,7,16]},
+      {motion:'dash-slash',   startAngle:-115,endAngle:105, easing:'out',pivotX:22,pivotY:0.24, swingH:122, frameIdx:2, duration:26, dmgMult:2.8, dashDist:72, stamCost:34, hitMargin:16, sweepSteps:7, hitCD:24, knockback:[10,12,30]},
+    ],
+    desc: 'Double lunge — ground sweep — thunder dash-slam. Lightning-fast reach.',
+    elemental: 'lightning',
+    unlocked: true, cost: 420,
+  },
+
+  // ── SHADOW BLADE — dark teleport multi-slash ──────────────────────────────
+  shadowblade: {
+    name: 'Shadow Blade', icon: '🌑',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/katana_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      // Shadow Step — blink behind nearest enemy, deliver four lethal slashes
+      const alive=enemies.filter(e=>!e.dead);
+      if(!alive.length) return;
+      const target=alive.reduce((c,e)=>Math.abs(e.x-p.x)<Math.abs(c.x-p.x)?e:c,alive[0]);
+      for(let i=0;i<20;i++){
+        particles.push({type:'spark',x:p.x+PW/2+(Math.random()-0.5)*30,y:p.y+PH*0.5+(Math.random()-0.5)*40,
+          vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4-1,
+          life:1,decay:0.032,r:3+Math.random()*5,
+          color:`hsl(${265+Math.random()*30|0},100%,${22+Math.random()*18|0}%)`});
+      }
+      p.x=target.x+(target.x>p.x?-PW-12:EW+12);
+      p.facing=(target.x+EW/2>p.x+PW/2?1:-1);
+      for(let i=0;i<4;i++)
+        _spHit(target,Math.round(calcBaseDmg()*1.1+(Math.random()*10|0)),'#d060ff','🌑');
+      target.vx+=p.facing*16; target.vy=-10;
+      playSfx(activeWeapon.spHitSound);triggerFreeze(20);triggerShake(18);triggerHitFlash();
+      for(let i=0;i<28;i++){
+        const a=(i/28)*Math.PI*2, sp=5+Math.random()*10;
+        particles.push({type:'spark',x:p.x+PW/2,y:p.y+PH*0.45,
+          vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,
+          life:1,decay:0.038,r:2+Math.random()*4,
+          color:`hsl(${268+Math.random()*28|0},100%,${28+Math.random()*24|0}%)`});
+      }
+    },
+    atkSpeed: 0.94,
+    steps:[
+      {motion:'arc',          startAngle:-112,endAngle: 96,  easing:'out',    pivotX:16,pivotY:0.18, swingH: 96, frameIdx:0, duration:16, dmgMult:0.85, stamCost:14, hitMargin:7, sweepSteps:7, hitCD:15, knockback:[3,4,10]},
+      {motion:'lunge-thrust', easing:'out',                   pivotX:14,pivotY:0.30, swingH:100, frameIdx:2, duration:15, dmgMult:1.0,  dashDist:38, stamCost:14, hitMargin:7, sweepSteps:7, hitCD:15, knockback:[3,4,10]},
+      {motion:'sweep',        startAngle:-155,endAngle: 12,   easing:'out',    pivotX:16,pivotY:0.60, swingH: 98, frameIdx:1, duration:16, dmgMult:1.10, stamCost:14, hitMargin:7, sweepSteps:7, hitCD:16, knockback:[4,5,11]},
+      {motion:'dash-slash',   startAngle:-110,endAngle:100,   easing:'out',    pivotX:16,pivotY:0.16, swingH:102, frameIdx:0, duration:18, dmgMult:2.2,  dashDist:56, stamCost:22, hitMargin:8, sweepSteps:7, hitCD:16, knockback:[6,8,16]},
+    ],
+    desc: 'Shadow slash — lunge stab — low sweep — blinking dash finish. Ghost of the battlefield.',
+    elemental: 'dark',
+    unlocked: true, cost: 500,
+  },
+
+  // ── FLAME SWORD — fire 3-hit slash, rolling fire wave ─────────────────────
+  flamesword: {
+    name: 'Flame Sword', icon: '🌋',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
+    special(p){
+      // Fire Wave — rolling wall of flame sent forward
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=(e.x+EW/2)-(p.x+PW/2);
+        if(Math.sign(dx)===p.facing&&Math.abs(dx)<300&&Math.abs(e.y-p.y)<70){
+          _spHit(e,Math.round(calcBaseDmg()*2.8+(Math.random()*24|0)),'#ff6020','🔥'); hit=true;
+          e.vx+=p.facing*10; e.vy-=6;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(16);triggerShake(14);triggerHitFlash();}
+      for(let i=0;i<28;i++){
+        const ox=p.facing*(18+i*11), wave=Math.sin(i*0.48)*15;
+        particles.push({type:'spark',
+          x:p.x+PW/2+ox, y:p.y+PH*0.42+wave,
+          vx:p.facing*(5+i*0.45),vy:-Math.random()*7-2+wave*0.25,
+          life:1,decay:0.038+i*0.002,r:4+Math.random()*5,
+          color:`hsl(${8+Math.random()*28|0},100%,${50+Math.random()*25|0}%)`});
+      }
+    },
+    atkSpeed: 1.05,
+    steps:[
+      {motion:'arc',        startAngle:-114,endAngle: 118, easing:'out',    pivotX:20,pivotY:0.18, swingH:106, frameIdx:0, duration:20, dmgMult:1.1, stamCost:18, hitMargin: 9, sweepSteps:5, hitCD:20, knockback:[4,5,12]},
+      {motion:'sweep',      startAngle:-158,endAngle: 10,  easing:'out',    pivotX:18,pivotY:0.62, swingH:104, frameIdx:1, duration:20, dmgMult:1.3, stamCost:20, hitMargin: 9, sweepSteps:5, hitCD:20, knockback:[5,6,12]},
+      {motion:'dash-slash', startAngle:-114,endAngle: 118, easing:'out',    pivotX:20,pivotY:0.20, swingH:110, frameIdx:2, duration:22, dmgMult:2.4, dashDist:64, stamCost:32, hitMargin:10, sweepSteps:5, hitCD:22, knockback:[7,9,20]},
+    ],
+    desc: 'Arc slash — low fire sweep — blazing fire-charge lunge. Aggressive fire pressure.',
+    elemental: 'fire',
+    unlocked: true, cost: 180,
+  },
+
+  // ── VENOM CLAWS — 5-hit fast poison combo, toxic nova special ────────────
+  venomclaws: {
+    name: 'Venom Claws', icon: '☠',
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/daggerhit.wav',
+    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/daggerhit.wav',
+    special(p){
+      // Poison Nova — toxic cloud that damages and lingers
+      let hit=false;
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
+        if(dx<230&&dy<90){
+          _spHit(e,Math.round(calcBaseDmg()*2.0+(Math.random()*16|0)),'#80ff40','☠'); hit=true;
+          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*5; e.vy-=4;
+        }
+      });
+      if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(14);triggerShake(12);triggerHitFlash();}
+      for(let i=0;i<44;i++){
+        const a=Math.random()*Math.PI*2, r=Math.random()*130;
+        particles.push({type:'spark',
+          x:p.x+PW/2+Math.cos(a)*r, y:p.y+PH*0.45+Math.sin(a)*r*0.6,
+          vx:Math.cos(a)*(1+Math.random()*3), vy:Math.sin(a)*(1+Math.random()*2)-2,
+          life:1,decay:0.016+Math.random()*0.014,r:4+Math.random()*8,
+          color:`hsl(${100+Math.random()*30|0},${80+Math.random()*18|0}%,${32+Math.random()*20|0}%)`});
+      }
+    },
+    atkSpeed: 0.62,
+    steps:[
+      {motion:'strike',     startAngle:-10,endAngle:  8, easing:'linear', pivotX: 9,pivotY:0.38, swingH:20, frameIdx:0, duration: 5, dmgMult:0.80, stamCost: 3, hitMargin:10, sweepSteps:3, hitCD: 5, knockback:[ 2, 3, 5]},
+      {motion:'strike',     startAngle:-16,endAngle: 10, easing:'out',    pivotX:12,pivotY:0.34, swingH:24, frameIdx:1, duration: 6, dmgMult:0.95, stamCost: 4, hitMargin:11, sweepSteps:3, hitCD: 6, knockback:[ 3, 4, 7]},
+      {motion:'strike',     startAngle:-38,endAngle: 24, easing:'out',    pivotX:14,pivotY:0.32, swingH:28, frameIdx:2, duration: 7, dmgMult:1.15, stamCost: 5, hitMargin:11, sweepSteps:4, hitCD: 7, knockback:[ 4, 5, 8]},
+      {motion:'strike',     startAngle:-12,endAngle:  8, easing:'linear', pivotX:10,pivotY:0.54, swingH:18, frameIdx:1, duration: 5, dmgMult:0.90, stamCost: 3, hitMargin:10, sweepSteps:3, hitCD: 5, knockback:[ 3, 4, 6]},
+      {motion:'lunge-thrust', easing:'out',               pivotX:14,pivotY:0.34, swingH:90,  frameIdx:2, duration:14, dmgMult:2.4, dashDist:54, stamCost:18, hitMargin:11, sweepSteps:5, hitCD:14, knockback:[ 7, 9,14]},
+    ],
+    desc: 'Four fast claw strikes then a venomous lunging stab. Toxic nova on special.',
+    elemental: null,
+    unlocked: true, cost: 460,
   },
 
   // ── EXCALIBUR — legendary blade, stage-wide overhead beam special ─────────
@@ -2532,8 +2965,9 @@ let jumpEdge=false, atkEdge=false, evadeEdge=false, parryEdge=false, prevLaunchH
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
 let gameOver=false,frameId=null,paused=false;
 let frozen=0,shakeMag=0,shakeX=0,shakeY=0;
+let _bgCanvas=null,_bgDirty=true; // offscreen cache for static background
 let camX=0;
-let player={},enemies=[],particles=[],bloodDecals=[],swordTrail=[],projectiles=[],beams=[],enemyProjectiles=[];
+let player={},enemies=[],particles=[],bloodDecals=[],swordTrail=[],projectiles=[],beams=[],enemyProjectiles=[],throws=[];
 let ghostTimerHp=null;
 let runKills=0,runGold=0,runExp=0;
 let hitStreak=0,hitStreakTimer=0,hitStreakTier=0,lastHitEnemyExp=25;
@@ -2753,13 +3187,13 @@ function startRun(){
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:2,
     atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
-    comboStep:0,comboTimer:0,comboQueued:false,curStep:0,
+    comboStep:0,comboTimer:0,comboQueued:false,curStep:0,swingHitMap:new Map(),
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,
     excaliburWindup:false,excaliburWindupF:0,
     potions:1,
   };
-  enemies=[]; particles=[]; bloodDecals=[]; projectiles=[]; beams=[]; enemyProjectiles=[];
+  enemies=[]; particles=[]; bloodDecals=[]; projectiles=[]; beams=[]; throws=[]; enemyProjectiles=[];
   updatePotionHud();
 
   const _bossRush=bossRushMode;
@@ -3146,11 +3580,40 @@ function launchAttack(step){
   player.comboStep=step+1; player.comboTimer=(ATK_FRAMES[step]||19)+COMBO_WINDOW;
   player.curStep=step;
   player.atkHitDone=false;
-  player.swingHitMap = new Map();
+  player.swingHitMap.clear();
   player.swingStreakCounted=false;
-  player._prevAtkF=0;
+  player._prevAtkProg=null; // reset so first-frame sweep starts from WIN_START cleanly
 
   if(step===0&&!player.onGround&&!player.airAtkUsed){ player.airAtkFreezeTimer=AIR_ATK_FREEZE_FRAMES; player.vy=0; player.vx=0; player.airAtkUsed=true; }
+
+  // SPIN-THROW: launch weapon as returning projectile
+  if((stepData.motion||'arc') === 'spin-throw'){
+    // Clear stale trail entries — weapon is now a projectile; no pivot trail will be pushed this step.
+    // This prevents any lingering entry with NaN/stale coords from corrupting drawSwordTrail.
+    swordTrail = [];
+    const dmg = Math.round(calcBaseDmg() * (stepData.dmgMult ?? 2.0) * (activeWeapon.dmgMult ?? 1.0));
+    const wKey = Object.keys(WEAPONS).find(k=>WEAPONS[k]===activeWeapon)||'axe';
+    throws.push({
+      x: player.x + PW/2 + player.facing * 20,
+      y: player.y + PH * (stepData.pivotY ?? 0.25),
+      vx: player.facing * (stepData.throwSpeed ?? 10),
+      vy: -(stepData.throwRiseVy ?? 1.5),
+      angle: 0,
+      spinSpeed: Math.PI / 5,
+      facing: player.facing,
+      maxDist: stepData.throwRange ?? 340,
+      travelDist: 0,
+      returning: false,
+      hitSet: new Set(),
+      dead: false,
+      dmg,
+      elemental: activeWeapon.elemental,
+      wKey,
+      swingH: stepData.swingH || 90,
+      stepData: stepData,
+    });
+  }
+
   // Last step in combo resets for next combo chain
   if(step >= getMaxSteps()-1){
     player.comboStep=0; player.comboTimer=0; player.atkCD=38;
@@ -3196,7 +3659,7 @@ function getBladeSegment(p, prog){
   const pivX = p.x + PW/2 + p.facing * s.pivotX;
   const pivY = p.y + PH * s.pivotY;
 
-  if(motion === 'thrust'){
+  if(motion === 'thrust' || motion === 'lunge-thrust'){
     const bLen   = s.swingH * 0.65;
     const pull   = -8, reach = s.swingH * 0.80, outF = 0.30;
     const D = 0.10;
@@ -3205,13 +3668,17 @@ function getBladeSegment(p, prog){
     if(ap <= outF)      se = (ap / outF) * (ap / outF);
     else if(ap <= 0.62) se = 1.0;
     else                se = 1 - (ap - 0.62) / (1 - 0.62);
-    // Tip base is the pivot translated by the stab offset (matches visual translation)
     const stabOff = pull + (reach - pull) * se;
     const guardOff = bLen * 0.20;
+    // lunge-thrust: pivot also shifts forward with lurch (matches player.x shift in game loop)
+    const lurchOff = motion === 'lunge-thrust'
+      ? (prog >= 0.10 && prog <= 0.74 ? (s.dashDist ?? 44) * ((prog-0.10)/(0.74-0.10)) : 0)
+      : 0;
+    const lpX = pivX + p.facing * lurchOff;
     return {
-      hx: pivX + p.facing * (stabOff + guardOff),
+      hx: lpX + p.facing * (stabOff + guardOff),
       hy: pivY,
-      tx: pivX + p.facing * (stabOff + bLen),
+      tx: lpX + p.facing * (stabOff + bLen),
       ty: pivY,
     };
   }
@@ -3234,7 +3701,7 @@ function getBladeSegment(p, prog){
     };
   }
 
-  // arc — rotational swing
+  // arc / dash-slash / uppercut / slam — rotational swing (dash-slash pivot shifts in _loopUpdate, hitbox follows naturally)
   const bLen     = s.swingH * 0.88;
   const guardOff = bLen * 0.18;
   const angleRad = swordAngle(prog, step);
@@ -3281,6 +3748,153 @@ function _tickMultiHitQueue(){
   }
 }
 
+// ── SPIN-THROW: tick all in-flight thrown weapons ────────────────────────────
+function tickThrows(){
+  for(let i=throws.length-1; i>=0; i--){
+    const t=throws[i];
+    if(t.dead){ throws.splice(i,1); continue; }
+
+    // Move
+    t.x += t.vx;
+    t.y += t.vy;
+    t.vy += 0.10;                 // slight gravity arc
+    t.angle += t.spinSpeed * (t.returning ? -1 : 1);
+    t.travelDist += Math.abs(t.vx) + Math.abs(t.vy) * 0.4;
+
+    // Trailing sparks
+    if(particles.length < 320){
+      const colMap={ axe:'hsl(24,100%,60%)', flail:'hsl(42,80%,60%)' };
+      const sc = colMap[t.wKey] || 'hsl(200,90%,72%)';
+      particles.push({type:'spark',
+        x:t.x+(Math.random()-0.5)*14, y:t.y+(Math.random()-0.5)*14,
+        vx:(Math.random()-0.5)*3, vy:(Math.random()-0.5)*3,
+        life:0.7, decay:0.10+Math.random()*0.08, r:2+Math.random()*2.5,
+        color:sc});
+    }
+
+    // Hit detection — circular radius
+    const hitR = t.swingH * 0.38;
+    enemies.forEach(e=>{
+      if(e.dead||e.hitCD>0||t.hitSet.has(e.id)) return;
+      const dx=(e.x+EW/2)-t.x, dy=(e.y+EH/2)-t.y;
+      if(dx*dx+dy*dy < (hitR+EW*0.45)*(hitR+EW*0.45)){
+        t.hitSet.add(e.id);
+        const roll = t.dmg + (Math.random()*12|0);
+        const elemDmg = t.elemental ? Math.max(1, Math.round(roll*0.10)) : 0;
+        _multiHitQueue.push({
+          e, roll, elemDmg, isFinisher:true, delay:0, hitIdx:0,
+          kb:12, step:0,
+          ec: t.elemental ? (ELEMENTAL_FLOAT_COLORS[t.elemental]||'#fff') : null,
+          el: t.elemental ? (ELEMENTAL_LABELS[t.elemental]||'')           : null,
+        });
+        e.hitCD=22;
+        e.vx+=t.facing*10; e.vy-=5;
+        goreBurst(e.x+EW/2,e.y+EH*.35,t.facing,true);
+        triggerImpact(e.x+EW/2,e.y+EH*0.35);
+        triggerFreeze(8); triggerShake(9);
+        player.mp=Math.min(player.maxMp,player.mp+10); setMpBar(player.mp,player.maxMp);
+        playSfx(activeWeapon.hitSound,0.9);
+      }
+    });
+
+    // Reverse at max distance
+    if(!t.returning && t.travelDist >= t.maxDist){
+      t.returning = true;
+      t.vx *= -1;
+      t.hitSet.clear(); // can hit again on return pass
+    }
+
+    // Home toward player on return
+    if(t.returning){
+      const px=player.x+PW/2, py=player.y+PH*0.35;
+      const dx=px-t.x, dy=py-t.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist < 55){
+        // Caught!
+        t.dead=true;
+        // Bonus: gain MP and brief speed boost
+        player.mp=Math.min(player.maxMp,player.mp+18); setMpBar(player.mp,player.maxMp);
+        // Spark burst at catch point
+        for(let si=0;si<12;si++){
+          const a=Math.random()*Math.PI*2;
+          particles.push({type:'spark',
+            x:px,y:py,
+            vx:Math.cos(a)*(3+Math.random()*5),vy:Math.sin(a)*(3+Math.random()*5),
+            life:0.8,decay:0.09+Math.random()*0.06,r:2+Math.random()*3,
+            color:`hsl(42,100%,${65+Math.random()*20|0}%)`});
+        }
+      } else {
+        const spd = Math.max(9, Math.sqrt(t.vx*t.vx+t.vy*t.vy));
+        t.vx += (dx/dist*spd - t.vx) * 0.22; // homing acceleration
+        t.vy += (dy/dist*spd - t.vy) * 0.22;
+      }
+    }
+
+    // Safety: kill extremely off-screen throws
+    if(t.x < STAGE_LEFT-600 || t.x > STAGE_RIGHT+600) t.dead=true;
+  }
+  throws=throws.filter(t=>!t.dead);
+}
+
+// ── SPIN-THROW: draw in-flight throws ────────────────────────────────────────
+function drawThrows(){
+  if(!throws.length) return;
+  throws.forEach(t=>{
+    const sx=t.x-camX, sy=t.y;
+    const bLen=t.swingH*0.80;
+
+    // Color per weapon key
+    const colMap={
+      axe:  {c1:'rgba(255,120,30,0.9)', c2:'rgba(255,80,10,0.45)', glow:'#ff5010'},
+      flail:{c1:'rgba(210,175,85,0.9)', c2:'rgba(170,130,45,0.45)',glow:'#d4a040'},
+    };
+    const pal=colMap[t.wKey]||{c1:'rgba(200,215,255,0.9)',c2:'rgba(140,175,255,0.45)',glow:'#8cb8ff'};
+
+    ctx.save();
+    ctx.translate(sx,sy);
+    ctx.rotate(t.angle);
+    ctx.lineCap='round';
+
+    // Outer glow stroke
+    ctx.strokeStyle=pal.c2;
+    ctx.lineWidth=12;
+    ctx.shadowColor=pal.glow; ctx.shadowBlur=22;
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen*0.46); ctx.lineTo(0,bLen*0.46);
+    ctx.stroke();
+
+    // Solid core
+    ctx.strokeStyle=pal.c1;
+    ctx.lineWidth=5; ctx.shadowBlur=10;
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen*0.46); ctx.lineTo(0,bLen*0.46);
+    ctx.stroke();
+
+    // White hot tip
+    ctx.strokeStyle='rgba(255,255,255,0.80)';
+    ctx.lineWidth=2; ctx.shadowBlur=6;
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen*0.42); ctx.lineTo(0,bLen*0.42);
+    ctx.stroke();
+
+    // Axe: draw small crescent head at the tip
+    if(t.wKey==='axe'){
+      ctx.translate(0,-bLen*0.40);
+      ctx.fillStyle=pal.c1;
+      ctx.shadowBlur=14;
+      ctx.beginPath();
+      ctx.arc(0,0,11,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.55)';
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha=1;
+    ctx.restore();
+  });
+}
+
 // Called every frame while player.atk is true.
 // Uses swept segment-vs-AABB: samples the blade arc between the previous frame's
 // prog and the current frame's prog so fast weapons can't tunnel through enemies.
@@ -3289,14 +3903,18 @@ function tickAttackHits(){
   const step = player.curStep || 0;
   const frames = ATK_FRAMES[step];
   const curProg  = player.atkF / frames;
-  const prevProg = (player._prevAtkF != null) ? player._prevAtkF / frames : Math.max(0, curProg - 1/frames);
-  player._prevAtkF = player.atkF;
+  const prevProg = (player._prevAtkProg != null) ? player._prevAtkProg : Math.max(0, curProg - 1/frames);
+  player._prevAtkProg = curProg;
 
   // Active sweep window — skip windup and follow-through
   const stepData = getStep(step);
   const motion = stepData.motion || 'arc';
-  const WIN_START = (motion === 'thrust' || motion === 'strike') ? 0.15 : 0.08;
-  const WIN_END   = (motion === 'thrust' || motion === 'strike') ? 0.72 : 0.88;
+  if(motion === 'spin-throw') return; // throw object handles its own hit detection
+  const WIN_START = (motion === 'thrust' || motion === 'lunge-thrust' || motion === 'strike') ? 0.15 : 0.08;
+  const WIN_END   = (motion === 'thrust' || motion === 'lunge-thrust' || motion === 'strike') ? 0.72
+                  : (motion === 'slam') ? 0.80
+                  : (motion === 'sweep') ? 0.92   // sweep stays active longer — wide arc
+                  : 0.88;
   if(curProg < WIN_START || prevProg > WIN_END) return;
   const from = Math.max(prevProg, WIN_START);
   const to   = Math.min(curProg,  WIN_END);
@@ -3344,11 +3962,72 @@ function tickAttackHits(){
       // Immediate feedback on first contact (sound, freeze, shake, knockback, impact)
       e.hitCD = weaponHitCD + (hitCount - 1) * 3; // cover the full burst window
       if(particles.length < 350) goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
-      e.vx+=player.facing*kb; e.vy-=isFinisher?5:3;
+      e.vx += player.facing * kb;
+      // SLAM: crush enemies DOWN toward the floor; all other motions launch them upward.
+      // Use Math.max so we never *slow down* an enemy that is already falling faster than the threshold.
+      if(motion === 'slam'){
+        e.vy = Math.max(e.vy, isFinisher ? 18 : 12); // ensure minimum downward speed — pins/smashes to floor
+      } else {
+        // Don't re-launch enemies that are already slam-stunned (stunTimer>0 means they just hit the floor
+        // from a slam and the game would "bounce" them off the ground on the very next hit).
+        if(!e.stunTimer) e.vy -= isFinisher ? 5 : 3; // upward launch for arc / uppercut / etc.
+      }
+      // UPPERCUT: extra upward launch + golden upward sparks
+      if(motion === 'uppercut'){
+        e.vy -= (stepData.launchPower ?? 10);
+        if(particles.length < 320){
+          for(let _ui=0;_ui<8;_ui++){
+            particles.push({type:'spark',
+              x:e.x+EW/2+(Math.random()-0.5)*20, y:e.y+EH*0.3,
+              vx:(Math.random()-0.5)*5, vy:-(4+Math.random()*7),
+              life:0.80, decay:0.06+Math.random()*0.03, r:2+Math.random()*2.5,
+              color:`hsl(${30+Math.random()*20|0},100%,${72+Math.random()*18|0}%)`});
+          }
+        }
+      }
       hitAny=true;
       triggerImpact(e.x+EW/2, e.y+EH*0.35);
     }
   });
+
+  // SLAM: floor shockwave + secondary AoE blast after the main sweep
+  if(motion === 'slam' && hitAny){
+    const _tipSeg = getBladeSegment(player, Math.min((from+to)*0.5+0.20, WIN_END));
+    const _sr  = stepData.shockRadius ?? 60;
+    const _svx = stepData.slamVx ?? 8;
+    // Floor crack particles radiating from weapon tip
+    if(particles.length < 350){
+      for(let _ss=-1;_ss<=1;_ss+=2){
+        for(let _sj=0;_sj<12;_sj++){
+          particles.push({type:'spark',
+            x:_tipSeg.tx+_ss*_sj*14+(Math.random()-0.5)*6,
+            y:player.y+PH-4,
+            vx:_ss*(2+_sj*0.9)+(Math.random()-0.5)*2,
+            vy:-(1.5+Math.random()*4.5),
+            life:0.65, decay:0.055, r:3+Math.random()*5,
+            color:`hsl(${22+Math.random()*14|0},100%,${44+Math.random()*20|0}%)`});
+        }
+      }
+    }
+    // Secondary blast: enemies within shockRadius of weapon tip (not yet hit)
+    enemies.forEach(_se=>{
+      if(_se.dead||_se.hitCD>0||player.swingHitMap.has(_se.id)) return;
+      const _sdx=(_se.x+EW/2)-_tipSeg.tx, _sdy=(_se.y+EH/2)-_tipSeg.ty;
+      if(_sdx*_sdx+_sdy*_sdy > _sr*_sr) return;
+      player.swingHitMap.set(_se.id, true);
+      const _skb = (stepData.knockback ?? [8,8,16])[Math.min(step,2)];
+      _se.vx += player.facing*(_skb+_svx);
+      _se.vy   = Math.max(_se.vy, 4);  // shockwave: push DOWN (positive vy) — floor-level spread
+      _se.hitCD = weaponHitCD;
+      if(particles.length<350) goreBurst(_se.x+EW/2,_se.y+EH*.35,player.facing,false);
+      _multiHitQueue.push({
+        e:_se, roll:Math.round(dmg*0.55+(Math.random()*8|0)), elemDmg:0,
+        isFinisher:false, delay:5, hitIdx:0, kb:_skb, step,
+        ec:null, el:null,
+      });
+      triggerImpact(_se.x+EW/2,_se.y+EH*0.35);
+    });
+  }
 
   if(hitAny){
     const mpGain = isFinisher ? 28 : 14;
@@ -3499,11 +4178,11 @@ function airSlamEnemy(){
   target.vy=SLAM_VY*1.3;
   target.vx=0;
   target.slammed=true;
-  target.airFreezeTimer=0; // clear grapple freeze so slam velocity isn't zeroed next tick
-  // juggled=true uses 1/6th gravity — correct for regular enemies, wrong for boss slam
-  if(!target.boss) target.juggled=true;
+  target.juggled=false;   // must NOT use juggle gravity — needs full ENEMY_GRAV_MULT to reach ground
+  target.juggleTimer=0;
+  target.airFreezeTimer=0;
   target.onGround=false;
-  target.hitCD=8;
+  target.hitCD=20; // enough for the enemy to reach the floor before any follow-up hit can land
   if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
   // Player: short hang then drop fast — must release button before next slam
   player.airSlamNeedsRehold=true;
@@ -3798,7 +4477,7 @@ function drawGrappleLine(){
 
   // 1 — wide outer glow
   ctx.globalAlpha=0.28;
-  ctx.shadowColor='#ffcc44'; ctx.shadowBlur=22;
+  ctx.shadowColor='#ffcc44'; ctx.shadowBlur=12;
   buildPath(nodes);
   ctx.strokeStyle='rgba(255,200,50,0.55)'; ctx.lineWidth=10; ctx.stroke();
   ctx.shadowBlur=0;
@@ -3834,10 +4513,10 @@ function drawGrappleLine(){
   const head=nodes[nodes.length-1];
   const hx=cx_(head.x), hy=cy_(head.y);
   const headR=grappleRopeProgress<1 ? 5+3*(1-grappleRopeProgress) : 4;
-  ctx.shadowColor='#ffe060'; ctx.shadowBlur=24;
+  ctx.shadowColor='#ffe060'; ctx.shadowBlur=12;
   ctx.fillStyle='#fff8b0';
   ctx.beginPath(); ctx.arc(hx,hy,headR,0,Math.PI*2); ctx.fill();
-  ctx.shadowColor='#e8a820'; ctx.shadowBlur=10;
+  ctx.shadowColor='#e8a820'; ctx.shadowBlur=5;
   ctx.fillStyle='#d48c10';
   ctx.beginPath(); ctx.arc(hx,hy,headR*0.55,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur=0;
@@ -4107,7 +4786,7 @@ function updateEnemyProjectiles(){
          !(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
         const dmg=p.damage;
         player.hp=Math.max(0,player.hp-dmg);
-        player.hitCD=120;player.invuln=true;
+        player.hitCD=72;player.invuln=true;
         setTimeout(()=>{player.invuln=false;},2000);
         player.vx+=p.vx*0.35; player.vy-=2;
         setHpBar(player.hp,player.maxHp);
@@ -4432,115 +5111,120 @@ function onStreakMilestone(tier,baseExp){
 //  RENDERING
 // ══════════════════════════════════════════
 // ── BACKGROUND ────────────────────────────
+// Builds a fully static offscreen canvas (sky, moon, stars, castle, trees, ground, walls).
+// camX is always 0 (maxCamX=0), so every element sits at a fixed pixel position — safe to cache.
+// Only the minimap and torch flames (animated) are drawn live each frame.
+function _buildBGCache(W,H){
+  if(!_bgCanvas){_bgCanvas=document.createElement('canvas');}
+  _bgCanvas.width=W; _bgCanvas.height=H;
+  const bc=_bgCanvas.getContext('2d');
+  // sky
+  const sky=bc.createLinearGradient(0,0,0,H*.75);
+  sky.addColorStop(0,'#02040c');sky.addColorStop(.45,'#05091a');sky.addColorStop(1,'#0a0d1c');
+  bc.fillStyle=sky;bc.fillRect(0,0,W,H);
+  // moon (camX=0 → mx=W*.72)
+  const mx=W*.72;
+  bc.save();bc.shadowColor='rgba(200,210,255,0.25)';bc.shadowBlur=50;
+  const mg=bc.createRadialGradient(mx,H*.12,2,mx,H*.12,46);
+  mg.addColorStop(0,'rgba(235,240,255,0.95)');mg.addColorStop(.5,'rgba(200,210,255,0.6)');mg.addColorStop(1,'transparent');
+  bc.fillStyle=mg;bc.beginPath();bc.arc(mx,H*.12,46,0,Math.PI*2);bc.fill();bc.restore();
+  // stars (camX=0)
+  bc.fillStyle='rgba(220,230,255,0.5)';
+  for(let i=0;i<55;i++){
+    const sx=((i*137.5)%(W+200)+200)%W;
+    const sy=H*.03+(((i*97)%100)/100)*(H*.48);
+    bc.beginPath();bc.arc(sx,sy,.4+((i*37)%10)*.1,0,Math.PI*2);bc.fill();
+  }
+  // castle (camX=0 → cx0=W*.5)
+  const cx0=W*.5;
+  bc.save();bc.globalAlpha=0.45;bc.fillStyle='#06080f';bc.translate(cx0,H*.55);
+  bc.fillRect(-60,0,120,H);bc.fillRect(-75,-30,30,H);bc.fillRect(50,-30,30,H);
+  for(let m=-75;m<=60;m+=16)bc.fillRect(m,-52,10,26);
+  bc.restore();
+  // mid trees (camX=0)
+  bc.fillStyle='#050710';
+  for(let i=0;i<18;i++){
+    const tx=((i*95)%(W+100)+W+100)%(W+100)-100;
+    const th=55+Math.sin(i*3.7)*28+20;
+    bc.beginPath();bc.moveTo(tx,H-FLOOR_PAD-th);bc.lineTo(tx-18,H-FLOOR_PAD);bc.lineTo(tx+18,H-FLOOR_PAD);bc.fill();
+  }
+  // near trees (camX=0)
+  bc.fillStyle='#030509';
+  for(let i=0;i<12;i++){
+    const tx=((i*130)%(W+140)+W+140)%(W+140)-140;
+    const th=75+Math.sin(i*2.1)*35+25;
+    bc.beginPath();bc.moveTo(tx,H-FLOOR_PAD-th);bc.lineTo(tx-26,H-FLOOR_PAD);bc.lineTo(tx+26,H-FLOOR_PAD);bc.fill();
+  }
+  // ground
+  const gnd=bc.createLinearGradient(0,H-FLOOR_PAD,0,H);
+  gnd.addColorStop(0,'#0e1018');gnd.addColorStop(.25,'#090c14');gnd.addColorStop(1,'#04060e');
+  bc.fillStyle=gnd;bc.fillRect(0,H-FLOOR_PAD,W,FLOOR_PAD);
+  bc.save();bc.shadowColor='rgba(80,90,160,0.3)';bc.shadowBlur=12;
+  bc.strokeStyle='rgba(80,100,160,0.22)';bc.lineWidth=2;
+  bc.beginPath();bc.moveTo(0,H-FLOOR_PAD);bc.lineTo(W,H-FLOOR_PAD);bc.stroke();bc.restore();
+  bc.strokeStyle='rgba(60,70,100,0.18)';bc.lineWidth=1;
+  for(let i=0;i<22;i++){
+    const tx=((i*72)%(W+72)+W+72)%(W+72)-72;
+    bc.beginPath();bc.moveTo(tx,H-FLOOR_PAD);bc.lineTo(tx,H);bc.stroke();
+  }
+  for(let j=1;j<3;j++){bc.beginPath();bc.moveTo(0,H-FLOOR_PAD+j*28);bc.lineTo(W,H-FLOOR_PAD+j*28);bc.stroke();}
+  // walls (camX=0 → leftScreenX=STAGE_LEFT, rightScreenX=STAGE_RIGHT)
+  const leftScreenX=STAGE_LEFT, rightScreenX=STAGE_RIGHT;
+  const lgrd=bc.createLinearGradient(leftScreenX,0,leftScreenX+40,0);
+  lgrd.addColorStop(0,'rgba(30,20,60,0.95)');lgrd.addColorStop(1,'rgba(20,10,40,0)');
+  bc.fillStyle=lgrd;bc.fillRect(leftScreenX-30,0,70,H);
+  bc.fillStyle='#18141e';bc.fillRect(leftScreenX-6,H-FLOOR_PAD-120,14,120);
+  bc.fillStyle='rgba(100,80,160,0.5)';bc.fillRect(leftScreenX-8,H-FLOOR_PAD-130,18,14);
+  bc.shadowColor='rgba(120,80,200,0.6)';bc.shadowBlur=14;
+  bc.strokeStyle='rgba(100,70,160,0.7)';bc.lineWidth=2;
+  bc.beginPath();bc.moveTo(leftScreenX,H-FLOOR_PAD-120);bc.lineTo(leftScreenX,H-FLOOR_PAD);bc.stroke();
+  bc.shadowBlur=0;
+  const rgrd=bc.createLinearGradient(rightScreenX-40,0,rightScreenX,0);
+  rgrd.addColorStop(0,'rgba(20,10,40,0)');rgrd.addColorStop(1,'rgba(30,20,60,0.95)');
+  bc.fillStyle=rgrd;bc.fillRect(rightScreenX-40,0,70,H);
+  bc.fillStyle='#18141e';bc.fillRect(rightScreenX-8,H-FLOOR_PAD-120,14,120);
+  bc.fillStyle='rgba(100,80,160,0.5)';bc.fillRect(rightScreenX-10,H-FLOOR_PAD-130,18,14);
+  bc.shadowColor='rgba(120,80,200,0.6)';bc.shadowBlur=14;
+  bc.strokeStyle='rgba(100,70,160,0.7)';bc.lineWidth=2;
+  bc.beginPath();bc.moveTo(rightScreenX,H-FLOOR_PAD-120);bc.lineTo(rightScreenX,H-FLOOR_PAD);bc.stroke();
+  bc.shadowBlur=0;
+  _bgDirty=false;
+}
+
 function drawBG(){
   const W=canvas.width,H=canvas.height;
-  // Use the current stage's background image if loaded
-  const _sbg = _stageBgs[currentStage];
+  // Stage background image path — already a single drawImage, already fast
+  const _sbg=_stageBgs[currentStage];
   if(_sbg?._loaded){
-    // cover mode: scale to fill 1280×720, centred
-    const scale=Math.max(W/_sbg.naturalWidth, H/_sbg.naturalHeight);
-    const dw=_sbg.naturalWidth*scale, dh=_sbg.naturalHeight*scale;
-    const dx=(W-dw)/2, dy=(H-dh)/2;
+    const scale=Math.max(W/_sbg.naturalWidth,H/_sbg.naturalHeight);
+    const dw=_sbg.naturalWidth*scale,dh=_sbg.naturalHeight*scale;
+    const dx=(W-dw)/2,dy=(H-dh)/2;
     ctx.drawImage(_sbg,dx,dy,dw,dh);
     return;
   }
-  const sky=ctx.createLinearGradient(0,0,0,H*.75);
-  sky.addColorStop(0,'#02040c');sky.addColorStop(.45,'#05091a');sky.addColorStop(1,'#0a0d1c');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-  // moon
-  const mx=W*.72-camX*.04;
-  ctx.save();ctx.shadowColor='rgba(200,210,255,0.25)';ctx.shadowBlur=50;
-  const mg=ctx.createRadialGradient(mx,H*.12,2,mx,H*.12,46);
-  mg.addColorStop(0,'rgba(235,240,255,0.95)');mg.addColorStop(.5,'rgba(200,210,255,0.6)');mg.addColorStop(1,'transparent');
-  ctx.fillStyle=mg;ctx.beginPath();ctx.arc(mx,H*.12,46,0,Math.PI*2);ctx.fill();ctx.restore();
-  // stars
-  ctx.fillStyle='rgba(220,230,255,0.5)';
-  for(let i=0;i<55;i++){
-    const sx=((i*137.5+camX*.018)%(W+200)+200)%W;
-    const sy=H*.03+(((i*97)%100)/100)*(H*.48);
-    ctx.beginPath();ctx.arc(sx,sy,.4+((i*37)%10)*.1,0,Math.PI*2);ctx.fill();
-  }
-  // castle — far background, moves strongly with camera so it stays behind action
-  const cx0=W*.5-camX*.35;
-  ctx.save();ctx.globalAlpha=0.45;ctx.fillStyle='#06080f';ctx.translate(cx0,H*.55);
-  ctx.fillRect(-60,0,120,H);ctx.fillRect(-75,-30,30,H);ctx.fillRect(50,-30,30,H);
-  for(let m=-75;m<=60;m+=16)ctx.fillRect(m,-52,10,26);
-  ctx.restore();
-  // mid trees
-  ctx.fillStyle='#050710';
-  for(let i=0;i<18;i++){
-    const tx=((i*95-camX*.2)%(W+100)+W+100)%(W+100)-100;
-    const th=55+Math.sin(i*3.7)*28+20;
-    ctx.beginPath();ctx.moveTo(tx,H-FLOOR_PAD-th);ctx.lineTo(tx-18,H-FLOOR_PAD);ctx.lineTo(tx+18,H-FLOOR_PAD);ctx.fill();
-  }
-  // near trees
-  ctx.fillStyle='#030509';
-  for(let i=0;i<12;i++){
-    const tx=((i*130-camX*.45)%(W+140)+W+140)%(W+140)-140;
-    const th=75+Math.sin(i*2.1)*35+25;
-    ctx.beginPath();ctx.moveTo(tx,H-FLOOR_PAD-th);ctx.lineTo(tx-26,H-FLOOR_PAD);ctx.lineTo(tx+26,H-FLOOR_PAD);ctx.fill();
-  }
-  // ground
-  const gnd=ctx.createLinearGradient(0,H-FLOOR_PAD,0,H);
-  gnd.addColorStop(0,'#0e1018');gnd.addColorStop(.25,'#090c14');gnd.addColorStop(1,'#04060e');
-  ctx.fillStyle=gnd;ctx.fillRect(0,H-FLOOR_PAD,W,FLOOR_PAD);
-  ctx.save();ctx.shadowColor='rgba(80,90,160,0.3)';ctx.shadowBlur=12;
-  ctx.strokeStyle='rgba(80,100,160,0.22)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(0,H-FLOOR_PAD);ctx.lineTo(W,H-FLOOR_PAD);ctx.stroke();ctx.restore();
-  ctx.strokeStyle='rgba(60,70,100,0.18)';ctx.lineWidth=1;
-  for(let i=0;i<22;i++){
-    const tx=((i*72-camX*.9)%(W+72)+W+72)%(W+72)-72;
-    ctx.beginPath();ctx.moveTo(tx,H-FLOOR_PAD);ctx.lineTo(tx,H);ctx.stroke();
-  }
-  for(let j=1;j<3;j++){ctx.beginPath();ctx.moveTo(0,H-FLOOR_PAD+j*28);ctx.lineTo(W,H-FLOOR_PAD+j*28);ctx.stroke();}
-  // ── STAGE BARRIERS ──
-  const leftScreenX=STAGE_LEFT-camX;
-  const rightScreenX=STAGE_RIGHT-camX;
-  // Left wall
-  const lgrd=ctx.createLinearGradient(leftScreenX,0,leftScreenX+40,0);
-  lgrd.addColorStop(0,'rgba(30,20,60,0.95)');lgrd.addColorStop(1,'rgba(20,10,40,0)');
-  ctx.fillStyle=lgrd; ctx.fillRect(leftScreenX-30,0,70,H);
-  // Ornamental gate post left
-  ctx.fillStyle='#18141e';ctx.fillRect(leftScreenX-6,H-FLOOR_PAD-120,14,120);
-  ctx.fillStyle='rgba(100,80,160,0.5)';ctx.fillRect(leftScreenX-8,H-FLOOR_PAD-130,18,14);
-  ctx.shadowColor='rgba(120,80,200,0.6)';ctx.shadowBlur=14;
-  ctx.strokeStyle='rgba(100,70,160,0.7)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(leftScreenX,H-FLOOR_PAD-120);ctx.lineTo(leftScreenX,H-FLOOR_PAD);ctx.stroke();
-  ctx.shadowBlur=0;
-  // Right wall
-  const rgrd=ctx.createLinearGradient(rightScreenX-40,0,rightScreenX,0);
-  rgrd.addColorStop(0,'rgba(20,10,40,0)');rgrd.addColorStop(1,'rgba(30,20,60,0.95)');
-  ctx.fillStyle=rgrd; ctx.fillRect(rightScreenX-40,0,70,H);
-  // Ornamental gate post right
-  ctx.fillStyle='#18141e';ctx.fillRect(rightScreenX-8,H-FLOOR_PAD-120,14,120);
-  ctx.fillStyle='rgba(100,80,160,0.5)';ctx.fillRect(rightScreenX-10,H-FLOOR_PAD-130,18,14);
-  ctx.shadowColor='rgba(120,80,200,0.6)';ctx.shadowBlur=14;
-  ctx.strokeStyle='rgba(100,70,160,0.7)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(rightScreenX,H-FLOOR_PAD-120);ctx.lineTo(rightScreenX,H-FLOOR_PAD);ctx.stroke();
-  ctx.shadowBlur=0;
+  // Rebuild offscreen cache if stale or canvas resized
+  if(_bgDirty||!_bgCanvas||_bgCanvas.width!==W||_bgCanvas.height!==H) _buildBGCache(W,H);
+  ctx.drawImage(_bgCanvas,0,0); // blit entire static background in one call
 
-  // ── ENEMY MINIMAP (thin bar along top showing enemy positions) ──
+  // ── DYNAMIC: minimap (enemy-position-dependent, must stay live) ──
   if(!gameOver&&typeof enemies!=='undefined'&&enemies.length>0){
-    const mmW=Math.min(240,canvas.width-28), mmH=6, mmX=(canvas.width-mmW)/2, mmY=6;
+    const mmW=Math.min(240,W-28),mmH=6,mmX=(W-mmW)/2,mmY=6;
     const stageW=STAGE_RIGHT-STAGE_LEFT;
     ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.fill();
-    // player pos
     const pPct=(player.x-STAGE_LEFT)/stageW;
-    ctx.fillStyle='rgba(100,180,255,0.85)';
-    ctx.fillRect(mmX+pPct*mmW-2,mmY,4,mmH);
-    // enemies
+    ctx.fillStyle='rgba(100,180,255,0.85)';ctx.fillRect(mmX+pPct*mmW-2,mmY,4,mmH);
     enemies.forEach(en=>{
       if(en.dead)return;
       const ePct=(en.x-STAGE_LEFT)/stageW;
       const mmDotCol=en.boss?'rgba(255,0,0,0.9)':en.type==='knight'?'rgba(255,120,40,0.8)':en.type==='pirate'||en.type==='drunkard'?'rgba(180,140,60,0.75)':'rgba(255,80,80,0.7)';
-      ctx.fillStyle=mmDotCol;
-      ctx.fillRect(mmX+ePct*mmW-1.5,mmY,3,mmH);
+      ctx.fillStyle=mmDotCol;ctx.fillRect(mmX+ePct*mmW-1.5,mmY,3,mmH);
     });
     ctx.strokeStyle='rgba(200,180,255,0.18)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.stroke();
   }
+  // ── DYNAMIC: torch flames (time-animated, must stay live) ──
   const tt=Date.now()/1000;
   for(let i=0;i<6;i++){
-    const tx=((i*320-camX*.9)%(W+360)+W+360)%(W+360)-360;
+    const tx=((i*320)%(W+360)+W+360)%(W+360)-360; // camX=0
     ctx.fillStyle='#2a1a08';ctx.fillRect(tx-1.5,H-FLOOR_PAD-38,3,38);
     const fl=ctx.createRadialGradient(tx,H-FLOOR_PAD-44,0,tx,H-FLOOR_PAD-44,12);
     fl.addColorStop(0,'rgba(255,200,50,0.9)');fl.addColorStop(.4,'rgba(255,80,10,0.6)');fl.addColorStop(1,'transparent');
@@ -5248,6 +5932,8 @@ function drawSwordSprite(p, trailOnly=false){
   const step     = p.curStep || 0;
   const stepData = getStep(step);
   const motion   = stepData.motion || 'arc';
+  // Weapon is in the air as a throw — don't render it on the player
+  if(motion === 'spin-throw') return;
   const t        = swingAnim.prog || 0;
   const af       = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
 
@@ -5379,9 +6065,8 @@ function drawSwordSprite(p, trailOnly=false){
       // For single-frame exports this is set by the editor; for legacy spritesheets uses (0.5,0.1).
       const ancX = isSingleFrame ? _WM.weapon.anchorX : 0.5;
       const ancY = isSingleFrame ? _WM.weapon.anchorY : 0.1;
-      if(motion === 'thrust'){
-        // +π/2 matches tip-at-top convention (same as arc and proc weapon).
-        // Legacy -π/2 assumed tip-at-bottom (old spritesheet only).
+      if(motion === 'thrust' || motion === 'lunge-thrust'){
+        // +π/2 with ancY:0.1 (guard near top): tip at bottom rotates to point right toward enemy.
         ctx.save(); ctx.translate(drawPivX, drawPivY);
         if(p.facing===-1) ctx.scale(-1,1);
         ctx.rotate(Math.PI/2);
@@ -5453,24 +6138,30 @@ function drawSwordTrail(){
     const a=swordTrail[i-1],b=swordTrail[i];
     const alpha=(1-b.age)*(i/n)*0.88;
     if(alpha<0.02) continue;
+    // Hard NaN/Infinity guard — skip BEFORE touching ctx so no save/restore imbalance is possible.
+    // Corrupted entries (e.g. from a spin-throw step with missing startAngle) would make drawPlayer
+    // unreachable if createLinearGradient(NaN,…) threw mid-draw. This fully prevents that.
+    if(!isFinite(a.bx)||!isFinite(a.by)||!isFinite(a.tx)||!isFinite(a.ty)||
+       !isFinite(b.bx)||!isFinite(b.by)||!isFinite(b.tx)||!isFinite(b.ty)) continue;
     const isF=b.step>=getMaxSteps()-1;const isSp=b.sp;
     ctx.save();ctx.globalAlpha=alpha;
     ctx.beginPath();
     ctx.moveTo(a.bx-camX,a.by);ctx.lineTo(a.tx-camX,a.ty);
     ctx.lineTo(b.tx-camX,b.ty);ctx.lineTo(b.bx-camX,b.by);ctx.closePath();
     const midBx=(a.bx+b.bx)/2-camX,midTx=(a.tx+b.tx)/2-camX;
+    if(!isFinite(midBx)||!isFinite(midTx)){ctx.restore();continue;} // secondary guard (belt-and-suspenders)
     const tg=ctx.createLinearGradient(midBx,0,midTx,0);
     if(isSp){tg.addColorStop(0,'rgba(100,0,180,0)');tg.addColorStop(0.2,'rgba(180,80,255,0.5)');tg.addColorStop(0.6,'rgba(210,130,255,0.9)');tg.addColorStop(1,'rgba(230,180,255,0.4)');}
     else if(isF){tg.addColorStop(0,'rgba(200,80,0,0)');tg.addColorStop(0.2,'rgba(255,160,30,0.5)');tg.addColorStop(0.6,'rgba(255,230,80,0.9)');tg.addColorStop(1,'rgba(255,255,160,0.4)');}
     else{tg.addColorStop(0,'rgba(140,175,255,0)');tg.addColorStop(0.2,'rgba(185,215,255,0.5)');tg.addColorStop(0.6,'rgba(220,240,255,0.9)');tg.addColorStop(1,'rgba(255,255,255,0.4)');}
     ctx.fillStyle=tg;
     ctx.shadowColor=isSp?'rgba(170,80,255,0.85)':isF?'rgba(255,180,40,0.85)':'rgba(140,200,255,0.85)';
-    ctx.shadowBlur=18;ctx.fill();
+    ctx.shadowBlur=10;ctx.fill();
     ctx.globalAlpha=Math.min(1,alpha*1.25);
     ctx.strokeStyle=isSp?'rgba(210,140,255,0.9)':isF?'rgba(255,250,120,0.9)':'rgba(255,255,255,0.9)';
     ctx.lineWidth=isSp||isF?3:2.2;
     ctx.shadowColor=isSp?'rgba(200,100,255,1)':isF?'rgba(255,220,60,1)':'rgba(210,235,255,1)';
-    ctx.shadowBlur=14;
+    ctx.shadowBlur=8;
     ctx.beginPath();ctx.moveTo(a.tx-camX,a.ty);ctx.lineTo(b.tx-camX,b.ty);ctx.stroke();
     ctx.restore();
   }
@@ -5479,7 +6170,7 @@ function drawSwordTrail(){
 // ── PLAYER SPRITE ────────────────────────
 function drawPlayer(p){
   // Flicker during invulnerability — hide every other 4-frame interval
-  if(p.hitCD>0 && Math.floor(p.hitCD/4)%2===0 && p.hitCD<55) return;
+  if(p.hitCD>0 && Math.floor(p.hitCD/4)%2===0 && p.hitCD<35) return;
   // Pick the right animation frame based on player state (ticked in _loopUpdate)
   const f = HERO_FRAMES[heroAnim.name]?.[heroAnim.frame];
   if(!f || !heroLoaded || !heroCanvas){ drawPlayerFallback(p); return; }
@@ -6404,7 +7095,7 @@ function drawEnemyProjectiles(){
 // ── PARRY ─────────────────────────────────
 function _bossHitPlayer(e, dmg, knockVx, knockVy){
   player.hp=Math.max(0,player.hp-dmg);
-  player.hitCD=120; player.invuln=true;
+  player.hitCD=72; player.invuln=true;
   setTimeout(()=>{player.invuln=false;},2000);
   player.vx=knockVx; player.vy=knockVy;
   setHpBar(player.hp,player.maxHp);
@@ -6772,6 +7463,33 @@ function _loopUpdate(){
   if(player.atk){
     player.atkF++;
     tickAttackHits();
+
+    // DASH-SLASH / LUNGE-THRUST: lurch player forward over the active swing window
+    const _dsStep = getStep(player.curStep||0);
+    const _dsMotion = _dsStep.motion || 'arc';
+    if(_dsMotion === 'dash-slash' || _dsMotion === 'lunge-thrust'){
+      const _dsFrames = ATK_FRAMES[player.curStep||0] || 19;
+      const _dsProg   = player.atkF / _dsFrames;
+      if(_dsProg >= 0.10 && _dsProg <= 0.74){
+        const dashDist  = _dsStep.dashDist ?? (_dsMotion === 'lunge-thrust' ? 44 : 60);
+        const dashFrames = Math.ceil((0.74 - 0.10) * _dsFrames);
+        player.x = Math.max(STAGE_LEFT, Math.min(STAGE_RIGHT - PW,
+          player.x + player.facing * dashDist / dashFrames));
+        // Afterimage speed-line sparks every 3rd frame
+        if(player.atkF % 3 === 0 && particles.length < 300){
+          for(let _si=0;_si<3;_si++){
+            particles.push({type:'spark',
+              x: player.x + PW*0.5 + (Math.random()-0.5)*PW*0.6,
+              y: player.y + PH*(0.22+Math.random()*0.5),
+              vx: -player.facing*(2+Math.random()*4),
+              vy: (Math.random()-0.5)*2,
+              life:0.55, decay:0.10+Math.random()*0.06, r:1.5+Math.random()*2.5,
+              color:`rgba(200,225,255,${0.45+Math.random()*0.35})`});
+          }
+        }
+      }
+    }
+
     const frames=ATK_FRAMES[player.curStep||0];
     if(player.atkF>=frames){
       player.atk=false;
@@ -6873,14 +7591,19 @@ function _loopUpdate(){
   // SWORD TRAIL — track during attack AND special
   if(player.atk){
     const st = player.curStep || 0;
-    const frames = ATK_FRAMES[st];
-    const prog = player.atkF / frames;
-    const angle = swordAngle(prog, st);
-    const {px, py} = comboPiv(st);
-    const tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
-    const tipY = py + player.facing * Math.sin(angle) * SWORD_RANGE;
-    swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false});
-    if(swordTrail.length>32) swordTrail.shift();
+    const _stMotion = (getStep(st).motion||'arc');
+    // spin-throw: weapon is a projectile — no pivot trail; drawThrows handles visuals
+    // Also skip if startAngle is undefined (would produce NaN → corrupts ctx gradient)
+    if(_stMotion !== 'spin-throw'){
+      const frames = ATK_FRAMES[st];
+      const prog = player.atkF / frames;
+      const angle = swordAngle(prog, st);
+      const {px, py} = comboPiv(st);
+      const tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
+      const tipY = py + player.facing * Math.sin(angle) * SWORD_RANGE;
+      swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false});
+      if(swordTrail.length>32) swordTrail.shift();
+    }
   } else if(player.spAtk){
     const prog = player.spF/24;
     // Use last step data for the special attack trail sweep
@@ -7227,7 +7950,7 @@ function _loopUpdate(){
             e.atkHit=true;
             const dmg=e.dmg+(Math.random()*8|0);
             player.hp=Math.max(0,player.hp-dmg);
-            player.hitCD=120;player.invuln=true;
+            player.hitCD=72;player.invuln=true;
             setTimeout(()=>{player.invuln=false;},2000);
             player.vx-=e.facing*10;player.vy-=3;
             setHpBar(player.hp,player.maxHp);
@@ -7402,18 +8125,22 @@ function _loopUpdate(){
   });
   beams=beams.filter(b=>!b.dead);
 
+  // SPIN-THROW projectiles
+  tickThrows();
+
   // ENEMY PROJECTILES (bottles, cannonballs)
   updateEnemyProjectiles();
 
-  // PARTICLES
-  particles.forEach(p=>{
+  // PARTICLES — single backward pass: update + swap-delete dead entries in O(1)
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
     if(p.type==='blood'||p.type==='spark'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.life-=p.decay;}
     else if(p.type==='barChip'){p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.vx*=.95;p.rot+=p.rotV;p.life-=p.decay;}
     else if(p.type==='gore'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.90;p.rot+=p.rotV;p.life-=p.decay;if(p.y>=floorY()){p.y=floorY();p.vy*=-0.15;p.vx*=0.5;}}
     else if(p.type==='text'){p.y+=p.vy;p.vy*=0.88;p.life-=p.decay;p.scale=Math.max(1,p.scale-0.06);}
     else if(p.type==='iaidoLine'){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;}
-  });
-  for(let i=particles.length-1;i>=0;i--){if(particles[i].life<=0)particles.splice(i,1);}
+    if(p.life<=0){particles[i]=particles[particles.length-1];particles.pop();}
+  }
   bloodDecals.forEach(d=>{d.alpha=Math.max(0,d.alpha-d.decay);});
   for(let i=bloodDecals.length-1;i>=0;i--){if(bloodDecals[i].alpha<=.015)bloodDecals.splice(i,1);}
 
@@ -7460,12 +8187,12 @@ function _loopDraw(){
   particles.forEach(p=>{
     ctx.globalAlpha=p.life;
     if(p.type==='blood'||p.type==='spark'){
-      ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=p.type==='spark'?6:0;
+      ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=p.type==='spark'?3:0;
       ctx.beginPath();ctx.arc(p.x-camX,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     }else if(p.type==='barChip'){
       ctx.save();ctx.translate(p.x-camX,p.y);ctx.rotate(p.rot*Math.PI/180);
-      ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=5;
-      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.shadowBlur=0;ctx.restore();
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
     }else if(p.type==='gore'){
       ctx.save();ctx.translate(p.x-camX,p.y);ctx.rotate(p.rot*Math.PI/180);
       ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
@@ -7600,6 +8327,9 @@ function _loopDraw(){
     arc_();ctx.strokeStyle='#e8f8ff';ctx.lineWidth=3;ctx.stroke();
     ctx.restore();
   });
+
+  // SPIN-THROW render
+  drawThrows();
 
   enemies.forEach(e=>{if(!e.dead)drawEnemy(e);});
   drawGrappleIndicator();
@@ -8562,6 +9292,311 @@ document.addEventListener('touchstart',function _ft(){
   _tryFullscreen();
   document.removeEventListener('touchstart',_ft);
 },{once:true,passive:true});
+
+// ══════════════════════════════════════════
+//  WEAPON EDITOR
+// ══════════════════════════════════════════
+(function(){
+  // ── CSS ─────────────────────────────────
+  const WECSS = `
+#weaponEditor{
+  position:fixed;top:0;right:0;width:360px;height:100vh;
+  background:rgba(12,10,18,0.97);border-left:1px solid rgba(180,140,60,0.30);
+  box-shadow:-6px 0 32px rgba(0,0,0,0.65);
+  display:flex;flex-direction:column;z-index:9999;
+  font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#d8ceb0;
+  transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);
+}
+#weaponEditor.we-open{transform:translateX(0);}
+#we-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;background:rgba(255,200,60,0.08);
+  border-bottom:1px solid rgba(180,140,60,0.22);flex-shrink:0;
+}
+#we-header h2{margin:0;font-size:14px;font-weight:700;color:#ffd060;flex:1;}
+#we-close{background:none;border:none;color:#a09070;font-size:20px;cursor:pointer;padding:2px 6px;line-height:1;}
+#we-close:hover{color:#ffd060;}
+#we-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.we-row{display:flex;align-items:center;gap:8px;}
+.we-row label{width:112px;flex-shrink:0;color:#a09070;font-size:12px;}
+.we-row input,.we-row select{
+  flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(180,140,60,0.22);
+  border-radius:4px;color:#f0e8d0;padding:3px 7px;font-size:12px;outline:none;
+}
+.we-row input:focus,.we-row select:focus{border-color:rgba(255,200,60,0.55);}
+.we-section{background:rgba(255,255,255,0.04);border-radius:6px;padding:10px 12px;}
+.we-section-title{font-size:11px;font-weight:600;color:#ffca50;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.we-step-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.we-step-tab{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(180,140,60,0.18);
+  border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#a09070;
+}
+.we-step-tab.active{background:rgba(255,200,60,0.18);border-color:rgba(255,200,60,0.55);color:#ffd060;}
+.we-step-tab:hover:not(.active){background:rgba(255,255,255,0.10);}
+#we-add-step{
+  background:rgba(255,200,60,0.12);border:1px dashed rgba(255,200,60,0.40);
+  border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#ffca50;
+}
+#we-add-step:hover{background:rgba(255,200,60,0.22);}
+#we-del-step{
+  background:rgba(200,60,60,0.12);border:1px dashed rgba(200,60,60,0.40);
+  border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;color:#f08080;
+}
+#we-del-step:hover{background:rgba(200,60,60,0.25);}
+.we-divider{height:1px;background:rgba(180,140,60,0.15);margin:2px 0;}
+#we-copy-btn,#we-apply-btn{
+  padding:7px 16px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;border:none;
+}
+#we-apply-btn{background:linear-gradient(135deg,#ffd060,#c88820);color:#1a1000;flex:1;}
+#we-apply-btn:hover{filter:brightness(1.12);}
+#we-copy-btn{background:rgba(80,140,255,0.18);border:1px solid rgba(80,140,255,0.40);color:#88aaff;}
+#we-copy-btn:hover{background:rgba(80,140,255,0.30);}
+.we-hint{font-size:10px;color:#706050;text-align:center;margin-top:4px;}
+`;
+  const style=document.createElement('style');
+  style.textContent=WECSS;
+  document.head.appendChild(style);
+
+  // ── HTML ─────────────────────────────────
+  const el=document.createElement('div');
+  el.id='weaponEditor';
+  el.innerHTML=`
+<div id="we-header">
+  <h2>⚔ Weapon Editor</h2>
+  <span style="font-size:10px;color:#706050">[ \` ] to toggle</span>
+  <button id="we-close">✕</button>
+</div>
+<div id="we-body">
+  <div class="we-section">
+    <div class="we-section-title">Weapon</div>
+    <div class="we-row"><label>Weapon</label><select id="we-wsel"></select></div>
+    <div class="we-row" style="margin-top:6px;"><label>atkSpeed</label><input id="we-atkSpeed" type="number" step="0.05" min="0.1" max="4"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Steps &nbsp;<button id="we-add-step">＋ Add</button>&nbsp;<button id="we-del-step">✕ Del</button></div>
+    <div class="we-step-tabs" id="we-step-tabs"></div>
+  </div>
+  <div class="we-section" id="we-step-fields">
+    <div class="we-section-title">Step Parameters</div>
+    <div class="we-row"><label>motion</label>
+      <select id="wf-motion">
+        <option value="arc">arc</option>
+        <option value="thrust">thrust</option>
+        <option value="lunge-thrust">lunge-thrust</option>
+        <option value="strike">strike</option>
+        <option value="dash-slash">dash-slash</option>
+        <option value="spin-throw">spin-throw</option>
+        <option value="uppercut">uppercut</option>
+        <option value="slam">slam</option>
+        <option value="sweep">sweep</option>
+      </select>
+    </div>
+    <div class="we-row"><label>startAngle</label><input id="wf-startAngle" type="number" step="1"></div>
+    <div class="we-row"><label>endAngle</label><input id="wf-endAngle" type="number" step="1"></div>
+    <div class="we-row"><label>easing</label>
+      <select id="wf-easing">
+        <option value="out">out</option><option value="in">in</option><option value="linear">linear</option><option value="inout">inout</option>
+      </select>
+    </div>
+    <div class="we-row"><label>pivotX</label><input id="wf-pivotX" type="number" step="1"></div>
+    <div class="we-row"><label>pivotY</label><input id="wf-pivotY" type="number" step="0.01" min="0" max="1"></div>
+    <div class="we-row"><label>swingH</label><input id="wf-swingH" type="number" step="2"></div>
+    <div class="we-row"><label>duration (frames)</label><input id="wf-duration" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>dmgMult</label><input id="wf-dmgMult" type="number" step="0.05" min="0.1"></div>
+    <div class="we-row"><label>stamCost</label><input id="wf-stamCost" type="number" step="1" min="0"></div>
+    <div class="we-row"><label>hitMargin</label><input id="wf-hitMargin" type="number" step="1" min="0"></div>
+    <div class="we-row"><label>sweepSteps</label><input id="wf-sweepSteps" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>hitCD</label><input id="wf-hitCD" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>frameIdx</label><input id="wf-frameIdx" type="number" step="1" min="0" max="5"></div>
+    <div class="we-divider"></div>
+    <div class="we-section-title" style="margin-top:6px;">dash-slash only</div>
+    <div class="we-row"><label>dashDist</label><input id="wf-dashDist" type="number" step="4" min="0"></div>
+    <div class="we-divider"></div>
+    <div class="we-section-title" style="margin-top:6px;">spin-throw only</div>
+    <div class="we-row"><label>throwSpeed</label><input id="wf-throwSpeed" type="number" step="0.5" min="1"></div>
+    <div class="we-row"><label>throwRange</label><input id="wf-throwRange" type="number" step="10" min="50"></div>
+    <div class="we-row"><label>throwRiseVy</label><input id="wf-throwRiseVy" type="number" step="0.1" min="0"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button id="we-apply-btn">▶ Apply Live</button>
+    <button id="we-copy-btn">⧉ Copy JSON</button>
+  </div>
+  <div class="we-hint">Changes apply to the active weapon immediately</div>
+</div>`;
+  document.body.appendChild(el);
+
+  // ── STATE ────────────────────────────────
+  let _weaKey = null;   // currently edited weapon key
+  let _stepIdx = 0;     // currently edited step index
+
+  function _allWeaKeys(){ return Object.keys(WEAPONS); }
+  function _getWeapon(){ return WEAPONS[_weaKey]; }
+  function _getStep(){ const w=_getWeapon(); return w&&w.steps?w.steps[_stepIdx]:null; }
+
+  // ── POPULATE WEAPON SELECT ───────────────
+  function _buildWeaSelect(){
+    const sel=document.getElementById('we-wsel');
+    sel.innerHTML='';
+    _allWeaKeys().forEach(k=>{
+      const o=document.createElement('option');
+      o.value=k; o.textContent=`${WEAPONS[k].icon||''} ${WEAPONS[k].name||k}`;
+      sel.appendChild(o);
+    });
+    _weaKey = sel.value;
+    _buildStepTabs();
+    _loadWeaponFields();
+  }
+
+  function _buildStepTabs(){
+    const w=_getWeapon(); if(!w||!w.steps) return;
+    const cont=document.getElementById('we-step-tabs');
+    cont.innerHTML='';
+    w.steps.forEach((_,i)=>{
+      const btn=document.createElement('button');
+      btn.className='we-step-tab'+(i===_stepIdx?' active':'');
+      btn.textContent=`Step ${i}`;
+      btn.onclick=()=>{ _stepIdx=i; _buildStepTabs(); _loadStepFields(); };
+      cont.appendChild(btn);
+    });
+    // clamp
+    if(_stepIdx >= w.steps.length) _stepIdx=w.steps.length-1;
+  }
+
+  function _loadWeaponFields(){
+    const w=_getWeapon(); if(!w) return;
+    document.getElementById('we-atkSpeed').value = w.atkSpeed??1.0;
+    _stepIdx=0;
+    _buildStepTabs();
+    _loadStepFields();
+  }
+
+  function _get(id){ return document.getElementById(id); }
+  function _num(id){ return parseFloat(_get(id).value)||0; }
+  function _str(id){ return _get(id).value; }
+
+  function _loadStepFields(){
+    const s=_getStep(); if(!s) return;
+    _get('wf-motion').value   = s.motion||'arc';
+    _get('wf-startAngle').value = s.startAngle??-90;
+    _get('wf-endAngle').value   = s.endAngle??90;
+    _get('wf-easing').value   = s.easing||'out';
+    _get('wf-pivotX').value   = s.pivotX??14;
+    _get('wf-pivotY').value   = s.pivotY??0.3;
+    _get('wf-swingH').value   = s.swingH??100;
+    _get('wf-duration').value = s.duration??19;
+    _get('wf-dmgMult').value  = s.dmgMult??1.0;
+    _get('wf-stamCost').value = s.stamCost??18;
+    _get('wf-hitMargin').value= s.hitMargin??6;
+    _get('wf-sweepSteps').value=s.sweepSteps??4;
+    _get('wf-hitCD').value    = s.hitCD??20;
+    _get('wf-frameIdx').value = s.frameIdx??0;
+    _get('wf-dashDist').value = s.dashDist??60;
+    _get('wf-throwSpeed').value  = s.throwSpeed??10;
+    _get('wf-throwRange').value  = s.throwRange??340;
+    _get('wf-throwRiseVy').value = s.throwRiseVy??1.5;
+  }
+
+  function _applyStep(){
+    const w=_getWeapon(); if(!w||!w.steps) return;
+    const s = w.steps[_stepIdx];
+    if(!s) return;
+    s.motion     = _str('wf-motion');
+    s.startAngle = _num('wf-startAngle');
+    s.endAngle   = _num('wf-endAngle');
+    s.easing     = _str('wf-easing');
+    s.pivotX     = _num('wf-pivotX');
+    s.pivotY     = _num('wf-pivotY');
+    s.swingH     = _num('wf-swingH');
+    s.duration   = _num('wf-duration');
+    s.dmgMult    = _num('wf-dmgMult');
+    s.stamCost   = _num('wf-stamCost');
+    s.hitMargin  = _num('wf-hitMargin');
+    s.sweepSteps = _num('wf-sweepSteps');
+    s.hitCD      = _num('wf-hitCD');
+    s.frameIdx   = _num('wf-frameIdx');
+    s.dashDist   = _num('wf-dashDist');
+    s.throwSpeed = _num('wf-throwSpeed');
+    s.throwRange = _num('wf-throwRange');
+    s.throwRiseVy= _num('wf-throwRiseVy');
+    w.atkSpeed   = parseFloat(document.getElementById('we-atkSpeed').value)||1.0;
+    // Re-equip to rebuild ATK_FRAMES
+    if(activeWeapon===w) equipWeapon(_weaKey);
+    // Flash feedback
+    const btn=document.getElementById('we-apply-btn');
+    btn.textContent='✔ Applied!';
+    setTimeout(()=>btn.textContent='▶ Apply Live',900);
+  }
+
+  function _copyJSON(){
+    const w=_getWeapon(); if(!w) return;
+    const out={
+      name:w.name, icon:w.icon, atkSpeed:w.atkSpeed, elemental:w.elemental, cost:w.cost,
+      steps:w.steps.map(s=>Object.assign({},s))
+    };
+    // Sanitize functions
+    const txt=JSON.stringify(out,null,2);
+    navigator.clipboard.writeText(txt).then(()=>{
+      const btn=document.getElementById('we-copy-btn');
+      btn.textContent='✔ Copied!';
+      setTimeout(()=>btn.textContent='⧉ Copy JSON',1200);
+    }).catch(()=>{ prompt('Copy JSON:',txt); });
+  }
+
+  function _addStep(){
+    const w=_getWeapon(); if(!w||!w.steps) return;
+    const last=w.steps[w.steps.length-1]||{};
+    w.steps.push({
+      motion:last.motion||'arc',
+      startAngle:last.startAngle??-90,endAngle:last.endAngle??90,
+      easing:'out',pivotX:last.pivotX??14,pivotY:last.pivotY??0.3,
+      swingH:last.swingH??100,frameIdx:0,duration:20,
+      dmgMult:1.0,stamCost:20,hitMargin:6,sweepSteps:4,hitCD:20,
+      knockback:[6,7,14],dashDist:60,throwSpeed:10,throwRange:340,throwRiseVy:1.5,
+    });
+    _stepIdx=w.steps.length-1;
+    _buildStepTabs();
+    _loadStepFields();
+    if(activeWeapon===w) equipWeapon(_weaKey);
+  }
+
+  function _delStep(){
+    const w=_getWeapon(); if(!w||!w.steps||w.steps.length<=1) return;
+    w.steps.splice(_stepIdx,1);
+    _stepIdx=Math.min(_stepIdx,w.steps.length-1);
+    _buildStepTabs();
+    _loadStepFields();
+    if(activeWeapon===w) equipWeapon(_weaKey);
+  }
+
+  // ── TOGGLE ──────────────────────────────
+  window.toggleWeaponEditor=function(){
+    el.classList.toggle('we-open');
+    if(el.classList.contains('we-open')){
+      // Sync to currently equipped weapon
+      const activeKey=Object.keys(WEAPONS).find(k=>WEAPONS[k]===activeWeapon)||_allWeaKeys()[0];
+      if(activeKey){ _weaKey=activeKey; document.getElementById('we-wsel').value=activeKey; }
+      _loadWeaponFields();
+    }
+  };
+
+  // ── EVENT WIRING ─────────────────────────
+  document.getElementById('we-close').onclick=()=>el.classList.remove('we-open');
+  document.getElementById('we-wsel').onchange=e=>{_weaKey=e.target.value;_stepIdx=0;_loadWeaponFields();};
+  document.getElementById('we-apply-btn').onclick=_applyStep;
+  document.getElementById('we-copy-btn').onclick=_copyJSON;
+  document.getElementById('we-add-step').onclick=_addStep;
+  document.getElementById('we-del-step').onclick=_delStep;
+
+  // Init weapon list when DOM+WEAPONS are ready
+  requestAnimationFrame(()=>requestAnimationFrame(()=>_buildWeaSelect()));
+})();
+
+// Backtick = toggle weapon editor
+window.addEventListener('keydown',e=>{
+  if(e.code==='Backquote'&&!e.repeat){
+    if(typeof toggleWeaponEditor==='function') toggleWeaponEditor();
+  }
+});
 </script>
 </div><!-- #viewport -->
 </body>
