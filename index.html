@@ -4603,7 +4603,7 @@ function _airRelaunch(){
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=14;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      if(e.slammed || (!e.boss && e.stunTimer>0)) return;
+      if(e.slammed) return;
       e.vy=JUGGLE_VY; // full relaunch — same height each time
       e.vx=player.facing*14;
       e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0;
@@ -4657,7 +4657,7 @@ function launchEnemy(held=false){
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=18;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      const canLaunch = !e.slammed && (e.boss ? e.stunTimer>0 : !e.stunTimer);
+      const canLaunch = !e.slammed && (!e.boss || e.stunTimer>0);
       if(canLaunch){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0; anyJuggled=true; }
       spawnEnemyBarChips(e,prev,e.hp);
       floatText(e.x+EW/2-12,e.y-18,`${e.slammed?'↓':'↑'}${dmg}`,'#40ffcc',false);
