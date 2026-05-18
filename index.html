@@ -157,8 +157,8 @@ canvas{display:block;}
   #pauseScreen{gap:10px;padding:16px 0;}
   #pauseScreen h2{font-size:1.3rem!important;margin-bottom:0;}
   #pauseScreen .psub{margin:-4px 0 4px;font-size:0.55rem;}
-  #pauseScreen button:not(.diff-btn){padding:9px 28px;font-size:0.78rem;width:200px;}
-  #pauseScreen .diff-row{width:200px;}
+  #pauseScreen button:not(.diff-btn):not(.hud-adj-btn){padding:9px 28px;font-size:0.78rem;width:200px;}
+  #pauseScreen .hud-adj-row{width:200px;}
   #dead{gap:12px;padding:16px 0;}
   #dead h1{font-size:1.5rem!important;}
   #dead button{padding:10px 32px;font-size:0.78rem;}
@@ -288,8 +288,8 @@ canvas{display:block;}
 
   /* ── PAUSE & DEAD ── */
   #pauseScreen{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:12px;}
-  #pauseScreen button:not(.diff-btn){padding:6px 18px;font-size:0.66rem;width:155px;}
-  #pauseScreen .diff-row{width:200px;}
+  #pauseScreen button:not(.diff-btn):not(.hud-adj-btn){padding:6px 18px;font-size:0.66rem;width:155px;}
+  #pauseScreen .hud-adj-row{width:155px;}
   #dead{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:12px;}
   #dead button{padding:6px 18px;font-size:0.66rem;}
 
@@ -628,12 +628,18 @@ body.mc-active #bossBar{
 .boss-bar-chips{position:absolute;inset:0;overflow:visible;pointer-events:none;}
 
 /* ── PAUSE ── */
-#pauseBtn{position:fixed;top:10px;right:14px;z-index:15;pointer-events:all;
+#pauseBtn{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:15;pointer-events:all;
   width:36px;height:36px;border-radius:6px;border:1px solid rgba(200,160,80,0.3);
   background:rgba(8,6,3,0.65);backdrop-filter:blur(4px);
   color:rgba(200,160,80,0.7);font-size:1rem;cursor:pointer;display:none;
   align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+/* Only show pause button on mobile controls — desktop uses Escape */
+body:not(.mc-active) #pauseBtn{display:none!important;}
 #pauseBtn.visible{display:flex;}
+/* Explicit show on mobile so the !important cascade can't shadow it */
+body.mc-active #pauseBtn.visible{display:flex!important;}
+/* Streak HUD clears the pause button on mobile */
+body.mc-active #streakHud{top:54px;}
 #pauseScreen{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:16px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;
@@ -650,8 +656,22 @@ body.mc-active #bossBar{
 #pauseScreen .quit-btn{border-color:rgba(180,60,60,0.45);color:#c07070;
   background:linear-gradient(135deg,#2a0a04,#0e0202);}
 #pauseScreen .quit-btn:hover{box-shadow:0 0 28px rgba(255,80,60,0.35);}
-#pauseScreen .diff-row{width:220px;border-color:rgba(200,160,80,0.3);}
-#pauseScreen .diff-btn{width:44px;height:44px;}
+/* HUD size adjuster row — three-segment connected button strip */
+.hud-adj-row{display:flex;align-items:stretch;width:220px;}
+.hud-adj-btn{font-family:'Cinzel',serif;font-size:1.1rem;width:44px;
+  background:linear-gradient(135deg,#2a1a04,#0e0a02);color:#c8a050;
+  border:1px solid rgba(200,160,80,0.4);cursor:pointer;flex-shrink:0;
+  transition:box-shadow 0.15s,color 0.15s;padding:0;}
+.hud-adj-btn:first-child{border-radius:2px 0 0 2px;}
+.hud-adj-btn:last-child{border-radius:0 2px 2px 0;border-left:none;}
+.hud-adj-btn:hover,.hud-adj-btn.gamepad-focused{box-shadow:0 0 18px rgba(255,180,40,0.35);color:#ffe080;}
+/* Prevent the pause-screen generic `button{width:220px}` rule from blowing these out */
+#pauseScreen .hud-adj-btn{width:44px!important;padding:0!important;box-shadow:none;}
+.hud-adj-label{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.1em;color:#c8a050;
+  border-top:1px solid rgba(200,160,80,0.4);border-bottom:1px solid rgba(200,160,80,0.4);
+  padding:0 6px;pointer-events:none;}
+.hud-adj-val{color:#e8c880;font-size:0.85rem;letter-spacing:0.06em;}
 
 /* ── DEAD ── */
 #dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
@@ -1023,19 +1043,11 @@ body.mc-active #bossBar{
   <button id="pauseMobileCtrlBtn" onclick="toggleMobileControls()">
     <span id="pauseMobileCtrlLabel">MOBILE CONTROLS: OFF</span>
   </button>
-  <div class="diff-row" id="pauseHudDesktopRow">
-    <button class="diff-btn" onclick="changeHudSize(-5,false)">−</button>
-    <span class="diff-label">HUD SIZE</span>
-    <span class="diff-val" id="pauseHudDesktopVal">100%</span>
-    <button class="diff-btn" onclick="changeHudSize(5,false)">+</button>
+  <div class="hud-adj-row" id="pauseHudRow">
+    <button class="hud-adj-btn" onclick="changeHudSize(-5)">−</button>
+    <span class="hud-adj-label">HUD <span class="hud-adj-val" id="pauseHudVal">100%</span></span>
+    <button class="hud-adj-btn" onclick="changeHudSize(5)">+</button>
   </div>
-  <div class="diff-row" id="pauseHudMobileRow" style="display:none">
-    <button class="diff-btn" onclick="changeHudSize(-5,true)">−</button>
-    <span class="diff-label">HUD SIZE</span>
-    <span class="diff-val" id="pauseHudMobileVal">100%</span>
-    <button class="diff-btn" onclick="changeHudSize(5,true)">+</button>
-  </div>
-  <button onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ RESET HUD</button>
   <button class="quit-btn" onclick="quitToMenu()">↩ QUIT TO MENU</button>
 </div>
 
@@ -1526,28 +1538,28 @@ const ST_REGEN_DELAY=42; // frames after attacking before stamina starts recover
 // ── DMC-STYLE COMBO COMMENTS — shown when streak tier increases ───────────────
 // Tier 1 (10 hits) through tier 10 (100 hits), escalating hype
 const COMBO_TIER_COMMENTS=[
-  'Stylish!',
-  'Come on!',
-  'Showtime!',
-  'Savage!',
-  'Brutal!!',
-  'Mindless!!!',
-  'ANARCHIC!!',
-  'BEAST MODE!!',
-  'GODLIKE!!!',
-  'SON OF SPARDA!!',
+  'Pretty Rude!',
+  'Absolutely Illegal!',
+  'Financial Mistake!!',
+  'Local Menace!!!',
+  'Wanted In 12 Countries!!!!!',
+  'Too Much Caffeine!!',
+  'Grass needs to be touched?!',
+  'Matrix Moderator!!',
+  'Device Melting!!!',
+  'DELETE SAVE FILE!!!!!',
 ];
 const COMBO_TIER_COLORS=[
-  '#e8e8ff',   // 1 — soft white-blue     (Stylish)
-  '#40ffcc',   // 2 — mint green          (Come on)
-  '#20c8ff',   // 3 — electric cyan       (Showtime)
-  '#a060ff',   // 4 — violet              (Savage)
-  '#ffd020',   // 5 — gold                (Brutal)
-  '#ff8000',   // 6 — orange              (Mindless)
-  '#ff2020',   // 7 — hot red             (Anarchic)
-  '#ff0080',   // 8 — hot pink            (Beast Mode)
-  '#00ff44',   // 9 — toxic green         (Godlike)
-  '#ffe860',   // 10 — blazing yellow     (Son of Sparda)
+  '#e8e8ff',   // 1 — soft white-blue     (1)
+  '#40ffcc',   // 2 — mint green          (2)
+  '#20c8ff',   // 3 — electric cyan       (3)
+  '#a060ff',   // 4 — violet              (4)
+  '#ffd020',   // 5 — gold                (5)
+  '#ff8000',   // 6 — orange              (6)
+  '#ff2020',   // 7 — hot red             (7)
+  '#ff0080',   // 8 — hot pink            (8)
+  '#00ff44',   // 9 — toxic green         (9)
+  '#ffe860',   // 10 — blazing yellow     (10)
 ];
 const COMBO_TIER_SIZES=[
   '1.1rem','1.2rem','1.3rem','1.5rem',
@@ -2081,6 +2093,7 @@ function renderSpellSelect(){
 const SP_MANA_COST=40;
 const RS_WINDUP_FRAMES=180;           // 3s at 60fps — Resolved Steel charge time
 const EXCALIBUR_WINDUP_FRAMES = 90;   // 1.5s charge
+const EXCALIBUR_SLAM_FRAMES   = 22;   // 0.37s overhead arc slam
 
 // ══════════════════════════════════════════
 //  SPELLS
@@ -2667,7 +2680,7 @@ function startRun(){
     stamina:maxSt,maxStamina:maxSt,
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:2,
-    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
+    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
     comboStep:0,comboTimer:0,comboQueued:false,curStep:0,
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,
@@ -3177,9 +3190,10 @@ function _tickMultiHitQueue(){
     const prev = e.hp;
     e.hp -= h.roll + h.elemDmg;
     e.ghostHp = prev; e.ghostDrainDelay = 62;
-    spawnEnemyBarChips(e, prev, e.hp);
-    // Light spark only — blood/gore already fired on first contact, no need to repeat
-    if(particles.length < 350) sparkBurst(e.x+EW/2, e.y+EH*.25, 1);
+    // Bar chips only on first hit — later burst hits just update hp, bar already reflects it
+    if(h.hitIdx === 0) spawnEnemyBarChips(e, prev, e.hp);
+    // Tiny spark only on first hit — avoid spawning particles on every burst impact
+    if(h.hitIdx === 0 && particles.length < 300) sparkBurst(e.x+EW/2, e.y+EH*.25, 2);
     // Float numbers stagger vertically so they don't pile up
     const yOff = h.hitIdx * 10;
     floatText(
@@ -3413,17 +3427,18 @@ function airSlamEnemy(){
   target.vy=SLAM_VY*1.3;
   target.vx=0;
   target.slammed=true;
+  target.airFreezeTimer=0; // clear grapple freeze so slam velocity isn't zeroed next tick
   // juggled=true uses 1/6th gravity — correct for regular enemies, wrong for boss slam
   if(!target.boss) target.juggled=true;
   target.onGround=false;
   target.hitCD=8;
   if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
-  // Player: short hang then drop fast
-  player.airSlamUsed=true;
+  // Player: short hang then drop fast — must release button before next slam
+  player.airSlamNeedsRehold=true;
   player.airSlamArmed=false;
   player.juggleFollow=false;
   player.airSmashTimer=30; // shorter hang — snappier
-  player.vy=2; // start falling immediately after hang
+  player.vy=-7; // small upward kick on impact
   launchHoldFrames=0;
   // Impact effects
   bloodBurst(target.x+EW/2,target.y+EH*0.35,22);
@@ -3553,6 +3568,7 @@ function _grappleArriveZip(){
   const tier=Math.floor(hitStreak/10);
   if(tier>hitStreakTier){hitStreakTier=tier;onStreakMilestone(tier,lastHitEnemyExp);}
   updateStreakHud();
+  player.postZipTimer=40; // allow launch follow-up for ~40 frames after zip arrival
   grappleState='none'; grappleTarget=null;
 }
 
@@ -3572,6 +3588,7 @@ function _grappleArrivePull(){
     grappleTarget.vx*=0.08; grappleTarget.vy=0;
     grappleTarget.hitCD=22;
   }
+  player.postZipTimer=40; // allow launch follow-up for ~40 frames after pull arrival
   grappleState='none'; grappleTarget=null;
 }
 
@@ -3777,7 +3794,7 @@ function _airRelaunch(){
   if(player.stamina<LAUNCH_STAMINA||player.stDepleted) return;
   let anyHit=false;
   enemies.forEach(e=>{
-    if(e.dead||e.hitCD>0) return;
+    if(e.dead) return;
     const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
     const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
     if(dx<LAUNCH_RANGE+30&&dy<280){
@@ -3788,7 +3805,7 @@ function _airRelaunch(){
       e.ghostHp=prev; e.ghostDrainDelay=62;
       e.vy=JUGGLE_VY; // full relaunch — same height each time
       e.vx=player.facing*14;
-      e.juggled=true; e.juggleTimer=200; e.onGround=false;
+      e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0;
       spawnEnemyBarChips(e,prev,e.hp);
       bloodBurst(e.x+EW/2,e.y+EH*0.35,12);
       sparkBurst(e.x+EW/2,e.y+EH*0.25,10,false);
@@ -3827,16 +3844,19 @@ function launchEnemy(held=false){
   player.launchUntil=Date.now()+600;
   let hit=false, anyJuggled=false;
   enemies.forEach(e=>{
-    if(e.dead||e.hitCD>0) return;
+    if(e.dead) return;
+    // No hitCD gate — launch is its own move gated by player.launchCD, not e.hitCD
     const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
     const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
-    if(dx<LAUNCH_RANGE&&dy<90){
+    // Post-grapple: widen vertical window — player/enemy fall at different rates after freeze expires
+    const launchDyMax = player.postZipTimer>0 ? 200 : 90;
+    if(dx<LAUNCH_RANGE&&dy<launchDyMax){
       const dmg=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=18;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      if(!e.boss || e.stunTimer>0){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; anyJuggled=true; }
+      if(!e.boss || e.stunTimer>0){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0; anyJuggled=true; }
       spawnEnemyBarChips(e,prev,e.hp);
       floatText(e.x+EW/2-12,e.y-18,`${e.slammed?'↓':'↑'}${dmg}`,'#40ffcc',false);
       sparkBurst(e.x+EW/2,e.y+EH*0.4,8,false);
@@ -6642,9 +6662,9 @@ function _loopUpdate(){
       launchHoldFrames=0;
     }
     // Only arm slam on a FRESH hold — if we just did an air-follow, button must be released first
-    if(!player.onGround&&!player.airSlamUsed&&!player.airSlamNeedsRehold) player.airSlamArmed=true;
-    // Air slam: hold 22 frames while armed
-    if(launchHoldFrames>=22&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
+    if(!player.onGround&&!player.airSlamNeedsRehold) player.airSlamArmed=true;
+    // Air slam: hold 22 frames while armed — repeatable, requires button release between each
+    if(launchHoldFrames>=22&&!player.onGround&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
       launchHoldFrames=0;
     }
@@ -6796,6 +6816,7 @@ function _loopUpdate(){
   // PHYSICS
   if(player.airAtkFreezeTimer>0) player.airAtkFreezeTimer--;
   if(player.airGrappleSuspendTimer>0){ player.airGrappleSuspendTimer--; player.vx*=0.7; if(player.airGrappleSuspendTimer===0) player.airSuspendKeepEvade=false; }
+  if(player.postZipTimer>0) player.postZipTimer--;
   if(player.onGround) player.airSuspendKeepEvade=false;
   // Air-smash hang: zero gravity for first 8 frames (airSmashTimer 62→54), then normal fall
   const _airSmashHang = player.airSmashTimer > 54;
@@ -7849,11 +7870,12 @@ function _updateGamepadInner() {
       if (ai < 2) switchPrepTab(ai+1);
     }
   } else if (isInMenu) {
-    // Any menu: left/right adjusts the value of whichever diff-row is focused
-    const diffFocused = !!menuFocusedButton?.closest('.diff-row');
-    if (diffFocused) {
-      const row = menuFocusedButton.closest('.diff-row');
-      const isDiff = !!row.querySelector('[onclick*="changeDifficulty"]');
+    // Any menu: left/right adjusts the value of whichever diff-row or hud-adj-row is focused
+    const adjRow = menuFocusedButton?.closest('.diff-row') || menuFocusedButton?.closest('.hud-adj-row');
+    if (adjRow) {
+      const row = adjRow;
+      const isDiff   = !!row.querySelector('[onclick*="changeDifficulty"]');
+      const isHudAdj = row.classList.contains('hud-adj-row');
 
       // Difficulty row: LB/RB = ±100, dpad = ±10. All others: dpad/LB/RB click −/+
       let wantDir = 0;
@@ -7869,6 +7891,9 @@ function _updateGamepadInner() {
 
       const fire = () => {
         if (isDiff) { changeDifficulty(wantDir); }
+        else if (isHudAdj) { (wantDir < 0
+          ? row.querySelector('.hud-adj-btn:first-child')
+          : row.querySelector('.hud-adj-btn:last-child'))?.click(); }
         else { (wantDir < 0
           ? row.querySelector('.diff-btn:first-child')
           : row.querySelector('.diff-btn:last-child'))?.click(); }
@@ -8007,8 +8032,8 @@ function focusStatButton(btn) {
 
 function navigateMenu(direction) {
   const btns = Array.from(document.querySelectorAll('button:not([disabled])')).filter(b => {
-    // Skip buttons inside a diff-row that has been explicitly hidden (e.g. the inactive HUD row)
-    const row = b.closest('.diff-row');
+    // Skip buttons inside a row container that has been explicitly hidden
+    const row = b.closest('.diff-row, .hud-adj-row');
     if (row && row.style.display === 'none') return false;
     const screen  = b.closest('.screen');
     const overlay = b.closest('#pauseScreen, #dead, #stageCompleteScreen');
@@ -8361,9 +8386,8 @@ function _syncMobileBtn(){
   const lbl=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
   const l=document.getElementById('mobileCtrlLabel'); if(l) l.textContent=lbl;
   const p=document.getElementById('pauseMobileCtrlLabel'); if(p) p.textContent=lbl;
-  // Show only the relevant HUD size row
-  const dr=document.getElementById('pauseHudDesktopRow'); if(dr) dr.style.display=on?'none':'';
-  const mr=document.getElementById('pauseHudMobileRow');  if(mr) mr.style.display=on?'':'none';
+  // Refresh the unified pause HUD row value to match current mode
+  _syncHudSizeDisplays();
 }
 function changeHudSize(delta,forMobile){
   const mob=forMobile!==undefined?forMobile:!!save.mobileControls;
@@ -8379,8 +8403,9 @@ function _syncHudSizeDisplays(){
   const dv=save.hudSizeDesktop||100, mv=save.hudSizeMobile||100;
   const d=document.getElementById('hudSizeDesktopVal');   if(d) d.textContent=dv+'%';
   const m=document.getElementById('hudSizeMobileVal');    if(m) m.textContent=mv+'%';
-  const pd=document.getElementById('pauseHudDesktopVal'); if(pd) pd.textContent=dv+'%';
-  const pm=document.getElementById('pauseHudMobileVal');  if(pm) pm.textContent=mv+'%';
+  // Unified pause row — shows value for whichever mode is currently active
+  const pv=document.getElementById('pauseHudVal');
+  if(pv) pv.textContent=(save.mobileControls ? mv : dv)+'%';
 }
 function initMobileControls(){
   const tmap={};
