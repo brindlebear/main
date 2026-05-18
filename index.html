@@ -12,7 +12,7 @@ canvas{display:block;}
 #viewport{position:fixed;inset:0;overflow:hidden;}
 #c{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:fill;}
 /* ── SETTINGS SCREEN ── */
-.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1.1vh,10px);overflow-y:auto;max-height:calc(100vh - 40px);padding:16px 0;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;-webkit-overflow-scrolling:touch;}
+.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1.1vh,10px);overflow-y:auto;max-height:calc(100vh - 40px);padding:16px 0;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;}
 .settings-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
 .settings-section-lbl{font-size:0.68rem;letter-spacing:0.42em;color:rgba(200,170,100,0.5);text-transform:uppercase;margin-bottom:-6px;}
 .settings-divider{width:240px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.35),transparent);}
@@ -560,9 +560,9 @@ body.mc-active #gpHints{display:none!important;}
   width:min(320px,72vw);
   padding:6px 14px 10px;
   border-radius:4px;pointer-events:none;z-index:9;display:none;}
-#bossBar.show{display:block;}
 /* ── BOSS BAR shared Elden Ring style (mobile + desktop) ── */
 #bossBar.show{
+  display:block;
   background:rgba(6,3,2,0.62);
   border-top:2px solid rgba(185,148,72,0.45);
   border-bottom:1px solid rgba(185,148,72,0.14);
@@ -637,7 +637,7 @@ body.mc-active #bossBar{
 #pauseScreen{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:16px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;
-  overflow-y:auto;padding:24px 0;-webkit-overflow-scrolling:touch;}
+  overflow-y:auto;padding:24px 0;}
 #pauseScreen.show{opacity:1;pointer-events:all;}
 #pauseScreen h2{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);
   color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 24px rgba(200,140,30,0.5);margin:0 0 8px;}
@@ -654,7 +654,7 @@ body.mc-active #bossBar{
 #pauseScreen .diff-btn{width:44px;height:44px;}
 
 /* ── DEAD ── */
-#dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;-webkit-overflow-scrolling:touch;}
+#dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
 #dead.show{opacity:1;pointer-events:all;}
 #dead h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.6rem,6vw,2.8rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 30px #ff220044;animation:dpulse 1.1s ease-in-out infinite alternate;}
 @keyframes dpulse{from{opacity:.6;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
@@ -696,7 +696,7 @@ body.mc-active #bossBar{
 .weapon-name{font-size:0.86rem;letter-spacing:0.14em;color:#c8a040;}
 .weapon-card.selected .weapon-name{color:#ffe080;}
 .weapon-card.selected.magic-card .weapon-name{color:#c8a0ff;}
-.weapon-desc{font-size:0.66rem;letter-spacing:0.05em;color:rgba(200,180,120,0.48);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.weapon-desc{font-size:0.66rem;letter-spacing:0.05em;color:rgba(200,180,120,0.48);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .wcard-bottom{display:flex;flex-wrap:wrap;gap:4px;}
 .wcard-stat-chip{font-size:0.62rem;letter-spacing:0.07em;color:rgba(200,175,120,0.6);background:rgba(200,150,40,0.07);border:1px solid rgba(200,150,40,0.16);border-radius:2px;padding:3px 8px;white-space:nowrap;}
 .weapon-card.selected .wcard-stat-chip{color:#c8a040;border-color:rgba(200,150,40,0.3);}
@@ -1297,8 +1297,6 @@ const _WL = { weapon: false, trail: false, hit: false };
 const _WM = { weapon:{anchorX:0.5,anchorY:0.1}, trail:{anchorX:0.5,anchorY:0.1}, hit:{anchorX:0.5,anchorY:0.1} };
 
 function _wsUseSheet(slot){ return _WS[slot] && _WL[slot]; }
-// Returns true when the slot is ready to render (either loaded or intentionally null/proc)
-function _wsReady(slot){ return _WS[slot] === null || _WL[slot]; }
 
 // ── SPECIAL ATTACK SPRITE ──────────────────────────────────────────────────
 // Each weapon can have a spSheet PNG.  Layout: single row of 96×96 cells.
@@ -1332,10 +1330,6 @@ const SWORD_TRAIL_FRAMES = wcells(0, 1, 4);
 // ─── SLASH IMPACT FRAMES (Row 2) ──────────────────────────────────────────
 // 4 frames: starburst shrinks on enemy hit (large → small)
 const SWORD_IMPACT_FRAMES = wcells(0, 2, 4);
-
-// ─── IDLE SWORD ───────────────────────────────────────────────────────────
-// Frame shown when NOT attacking — first attack frame (sword raised)
-const SWORD_IDLE_FRAME = SWORD_ATK_FRAMES[0];
 
 // Internal animation state — do not edit
 const swingAnim = {frame:0, trailFrame:0, tick:0, active:false, impactFrame:-1, impactTick:0, impactX:0, impactY:0};
@@ -1458,7 +1452,7 @@ const _ALL_SFX=[
   'Audio/cestus_sp.wav','Audio/cestus_sp_hit.wav',
   'Audio/fireball.wav','Audio/fireball_hit.wav',
   'Audio/frostbolt.wav','Audio/frostbolt_hit.wav',
-  'Audio/arcane.wav','Audio/arcane_explosion_hit.wav',
+  'Audio/arcane.wav','Audio/arcane_explosion.wav','Audio/arcane_explosion_hit.wav',
   'Audio/enemy_death.wav',
   'Audio/juggle.wav','Audio/slam_land.wav',
   'Audio/grapple_fire.wav','Audio/grapple_pull.wav',
@@ -2085,7 +2079,8 @@ function renderSpellSelect(){
 }
 
 const SP_MANA_COST=40;
-const RS_WINDUP_FRAMES=180; // 3s at 60fps — Resolved Steel charge time
+const RS_WINDUP_FRAMES=180;           // 3s at 60fps — Resolved Steel charge time
+const EXCALIBUR_WINDUP_FRAMES = 90;   // 1.5s charge
 
 // ══════════════════════════════════════════
 //  SPELLS
@@ -2656,7 +2651,6 @@ function startRun(){
 
   runKills=0; runGold=0; runExp=0;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
-  updateComboHud(0);
   hideComboHud();
   document.getElementById('streakHud').style.display='none';
   lastHitEnemy=null; lockedTarget=null; grappleTarget=null; grappleState='none'; grappleTimer=0; grappleCooldown=0; grappleHoldFrames=0;
@@ -3281,13 +3275,6 @@ function tickAttackHits(){
     if(isFinisher) iaidoLines(player.x+PW/2,player.y+PH*0.28,player.facing);
     if(!player.swingStreakCounted){
       player.swingStreakCounted=true;
-      // Show combo HUD on first confirmed hit of this swing
-      if(isFinisher){
-        updateComboHud(getMaxSteps());
-        setTimeout(()=>updateComboHud(0), 700);
-      } else {
-        updateComboHud(step+1);
-      }
       hitStreak++;
       hitStreakTimer=HIT_STREAK_TIMEOUT;
       const newTier=Math.floor(hitStreak/10);
@@ -4269,7 +4256,6 @@ function hideComboHud(){
 }
 
 // Legacy stub — no longer shows on every hit, kept so old call-sites don't crash
-function updateComboHud(step){ /* replaced by showComboComment on tier change */ }
 
 // ── STREAK HUD ───────────────────────────
 const STREAK_TIER_COLORS=['rgba(200,220,255,0.85)','rgba(80,200,255,0.95)','rgba(60,255,180,0.95)','rgba(255,200,60,0.95)','rgba(255,120,40,1)','rgba(255,60,200,1)'];
@@ -5151,12 +5137,11 @@ function drawSwordSprite(p, trailOnly=false){
   if(p.spAtk) return;
 
   const isAtk = p.atk || p.atkCD > 0;
-  const isSp  = false; // spAtk already returned above
   const ACTIVE = isAtk || swingAnim.active || p.rsWindup;
   if(!ACTIVE) return;
 
   const step     = p.curStep || 0;
-  const stepData = getStep(isSp ? getMaxSteps()-1 : step);
+  const stepData = getStep(step);
   const motion   = stepData.motion || 'arc';
   const t        = swingAnim.prog || 0;
   const af       = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
@@ -5194,7 +5179,7 @@ function drawSwordSprite(p, trailOnly=false){
 
   // ─── TRAIL PASS (drawn BEHIND player) ─────────────────────────────────────
   if(trailOnly){
-    const trailStep = isSp ? getMaxSteps()-1 : step;
+    const trailStep = step;
     const trailData = getStep(trailStep);
     const pivX = p.x + PW/2 - camX + p.facing * trailData.pivotX;
     const pivY = p.y + PH * trailData.pivotY;
@@ -5266,7 +5251,7 @@ function drawSwordSprite(p, trailOnly=false){
   }
 
   // ─── WEAPON SPRITE (drawn ON TOP of player) ──────────────────────────────
-  if(isAtk || isSp){
+  if(isAtk){
     const wImg = _slotImg('weapon');
     const af   = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
     const sH   = stepData.swingH || 104;
@@ -6469,9 +6454,6 @@ function loop(now=0){
   _loopDraw();
 }
 function _loopUpdate(){
-
-  const W=canvas.width,H=canvas.height;
-
   // INPUT
   const goL=keys['ArrowLeft']||keys['a']||keys['A']||btnS.l;
   const goR=keys['ArrowRight']||keys['d']||keys['D']||btnS.r;
@@ -6500,7 +6482,7 @@ function _loopUpdate(){
 
   if(player.dead){ player.vx*=0.85; }
   else if(player.rsWindup){ player.vx*=0.85; }
-  else if(grappleState==='zip'){ player.vx*=1; /* zip overrides — updateGrapple steers */ }
+  else if(grappleState==='zip'){ /* updateGrapple steers velocity during zip */ }
   else if(player.evadeTimer>0){ player.vx=player.evadeDir*EVADE_SPEED*GAME_SPEED; }
   else if(player.airAtkFreezeTimer>0){ player.vx=goL?-AIR_ATK_FREEZE_DRIFT:goR?AIR_ATK_FREEZE_DRIFT:0; }
   else {
@@ -6537,7 +6519,7 @@ function _loopUpdate(){
   // COMBO TIMER
   if(player.comboTimer>0){
     player.comboTimer--;
-    if(player.comboTimer<=0&&!player.atk){player.comboStep=0;updateComboHud(0);}
+    if(player.comboTimer<=0&&!player.atk){player.comboStep=0;}
   }
   // AIR-SMASH POSE HOLD
   if(player.airSmashTimer>0) player.airSmashTimer--;
@@ -6591,7 +6573,6 @@ function _loopUpdate(){
     }
   }
   // ── EXCALIBUR WINDUP ──────────────────────────────────────────────────────
-  const EXCALIBUR_WINDUP_FRAMES = 90; // 1.5s charge
   if(player.excaliburWindup&&!player.dead){
     player.excaliburWindupF++;
     const prog = player.excaliburWindupF / EXCALIBUR_WINDUP_FRAMES;
@@ -6652,7 +6633,6 @@ function _loopUpdate(){
       player.onGround=false;
       player.juggleFollow=true;
       player.juggleFollowUsed=true;
-      player.launchJumpReady=false;
       player.vx=0;
       player.y-=10;
       player.vy=JUGGLE_PLAYER_VY;
@@ -6674,7 +6654,7 @@ function _loopUpdate(){
       _airRelaunch();
     }
     player.pendingAirFollow=false;    // tapped — no follow
-    launchHoldFrames=0; player.launchJumpReady=false;
+    launchHoldFrames=0;
     player.airSlamArmed=false;        // disarm — requires fresh hold to slam
     player.airSlamNeedsRehold=false;  // cleared — next hold is a fresh hold
   }
@@ -7014,8 +6994,6 @@ function _loopUpdate(){
         }
       } else {
         e.windupTimer=0;
-        // Cancel windup if hit during it
-        if(e.hitCD>0) e.windupTimer=0;
         e.pTimer--;if(e.pTimer<=0){e.pDir*=-1;e.pTimer=70+(Math.random()*110|0);}
         e.vx+=e.pDir*.15;e.facing=e.pDir;
       }
@@ -7543,7 +7521,6 @@ function _loopDraw(){
   }
   // ── EXCALIBUR WINDUP DRAW ─────────────────────────────────────────────────
   if(player.excaliburWindup){
-    const EXCALIBUR_WINDUP_FRAMES = 90;
     const prog = player.excaliburWindupF / EXCALIBUR_WINDUP_FRAMES;
     const cx = player.x+PW/2-camX, cy = player.y+PH*0.1;
     const pulse = 0.5+0.5*Math.sin(Date.now()/35);
@@ -8030,6 +8007,9 @@ function focusStatButton(btn) {
 
 function navigateMenu(direction) {
   const btns = Array.from(document.querySelectorAll('button:not([disabled])')).filter(b => {
+    // Skip buttons inside a diff-row that has been explicitly hidden (e.g. the inactive HUD row)
+    const row = b.closest('.diff-row');
+    if (row && row.style.display === 'none') return false;
     const screen  = b.closest('.screen');
     const overlay = b.closest('#pauseScreen, #dead, #stageCompleteScreen');
     if (screen)  return !screen.classList.contains('hidden');
@@ -8326,18 +8306,18 @@ function _buildMcLayout(){
   const lx=pad+r,ly=H-pad-r,rx=W-pad-rBig,ry=H-pad-rBig;
   _mcBtns=[
     // Left cluster — movement (larger)
-    {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.11)'},
-    {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.11)'},
-    {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.11)'},
-    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,220,80,0.11)'},
-    {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.11)'},
+    {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.28)'},
+    {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.28)'},
+    {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.28)'},
+    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,220,80,0.28)'},
+    {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.28)'},
     // Right cluster — actions
-    {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.11)'},
-    {id:'atk',    x:rx,           y:ry,          r:rBig, label:'⚔',col:'rgba(220,60,60,0.15)'},
-    {id:'magic',  x:rx-gap,       y:ry,          r:rSm,  label:'✨',col:'rgba(120,80,220,0.11)'},
-    {id:'evade',  x:rx-gap,       y:ry-gap,      r:rSm,  label:'💨',col:'rgba(60,140,220,0.11)'},
-    {id:'launch', x:rx-gap*2,     y:ry,          r:rSm,  label:'↑', col:'rgba(40,180,130,0.11)'},
-    {id:'sp',     x:rx-gap*2,     y:ry-gapSm,    r:rSm,  label:'★', col:'rgba(255,160,20,0.13)'},
+    {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.28)'},
+    {id:'atk',    x:rx,           y:ry,          r:rBig, label:'⚔',col:'rgba(220,60,60,0.35)'},
+    {id:'magic',  x:rx-gap,       y:ry,          r:rSm,  label:'✨',col:'rgba(120,80,220,0.28)'},
+    {id:'evade',  x:rx-gap,       y:ry-gap,      r:rSm,  label:'💨',col:'rgba(60,140,220,0.28)'},
+    {id:'launch', x:rx-gap*2,     y:ry,          r:rSm,  label:'↑', col:'rgba(40,180,130,0.28)'},
+    {id:'sp',     x:rx-gap*2,     y:ry-gapSm,    r:rSm,  label:'★', col:'rgba(255,160,20,0.30)'},
   ];
 }
 function _drawMobileControls(){
@@ -8347,11 +8327,11 @@ function _drawMobileControls(){
   for(const b of _mcBtns){
     const p=!!_mcPressed[b.id];
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
-    ctx.fillStyle=p?'rgba(255,215,60,0.18)':b.col;
-    ctx.strokeStyle=p?'rgba(255,215,60,0.88)':'rgba(255,255,255,0.18)';
-    ctx.lineWidth=p?2:1;ctx.fill();ctx.stroke();
+    ctx.fillStyle=p?'rgba(255,215,60,0.38)':b.col;
+    ctx.strokeStyle=p?'rgba(255,215,60,0.95)':'rgba(255,255,255,0.50)';
+    ctx.lineWidth=p?2.5:1.5;ctx.fill();ctx.stroke();
     ctx.font=Math.round(b.r*0.58)+'px serif';
-    ctx.globalAlpha=p?1:0.5;ctx.fillStyle='#fff';
+    ctx.globalAlpha=p?1:0.82;ctx.fillStyle='#fff';
     ctx.fillText(b.label,b.x,b.y+1);ctx.globalAlpha=1;
   }
   ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.restore();
