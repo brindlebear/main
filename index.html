@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:21.6px;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
 #viewport{position:fixed;inset:0;overflow:hidden;}
@@ -14,17 +15,17 @@ canvas{display:block;}
 /* ── SETTINGS SCREEN ── */
 .settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1.1vh,10px);overflow-y:auto;max-height:calc(100vh - 40px);padding:16px 0;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;}
 .settings-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
-.settings-section-lbl{font-size:0.68rem;letter-spacing:0.42em;color:rgba(200,170,100,0.5);text-transform:uppercase;margin-bottom:-6px;}
+.settings-section-lbl{font-size:0.78rem;letter-spacing:0.32em;color:rgba(200,170,100,0.75);text-transform:uppercase;margin-bottom:-6px;}
 .settings-divider{width:240px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.35),transparent);}
 .settings-fs-btn{width:280px;display:flex;align-items:center;justify-content:center;gap:12px;}
 .settings-fs-btn .fs-icon{font-size:1.1rem;}
 .diff-row{display:flex;align-items:center;gap:0;width:clamp(200px,28vw,280px);border:1px solid rgba(200,160,80,0.28);border-radius:3px;overflow:hidden;}
-.diff-label{flex:1;text-align:left;padding:0 12px;font-size:0.65rem;letter-spacing:0.2em;color:rgba(200,170,100,0.7);}
-.diff-val{font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:0.12em;color:#e8c880;min-width:52px;text-align:center;}
-.diff-btn{background:rgba(200,160,60,0.08);border:none;border-left:1px solid rgba(200,160,80,0.2);color:rgba(220,190,100,0.75);font-size:1rem;width:38px;height:38px;cursor:pointer;font-family:'Cinzel',serif;transition:background 0.15s;}
+.diff-label{flex:1;text-align:left;padding:0 12px;font-size:0.76rem;letter-spacing:0.18em;color:rgba(200,170,100,0.88);}
+.diff-val{font-family:'Cinzel',serif;font-size:0.92rem;letter-spacing:0.12em;color:#e8c880;min-width:52px;text-align:center;}
+.diff-btn{background:rgba(200,160,60,0.08);border:none;border-left:1px solid rgba(200,160,80,0.2);color:rgba(220,190,100,0.9);font-size:1.1rem;width:38px;height:38px;cursor:pointer;font-family:'Cinzel',serif;transition:background 0.15s;}
 .diff-btn:first-child{border-left:none;border-right:1px solid rgba(200,160,80,0.2);}
 .diff-btn:hover,.diff-btn.gamepad-focused{background:rgba(200,160,60,0.2);color:#ffe080;}
-.diff-desc{font-size:0.56rem;letter-spacing:0.15em;color:rgba(200,170,100,0.35);text-align:center;width:280px;}
+.diff-desc{font-size:0.68rem;letter-spacing:0.12em;color:rgba(200,170,100,0.6);text-align:center;width:280px;}
 
 /* ══ SCREENS ══ */
 .screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:linear-gradient(160deg,#03050e 0%,#06091a 50%,#02040b 100%);}
@@ -56,9 +57,9 @@ canvas{display:block;}
 /* rain canvas — behind vignette and buttons, non-interactive */
 #rainCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;display:block;}
 .menu-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,8vw,4rem);color:#e8d5a0;letter-spacing:0.18em;text-shadow:0 0 30px rgba(230,200,100,0.5),0 0 80px rgba(180,140,50,0.2);text-align:center;line-height:1.2;}
-.menu-subtitle{font-size:0.75rem;letter-spacing:0.35em;color:rgba(200,170,100,0.45);text-transform:uppercase;}
+.menu-subtitle{font-size:0.85rem;letter-spacing:0.3em;color:rgba(200,170,100,0.68);text-transform:uppercase;}
 .menu-divider{width:180px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.4),transparent);margin:4px 0;}
-.menu-btn{font-family:'Cinzel',serif;font-size:clamp(0.75rem,2.2vw,1.15rem);letter-spacing:0.2em;padding:clamp(10px,2vh,18px) clamp(20px,4vw,48px);background:linear-gradient(135deg,#1a1206,#0a0904);color:#d4aa48;border:1px solid rgba(200,150,40,0.45);border-radius:2px;cursor:pointer;width:clamp(160px,20vw,240px);text-align:center;transition:all 0.18s;box-shadow:0 0 14px rgba(180,130,30,0.18);text-shadow:0 1px 6px rgba(0,0,0,0.8);}
+.menu-btn{font-family:'Cinzel',serif;font-size:clamp(0.88rem,2.2vw,1.2rem);letter-spacing:0.18em;padding:clamp(12px,2vh,20px) clamp(24px,4vw,52px);background:linear-gradient(135deg,#1a1206,#0a0904);color:#d4aa48;border:1px solid rgba(200,150,40,0.45);border-radius:2px;cursor:pointer;width:clamp(180px,22vw,260px);text-align:center;transition:all 0.18s;box-shadow:0 0 14px rgba(180,130,30,0.18);text-shadow:0 1px 6px rgba(0,0,0,0.8);}
 .menu-btn:hover,.menu-btn.gamepad-focused{color:#ffe080;border-color:rgba(255,200,60,0.65);box-shadow:0 0 24px rgba(220,170,40,0.35);background:linear-gradient(135deg,#2a1e08,#140f02);}
 .menu-btn.danger{color:#c04040;border-color:rgba(180,40,40,0.4);}
 .menu-btn.danger:hover{color:#ff6060;border-color:rgba(255,60,60,0.6);box-shadow:0 0 20px rgba(200,40,40,0.35);}
@@ -68,7 +69,7 @@ canvas{display:block;}
 #bossRushScreen{gap:0;}
 .boss-rush-wrap{width:min(420px,92vw);display:flex;flex-direction:column;gap:10px;}
 .boss-rush-title{font-family:'Cinzel Decorative',serif;font-size:1.3rem;letter-spacing:0.22em;color:#e8d5a0;text-align:center;margin-bottom:2px;}
-.boss-rush-sub{font-size:0.62rem;letter-spacing:0.3em;color:rgba(200,170,100,0.4);text-align:center;text-transform:uppercase;margin-bottom:12px;}
+.boss-rush-sub{font-size:0.74rem;letter-spacing:0.24em;color:rgba(200,170,100,0.65);text-align:center;text-transform:uppercase;margin-bottom:12px;}
 .boss-entry{display:flex;align-items:center;gap:14px;padding:12px 16px;width:100%;
   background:rgba(255,255,255,0.03);border:1px solid rgba(200,60,20,0.3);border-radius:3px;
   cursor:pointer;transition:all 0.16s;
@@ -77,8 +78,8 @@ canvas{display:block;}
 .boss-entry.locked{opacity:0.35;cursor:default;pointer-events:none;border-color:rgba(255,255,255,0.06);}
 .boss-entry-num{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:rgba(200,80,40,0.8);min-width:24px;text-align:center;}
 .boss-entry-info{flex:1;}
-.boss-entry-name{font-size:0.82rem;letter-spacing:0.22em;color:#e8c090;font-family:'Cinzel',serif;}
-.boss-entry-sub{font-size:0.58rem;letter-spacing:0.16em;color:rgba(200,170,130,0.4);margin-top:2px;}
+.boss-entry-name{font-size:0.94rem;letter-spacing:0.2em;color:#e8c090;font-family:'Cinzel',serif;}
+.boss-entry-sub{font-size:0.7rem;letter-spacing:0.14em;color:rgba(200,170,130,0.65);margin-top:2px;}
 .boss-entry-skull{font-size:1.2rem;opacity:0.7;}
 /* ── Stage Select ── */
 .stage-card{position:relative;width:100%;height:96px;border-radius:4px;overflow:hidden;border:1px solid rgba(200,160,80,0.22);cursor:pointer;background:#050810;transition:border-color 0.2s,box-shadow 0.2s;display:flex;align-items:flex-end;padding:0;font-family:'Cinzel',serif;}
@@ -89,21 +90,21 @@ canvas{display:block;}
 .stage-card-overlay{position:relative;z-index:1;width:100%;padding:10px 16px;background:linear-gradient(to top,rgba(2,4,14,0.94) 0%,rgba(2,4,14,0.1) 100%);display:flex;align-items:center;gap:14px;}
 .stage-card-num{font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:rgba(200,80,40,0.8);min-width:22px;text-align:center;}
 .stage-card-info{flex:1;}
-.stage-card-name{font-size:0.82rem;letter-spacing:0.22em;color:#e8c090;}
-.stage-card-sub{font-size:0.56rem;letter-spacing:0.16em;color:rgba(200,170,130,0.4);margin-top:2px;}
+.stage-card-name{font-size:0.94rem;letter-spacing:0.2em;color:#e8c090;}
+.stage-card-sub{font-size:0.7rem;letter-spacing:0.14em;color:rgba(200,170,130,0.65);margin-top:2px;}
 .stage-card-badge{font-size:1.15rem;opacity:0.75;}
 /* ── Stage Complete overlay ── */
 #stageCompleteScreen{position:fixed;inset:0;background:rgba(0,12,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
 #stageCompleteScreen.show{opacity:1;pointer-events:all;}
 #stageCompleteScreen h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,5vw,2.6rem);color:#40dd80;letter-spacing:0.18em;text-shadow:0 0 30px rgba(0,255,80,0.3);animation:dpulse 1.1s ease-in-out infinite alternate;}
-#stageCompleteScreen .sc-stage-name{font-size:0.72rem;letter-spacing:0.38em;color:rgba(160,220,170,0.5);text-transform:uppercase;margin-top:-8px;}
-#stageCompleteScreen .sc-stats{font-size:0.7rem;letter-spacing:0.18em;color:rgba(200,160,80,0.5);text-align:center;line-height:2.2;}
+#stageCompleteScreen .sc-stage-name{font-size:0.82rem;letter-spacing:0.3em;color:rgba(160,220,170,0.75);text-transform:uppercase;margin-top:-8px;}
+#stageCompleteScreen .sc-stats{font-size:0.82rem;letter-spacing:0.16em;color:rgba(200,160,80,0.78);text-align:center;line-height:2.2;}
 #stageCompleteScreen .sc-btns{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:6px;}
 #stageCompleteScreen button{font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.18em;padding:12px 36px;min-width:248px;background:linear-gradient(135deg,#021a08,#01100404);color:#60e090;border:1px solid rgba(60,180,100,0.4);border-radius:2px;cursor:pointer;box-shadow:0 0 14px rgba(30,180,70,0.2);transition:box-shadow 0.2s,transform 0.1s,background 0.2s,border-color 0.2s,color 0.2s;}
 #stageCompleteScreen button:hover,#stageCompleteScreen button.gamepad-focused{box-shadow:0 0 36px rgba(50,255,110,0.72),0 0 0 2px rgba(60,255,110,0.45);transform:scale(1.06);background:linear-gradient(135deg,#03280d,#052010);border-color:rgba(60,230,110,0.85);color:#90ffb8;}
 #stageCompleteScreen button.sc-secondary{color:rgba(200,160,80,0.8);border-color:rgba(200,160,80,0.3);background:linear-gradient(135deg,#1a1002,#0e0a01);box-shadow:0 0 10px rgba(200,140,30,0.14);}
 #stageCompleteScreen button.sc-secondary:hover,#stageCompleteScreen button.sc-secondary.gamepad-focused{box-shadow:0 0 30px rgba(255,180,40,0.68),0 0 0 2px rgba(255,180,40,0.4);transform:scale(1.06);background:linear-gradient(135deg,#2a1a02,#1a1001);border-color:rgba(220,170,40,0.85);color:#ffd060;}
-.save-info{font-size:1rem;font-weight:700;letter-spacing:0.16em;color:rgba(235,210,145,1);text-align:center;max-width:420px;line-height:2;text-shadow:0 1px 8px rgba(0,0,0,0.95),0 0 22px rgba(0,0,0,0.85);}
+.save-info{font-size:1.05rem;font-weight:700;letter-spacing:0.14em;color:rgba(240,218,158,1);text-align:center;max-width:480px;line-height:2;text-shadow:0 1px 8px rgba(0,0,0,0.95),0 0 22px rgba(0,0,0,0.85);}
 
 /* ── PREP SCREEN ── */
 #prepScreen{align-items:stretch;padding:0;}
@@ -113,9 +114,9 @@ canvas{display:block;}
 .prep-wrap::-webkit-scrollbar-thumb{background:rgba(200,150,40,0.25);border-radius:2px;}
 /* prep header */
 .prep-header{text-align:center;padding:24px 24px 16px;background:linear-gradient(180deg,rgba(200,150,40,0.08) 0%,transparent 100%);border-bottom:1px solid rgba(200,150,40,0.12);margin-bottom:4px;}
-.prep-title{font-family:'Cinzel Decorative',serif;font-size:1.25rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:13px;}
+.prep-title{font-family:'Cinzel Decorative',serif;font-size:1.4rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:13px;}
 .prep-resource-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;}
-.prep-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.78rem;letter-spacing:0.13em;color:rgba(200,170,100,0.72);background:rgba(200,150,40,0.08);border:1px solid rgba(200,150,40,0.2);border-radius:20px;padding:5px 16px;}
+.prep-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.9rem;letter-spacing:0.13em;color:rgba(200,170,100,0.9);background:rgba(200,150,40,0.08);border:1px solid rgba(200,150,40,0.2);border-radius:20px;padding:5px 16px;}
 .prep-chip.pts{color:#ffd060;border-color:rgba(255,210,60,0.35);background:rgba(255,200,40,0.09);}
 .prep-chip.pts.zero{color:rgba(180,160,100,0.28);border-color:rgba(200,150,40,0.1);background:transparent;}
 /* section heads */
@@ -125,10 +126,10 @@ canvas{display:block;}
 .prep-sh-icon.attr{background:rgba(255,185,40,0.11);border:1px solid rgba(255,185,40,0.28);}
 .prep-sh-icon.weapon{background:rgba(200,150,40,0.1);border:1px solid rgba(200,150,40,0.28);}
 .prep-sh-icon.magic{background:rgba(120,80,200,0.12);border:1px solid rgba(120,80,200,0.32);}
-.prep-sh-title{font-size:0.74rem;letter-spacing:0.32em;color:rgba(200,150,40,0.65);text-transform:uppercase;}
-.prep-sh-badge{font-size:0.68rem;letter-spacing:0.1em;color:#ffd060;background:rgba(255,200,40,0.1);border:1px solid rgba(255,200,40,0.28);border-radius:20px;padding:4px 13px;transition:opacity 0.2s;}
+.prep-sh-title{font-size:0.86rem;letter-spacing:0.26em;color:rgba(200,150,40,0.85);text-transform:uppercase;}
+.prep-sh-badge{font-size:0.8rem;letter-spacing:0.1em;color:#ffd060;background:rgba(255,200,40,0.1);border:1px solid rgba(255,200,40,0.28);border-radius:20px;padding:4px 13px;transition:opacity 0.2s;}
 .prep-sh-badge.zero{opacity:0;pointer-events:none;}
-.prep-sh-hint{font-size:0.65rem;letter-spacing:0.12em;color:rgba(200,170,100,0.3);}
+.prep-sh-hint{font-size:0.76rem;letter-spacing:0.12em;color:rgba(200,170,100,0.55);}
 /* stat rows */
 .stat-rows-wrap{display:flex;flex-direction:column;gap:7px;padding:0 22px;}
 .stat-row{display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.06);border-radius:4px;transition:border-color 0.15s,background 0.15s;}
@@ -136,8 +137,8 @@ canvas{display:block;}
 .stat-row.gamepad-focused{background:rgba(255,208,96,0.1);border:1px solid rgba(255,208,96,0.46);box-shadow:0 0 14px rgba(255,208,96,0.12);}
 .stat-icon{font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;}
 .stat-info{flex:1;}
-.stat-name{font-size:0.88rem;letter-spacing:0.16em;color:#c8a040;}
-.stat-desc{font-size:0.66rem;letter-spacing:0.07em;color:rgba(200,180,120,0.42);margin-top:2px;}
+.stat-name{font-size:1rem;letter-spacing:0.14em;color:#d4ac48;}
+.stat-desc{font-size:0.76rem;letter-spacing:0.07em;color:rgba(200,180,120,0.68);margin-top:2px;}
 .stat-val{font-size:1.1rem;font-weight:700;min-width:64px;text-align:center;display:flex;align-items:baseline;justify-content:center;gap:2px;flex-shrink:0;}
 .sv-base{color:rgba(255,255,255,0.42);font-size:0.95rem;}
 .sv-arrow{color:rgba(255,200,60,0.4);font-size:0.72rem;padding:0 1px;}
@@ -148,9 +149,17 @@ canvas{display:block;}
 .stat-btn:disabled{opacity:0.2;cursor:default;}
 /* prep actions */
 .prep-actions{padding:18px 22px 0;display:flex;flex-direction:column;gap:8px;}
-.prep-confirm-btn{width:100%;padding:18px;font-size:1.05rem;letter-spacing:0.28em;}
-.prep-back-btn{width:100%;font-size:0.84rem;padding:12px;opacity:0.6;}
+.prep-confirm-btn{width:100%;padding:20px;font-size:1.15rem;letter-spacing:0.26em;}
+.prep-back-btn{width:100%;font-size:0.94rem;padding:14px;opacity:0.7;}
 @media(max-width:480px){.weapon-grid{grid-template-columns:1fr!important;}}
+
+/* ── PREP SCREEN — portrait+stats side-by-side layout ── */
+.prep-stats-layout{display:flex;flex-direction:row;gap:0;align-items:stretch;padding:4px 0;}
+.prep-portrait-col{flex-shrink:0;width:160px;padding:0 12px 0 16px;display:flex;flex-direction:column;}
+.prep-portrait-img{width:100%;flex:1;border-radius:4px;border:1px solid rgba(200,150,40,0.22);display:block;object-fit:cover;object-position:top center;min-height:0;}
+.prep-stats-col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.prep-stats-col .stat-rows-wrap{padding:0 16px 0 0;}
+.prep-stats-col #allocPts{margin:0 16px 8px 0!important;}
 
 /* ── PHONE PORTRAIT — compact pause/dead/settings ── */
 @media (max-width:600px) and (orientation:portrait){
@@ -162,6 +171,25 @@ canvas{display:block;}
   #dead{gap:12px;padding:16px 0;}
   #dead h1{font-size:1.5rem!important;}
   #dead button{padding:10px 32px;font-size:0.78rem;}
+  /* prep screen — portrait: scrollable, portrait image stacks above stats */
+  #prepScreen{justify-content:flex-start;overflow-y:auto;padding:0;}
+  .prep-wrap{width:100%;max-height:none;padding-bottom:20px;}
+  .prep-header{padding:10px 14px 8px;}
+  .prep-title{font-size:0.9rem!important;}
+  .prep-stats-layout{flex-direction:column;gap:8px;padding:8px 12px 0;}
+  .prep-portrait-col{width:100%;max-width:130px;margin:0 auto;padding:0;}
+  .prep-stats-col .stat-rows-wrap{padding:0;}
+  .prep-stats-col #allocPts{margin:0 0 6px!important;}
+  .stat-row{padding:7px 10px;gap:8px;}
+  .stat-icon{font-size:1.1rem;width:24px;}
+  .stat-name{font-size:0.72rem!important;}
+  .stat-desc{font-size:0.54rem!important;}
+  .stat-btn{width:34px;height:34px;font-size:1.1rem;}
+  .stat-val{min-width:50px;font-size:0.95rem;}
+  .prep-tabs{padding:0 4px;}
+  .prep-tab{padding:10px 4px 9px;font-size:0.6rem;}
+  .prep-actions{padding:10px 12px 0;}
+  .prep-confirm-btn,.prep-back-btn{width:100%!important;}
 }
 
 /* ── PHONE LANDSCAPE ── */
@@ -303,7 +331,7 @@ canvas{display:block;}
 }
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
-.prep-tab{flex:1;padding:14px 8px 13px;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.2em;color:rgba(200,160,80,0.36);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;text-transform:uppercase;margin-bottom:-1px;}
+.prep-tab{flex:1;padding:14px 8px 13px;font-family:'Cinzel',serif;font-size:0.84rem;letter-spacing:0.18em;color:rgba(200,160,80,0.52);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;text-transform:uppercase;margin-bottom:-1px;}
 .prep-tab:hover{color:rgba(200,160,80,0.72);}
 .prep-tab.active{color:#ffd060;border-bottom-color:rgba(255,210,60,0.6);}
 .prep-tab.gamepad-focused{color:#ffe080;background:rgba(255,200,40,0.07);border-bottom-color:rgba(255,210,60,0.9);outline:none;}
@@ -691,7 +719,7 @@ body.mc-active #streakHud{top:54px;}
 #ffl{position:fixed;inset:0;background:rgba(255,255,255,0);pointer-events:none;z-index:15;transition:background 0.05s;}
 
 /* ── WEAPON & SPELL SELECT ── */
-.weapon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;padding:0 22px;}
+.weapon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;padding:0 22px;}
 .weapon-card{display:flex;flex-direction:column;gap:10px;padding:15px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.07);border-radius:4px;cursor:pointer;transition:border-color 0.15s,background 0.15s;position:relative;z-index:0;}
 .weapon-card:hover:not(.locked){background:rgba(200,150,40,0.07);border-color:rgba(200,150,40,0.3);}
 .weapon-card.gamepad-focused{background:rgba(200,150,40,0.12);border-color:rgba(200,150,40,0.62);box-shadow:0 0 14px rgba(200,140,30,0.18);z-index:2;}
@@ -713,19 +741,19 @@ body.mc-active #streakHud{top:54px;}
 .wcard-icon-wrap canvas{image-rendering:pixelated;border-radius:2px;}
 .wcard-icon-wrap.spell-icon{font-size:1.9rem;}
 .wcard-name-wrap{flex:1;min-width:0;padding-right:6px;}
-.weapon-name{font-size:0.86rem;letter-spacing:0.14em;color:#c8a040;}
+.weapon-name{font-size:1rem;letter-spacing:0.13em;color:#c8a040;}
 .weapon-card.selected .weapon-name{color:#ffe080;}
 .weapon-card.selected.magic-card .weapon-name{color:#c8a0ff;}
-.weapon-desc{font-size:0.66rem;letter-spacing:0.05em;color:rgba(200,180,120,0.48);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.wcard-bottom{display:flex;flex-wrap:wrap;gap:4px;}
-.wcard-stat-chip{font-size:0.62rem;letter-spacing:0.07em;color:rgba(200,175,120,0.6);background:rgba(200,150,40,0.07);border:1px solid rgba(200,150,40,0.16);border-radius:2px;padding:3px 8px;white-space:nowrap;}
-.weapon-card.selected .wcard-stat-chip{color:#c8a040;border-color:rgba(200,150,40,0.3);}
-.weapon-card.selected.magic-card .wcard-stat-chip{color:#a080d0;border-color:rgba(120,80,200,0.28);}
-.weapon-sel-badge{position:absolute;top:8px;right:8px;font-size:0.6rem;letter-spacing:0.1em;color:#ffd060;background:rgba(200,150,40,0.18);border:1px solid rgba(200,150,40,0.44);border-radius:2px;padding:3px 8px;}
-.wcard-elem-chip{font-size:0.62rem;letter-spacing:0.07em;background:rgba(255,255,255,0.04);border:1px solid;border-radius:2px;padding:3px 8px;white-space:nowrap;}
-.spell-sel-badge{margin-left:auto;align-self:flex-start;flex-shrink:0;font-size:0.6rem;letter-spacing:0.1em;color:#b088ff;background:rgba(120,80,200,0.18);border:1px solid rgba(120,80,200,0.44);border-radius:2px;padding:3px 8px;}
-.wcard-lock-badge{position:absolute;top:8px;right:8px;font-size:0.75rem;}
-.wcard-unlock-btn{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.12em;padding:6px 10px;background:rgba(200,150,40,0.14);border:1px solid rgba(200,150,40,0.38);color:#c8a040;border-radius:2px;cursor:pointer;width:100%;transition:all 0.12s;margin-top:3px;}
+.weapon-desc{font-size:0.78rem;letter-spacing:0.03em;color:rgba(200,180,120,0.72);margin-top:4px;line-height:1.55;}
+.wcard-bottom{display:flex;flex-wrap:wrap;gap:5px;}
+.wcard-stat-chip{font-size:0.74rem;letter-spacing:0.06em;color:rgba(200,175,120,0.85);background:rgba(200,150,40,0.09);border:1px solid rgba(200,150,40,0.22);border-radius:2px;padding:4px 10px;white-space:nowrap;}
+.weapon-card.selected .wcard-stat-chip{color:#c8a040;border-color:rgba(200,150,40,0.38);}
+.weapon-card.selected.magic-card .wcard-stat-chip{color:#a080d0;border-color:rgba(120,80,200,0.35);}
+.weapon-sel-badge{margin-left:auto;align-self:center;flex-shrink:0;font-size:0.8rem;font-weight:700;color:#1a1000;background:linear-gradient(135deg,#ffd060,#c88820);border:none;border-radius:20px;padding:5px 12px;white-space:nowrap;box-shadow:0 0 14px rgba(255,200,40,0.55);}
+.wcard-elem-chip{font-size:0.74rem;letter-spacing:0.06em;background:rgba(255,255,255,0.04);border:1px solid;border-radius:2px;padding:4px 10px;white-space:nowrap;}
+.spell-sel-badge{margin-left:auto;align-self:center;flex-shrink:0;font-size:0.8rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#a060ff,#6020c0);border:none;border-radius:20px;padding:5px 12px;white-space:nowrap;box-shadow:0 0 14px rgba(140,80,255,0.55);}
+.wcard-lock-badge{margin-left:auto;align-self:flex-start;flex-shrink:0;font-size:0.85rem;}
+.wcard-unlock-btn{font-family:'Cinzel',serif;font-size:0.74rem;letter-spacing:0.12em;padding:7px 12px;background:rgba(200,150,40,0.14);border:1px solid rgba(200,150,40,0.38);color:#c8a040;border-radius:2px;cursor:pointer;width:100%;transition:all 0.12s;margin-top:4px;}
 .wcard-unlock-btn:hover{background:rgba(200,150,40,0.28);color:#ffe080;}
 #status{display:none;position:fixed;top:10px;right:10px;font-size:0.7rem;color:#ffd060;white-space:nowrap;font-family:monospace;z-index:100;background:rgba(0,0,0,0.7);padding:6px 10px;border:1px solid rgba(255,208,96,0.3);border-radius:3px;transition:opacity 0.6s ease;}
 #gpHints{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;padding:5px 20px 6px;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);border-top:1px solid rgba(255,255,255,0.07);justify-content:center;align-items:center;gap:4px 22px;flex-wrap:wrap;}
@@ -868,42 +896,51 @@ body.mc-active #streakHud{top:54px;}
 
     <!-- panel: stats -->
     <div class="prep-panel" id="prepPanel0">
-      <div class="prep-sh-badge" id="allocPts" style="display:block;text-align:right;margin:0 22px 8px;padding:4px 12px;">—</div>
-      <div class="stat-rows-wrap">
-        <div class="stat-row" id="statRow_str">
-          <div class="stat-icon">⚔</div>
-          <div class="stat-info"><div class="stat-name">STRENGTH</div><div class="stat-desc">Weapon damage</div></div>
-          <button class="stat-btn" onclick="allocStat('str',-1)" id="strMinus">−</button>
-          <div class="stat-val" id="strVal"><span class="sv-total">1</span></div>
-          <button class="stat-btn" onclick="allocStat('str',1)" id="strPlus">+</button>
+      <div class="prep-stats-layout">
+        <!-- character portrait -->
+        <div class="prep-portrait-col">
+          <img src="GFX/characterportrait.png" class="prep-portrait-img" alt="Character">
         </div>
-        <div class="stat-row" id="statRow_vit">
-          <div class="stat-icon">🛡</div>
-          <div class="stat-info"><div class="stat-name">VITALITY</div><div class="stat-desc">Max health</div></div>
-          <button class="stat-btn" onclick="allocStat('vit',-1)" id="vitMinus">−</button>
-          <div class="stat-val" id="vitVal"><span class="sv-total">1</span></div>
-          <button class="stat-btn" onclick="allocStat('vit',1)" id="vitPlus">+</button>
-        </div>
-        <div class="stat-row" id="statRow_end">
-          <div class="stat-icon">💪</div>
-          <div class="stat-info"><div class="stat-name">ENDURANCE</div><div class="stat-desc">Max stamina</div></div>
-          <button class="stat-btn" onclick="allocStat('end',-1)" id="endMinus">−</button>
-          <div class="stat-val" id="endVal"><span class="sv-total">1</span></div>
-          <button class="stat-btn" onclick="allocStat('end',1)" id="endPlus">+</button>
-        </div>
-        <div class="stat-row" id="statRow_agi">
-          <div class="stat-icon">🌀</div>
-          <div class="stat-info"><div class="stat-name">AGILITY</div><div class="stat-desc">Stamina recovery</div></div>
-          <button class="stat-btn" onclick="allocStat('agi',-1)" id="agiMinus">−</button>
-          <div class="stat-val" id="agiVal"><span class="sv-total">1</span></div>
-          <button class="stat-btn" onclick="allocStat('agi',1)" id="agiPlus">+</button>
-        </div>
-        <div class="stat-row" id="statRow_int">
-          <div class="stat-icon">✨</div>
-          <div class="stat-info"><div class="stat-name">INTELLECT</div><div class="stat-desc">Spell power &amp; mana</div></div>
-          <button class="stat-btn" onclick="allocStat('int',-1)" id="intMinus">−</button>
-          <div class="stat-val" id="intVal"><span class="sv-total">1</span></div>
-          <button class="stat-btn" onclick="allocStat('int',1)" id="intPlus">+</button>
+        <!-- stat rows -->
+        <div class="prep-stats-col">
+          <div class="prep-sh-badge" id="allocPts" style="display:block;text-align:right;margin:0 12px 8px 0;padding:4px 12px;">—</div>
+          <div class="stat-rows-wrap">
+            <div class="stat-row" id="statRow_str">
+              <div class="stat-icon">⚔</div>
+              <div class="stat-info"><div class="stat-name">STRENGTH</div><div class="stat-desc">Weapon damage</div></div>
+              <button class="stat-btn" onclick="allocStat('str',-1)" id="strMinus">−</button>
+              <div class="stat-val" id="strVal"><span class="sv-total">1</span></div>
+              <button class="stat-btn" onclick="allocStat('str',1)" id="strPlus">+</button>
+            </div>
+            <div class="stat-row" id="statRow_vit">
+              <div class="stat-icon">🛡</div>
+              <div class="stat-info"><div class="stat-name">VITALITY</div><div class="stat-desc">Max health</div></div>
+              <button class="stat-btn" onclick="allocStat('vit',-1)" id="vitMinus">−</button>
+              <div class="stat-val" id="vitVal"><span class="sv-total">1</span></div>
+              <button class="stat-btn" onclick="allocStat('vit',1)" id="vitPlus">+</button>
+            </div>
+            <div class="stat-row" id="statRow_end">
+              <div class="stat-icon">💪</div>
+              <div class="stat-info"><div class="stat-name">ENDURANCE</div><div class="stat-desc">Max stamina</div></div>
+              <button class="stat-btn" onclick="allocStat('end',-1)" id="endMinus">−</button>
+              <div class="stat-val" id="endVal"><span class="sv-total">1</span></div>
+              <button class="stat-btn" onclick="allocStat('end',1)" id="endPlus">+</button>
+            </div>
+            <div class="stat-row" id="statRow_agi">
+              <div class="stat-icon">🌀</div>
+              <div class="stat-info"><div class="stat-name">AGILITY</div><div class="stat-desc">Stamina recovery</div></div>
+              <button class="stat-btn" onclick="allocStat('agi',-1)" id="agiMinus">−</button>
+              <div class="stat-val" id="agiVal"><span class="sv-total">1</span></div>
+              <button class="stat-btn" onclick="allocStat('agi',1)" id="agiPlus">+</button>
+            </div>
+            <div class="stat-row" id="statRow_int">
+              <div class="stat-icon">✨</div>
+              <div class="stat-info"><div class="stat-name">INTELLECT</div><div class="stat-desc">Spell power &amp; mana</div></div>
+              <button class="stat-btn" onclick="allocStat('int',-1)" id="intMinus">−</button>
+              <div class="stat-val" id="intVal"><span class="sv-total">1</span></div>
+              <button class="stat-btn" onclick="allocStat('int',1)" id="intPlus">+</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2003,11 +2040,11 @@ function renderWeaponSelect(){
       }
     }
 
+    // badges — inserted into topRow so they flow naturally without overlapping name
+    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='weapon-sel-badge'; b.textContent='✔'; topRow.appendChild(b); }
+    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; topRow.appendChild(lk); }
     card.appendChild(topRow);
     card.appendChild(bottom);
-    // badges — position:absolute, appended last so they layer on top of content
-    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='weapon-sel-badge'; b.textContent='✓ EQUIPPED'; card.appendChild(b); }
-    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; card.appendChild(lk); }
     list.appendChild(card);
 
     // sprite — prefer sprites.weapon PNG (new system), fall back to w.sheet (legacy), then emoji
@@ -2116,7 +2153,7 @@ function renderSpellSelect(){
     }
 
     // badges — inserted into topRow so they flow naturally without overlapping
-    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='spell-sel-badge'; b.textContent='✓ EQUIPPED'; topRow.appendChild(b); }
+    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='spell-sel-badge'; b.textContent='✔'; topRow.appendChild(b); }
     if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; topRow.appendChild(lk); }
 
     card.appendChild(topRow);
