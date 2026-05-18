@@ -1269,9 +1269,44 @@ Object.entries(STAGES).forEach(([id, s]) => {
 // Enemy death sound — drop wav next to ironveil.html. Set to null to disable.
 const ENEMY_DEATH_SOUND = 'Audio/enemy_death.wav';
 
+// ── Magenta-key removal ───────────────────────────────────────────────────────
+// Draws the image into an offscreen canvas and replaces any pixel that is
+// "close enough" to #FF00FF (magenta chroma-key) with full transparency.
+// Returns the canvas — use it everywhere you'd use the original <img>.
+function stripMagenta(img, threshold = 80) {
+  const c = document.createElement('canvas');
+  c.width  = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const cx = c.getContext('2d');
+  cx.drawImage(img, 0, 0);
+  const id = cx.getImageData(0, 0, c.width, c.height);
+  const d  = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    // "Distance" from pure #FF00FF — 0 = perfect magenta, 255 = nothing like it
+    const dist = Math.max(255 - d[i], d[i+1], 255 - d[i+2]);
+    if (dist < threshold) {
+      // Core magenta zone — fully transparent
+      d[i+3] = 0;
+    } else if (dist < threshold * 2) {
+      // Soft edge zone — pixel is a partial blend of magenta + sprite color.
+      // f = how much of this pixel is magenta (1 at threshold, 0 at threshold*2)
+      const f = 1 - (dist - threshold) / threshold;
+      // Despill: subtract the magenta's R and B contribution so the remaining
+      // color isn't tinted pink — without this you'd get a magenta fringe halo
+      d[i]   = Math.max(0, d[i]   - Math.round(f * 255)); // remove magenta red
+      d[i+2] = Math.max(0, d[i+2] - Math.round(f * 255)); // remove magenta blue
+      // Reduce alpha proportionally — how much sprite is left after removing magenta
+      d[i+3] = Math.round(d[i+3] * (1 - f));
+    }
+    // Beyond threshold*2 → fully opaque, untouched
+  }
+  cx.putImageData(id, 0, 0);
+  return c;
+}
+
 const heroImg = new Image();
-let heroLoaded = false;
-heroImg.onload = () => { heroLoaded = true; };
+let heroLoaded = false, heroCanvas = null;
+heroImg.onload = () => { heroCanvas = stripMagenta(heroImg); heroLoaded = true; };
 heroImg.onerror = (e) => { console.error('Hero sprite failed',e); };
 heroImg.src='GFX/character_sheet.png';
 
@@ -1372,15 +1407,15 @@ function cells(x0, y0, n){
 }
 
 const HERO_FRAMES = {
-  idle:   cells(0,   0,   2),
+  idle:   cells(0,   0,   4),
   walk:   cells(0,   96,  4),
   jump:   cells(0,   192, 2),
   fall:   cells(96,  192, 1),
   hurt:   cells(0,   288, 1),
   defeat: cells(0,  288, 4),
   attack: cells(0,   384, 4),
-  launch:   cells(0,   480, 2), // 2-frame launch animation  (row 5, slots 0-1)
-  airSmash: cells(288, 480, 2), // 2-frame air-smash hold    (row 5, slots 2-3)
+  launch:   cells(0,   480, 4), // 2-frame launch animation  (row 5, slots 0-1)
+  airSmash: cells(288, 192, 1), // 2-frame air-smash hold    (row 5, slots 2-3)
   evade:  cells(0,   576, 2),  // dodge roll — row 6, bottom of sheet
 };
 
@@ -3444,6 +3479,19 @@ function airSlamEnemy(){
   bloodBurst(target.x+EW/2,target.y+EH*0.35,22);
   sparkBurst(target.x+EW/2,target.y+EH*0.2,18,true);
   goreBurst(target.x+EW/2,target.y+EH*0.35,player.facing,true);
+  // Purple impact burst
+  for(let i=0;i<22;i++){
+    const a=Math.random()*Math.PI*2;
+    const sp=3+Math.random()*9;
+    const h=(270+Math.random()*40)|0;
+    particles.push({type:'spark',
+      x:target.x+EW/2, y:target.y+EH*0.25,
+      vx:Math.cos(a)*sp,
+      vy:Math.sin(a)*sp+1.5,
+      life:1, decay:0.045+Math.random()*0.035,
+      r:2+Math.random()*4,
+      color:`hsl(${h},100%,${(62+Math.random()*24)|0}%)`});
+  }
   playSfx(AIR_SMASH_SOUND);
   const _isBossSmash = target.boss;
   triggerFreeze(_isBossSmash?18:12); triggerShake(_isBossSmash?28:18);
@@ -5397,7 +5445,7 @@ function drawPlayer(p){
   if(p.hitCD>0 && Math.floor(p.hitCD/4)%2===0 && p.hitCD<55) return;
   // Pick the right animation frame based on player state (ticked in _loopUpdate)
   const f = HERO_FRAMES[heroAnim.name]?.[heroAnim.frame];
-  if(!f || !heroLoaded || !heroImg.complete){ drawPlayerFallback(p); return; }
+  if(!f || !heroLoaded || !heroCanvas){ drawPlayerFallback(p); return; }
 
   // ─── DISPLAY SIZE ────────────────────────────────────────────────────────
   // Each frame on the sheet is CELL×CELL (96×96 px).
@@ -5449,7 +5497,7 @@ function drawPlayer(p){
   //             dy = -oy  → shifts up  so feet      align with origin
   //   dw, dh  = destination size on screen             (CELL × HERO_SCALE)
   ctx.drawImage(
-    heroImg,
+    heroCanvas,
     f.sx, f.sy,     // source top-left on sheet   (auto from HERO_FRAMES)
     f.sw, f.sh,     // source size (96 × 96)
     -ox,            // dest X: -55px so sprite centre is at origin
@@ -6370,7 +6418,7 @@ function onParrySuccess(attacker, {skipStun=false, fastReady=false}={}){
   setTimeout(() => rumble(160, 0.55, 0.2), 360); // tail-off resonance
 
   parryBurst(player.x+PW/2, player.y+PH*0.45);
-  floatText(player.x+PW/2-28, player.y-28, 'PARRY!', '#ffe060', true);
+  floatText(player.x+PW/2-28, player.y-28, 'PARRY!', '#ff8030', true);
 
   // Parry counts as a hit in the combo streak
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
@@ -6380,14 +6428,14 @@ function onParrySuccess(attacker, {skipStun=false, fastReady=false}={}){
 }
 
 function parryBurst(cx, cy){
-  // Outer golden ring
+  // Outer ember ring
   for(let i=0;i<32;i++){
     const a=(i/32)*Math.PI*2;
     const sp=7+Math.random()*9;
     particles.push({type:'spark',x:cx,y:cy,
       vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-2,
       life:1,decay:0.025,r:3+Math.random()*3,
-      color:`hsl(${44+Math.random()*20|0},100%,${68+Math.random()*20|0}%)`});
+      color:`hsl(${12+Math.random()*24|0},100%,${58+Math.random()*20|0}%)`});
   }
   // Inner white burst
   for(let i=0;i<16;i++){
@@ -6418,10 +6466,10 @@ function drawParryShield(p){
   // Soft radial glow
   ctx.save();
   const grd=ctx.createRadialGradient(cx,cy,14,cx,cy,58);
-  grd.addColorStop(0,  `rgba(255,220,60,0)`);
-  grd.addColorStop(0.55,`rgba(255,210,50,${life*0.15})`);
-  grd.addColorStop(0.82,`rgba(255,235,110,${life*0.32})`);
-  grd.addColorStop(1,  'rgba(255,220,60,0)');
+  grd.addColorStop(0,  `rgba(255,120,20,0)`);
+  grd.addColorStop(0.55,`rgba(255,100,10,${life*0.15})`);
+  grd.addColorStop(0.82,`rgba(255,160,40,${life*0.32})`);
+  grd.addColorStop(1,  'rgba(255,80,0,0)');
   ctx.fillStyle=grd;
   ctx.beginPath(); ctx.arc(cx,cy,58,0,Math.PI*2); ctx.fill();
   ctx.restore();
@@ -6437,8 +6485,8 @@ function drawParryShield(p){
     const h=7+Math.sin(t*5+i*0.9)*2;
     ctx.save();
     ctx.globalAlpha=Math.max(0,alpha);
-    ctx.shadowColor='#ffd040'; ctx.shadowBlur=14;
-    ctx.fillStyle=`hsl(${46+Math.sin(t*3+i)*12},100%,${68+Math.sin(t*4+i)*14}%)`;
+    ctx.shadowColor='#ff6010'; ctx.shadowBlur=14;
+    ctx.fillStyle=`hsl(${18+Math.sin(t*3+i)*12},100%,${58+Math.sin(t*4+i)*14}%)`;
     ctx.translate(ox,oy);
     ctx.rotate(angle+Math.PI/2);
     ctx.fillRect(-h*0.35,-h,h*0.7,h*2);
@@ -8334,7 +8382,7 @@ function _buildMcLayout(){
     {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.28)'},
     {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.28)'},
     {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.28)'},
-    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,220,80,0.28)'},
+    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,100,20,0.28)'},
     {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.28)'},
     // Right cluster — actions
     {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.28)'},
