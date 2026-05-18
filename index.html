@@ -12,7 +12,7 @@ canvas{display:block;}
 #viewport{position:fixed;inset:0;overflow:hidden;}
 #c{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:fill;}
 /* ── SETTINGS SCREEN ── */
-.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vh,18px);}
+.settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1.1vh,10px);overflow-y:auto;max-height:calc(100vh - 40px);padding:16px 0;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;-webkit-overflow-scrolling:touch;}
 .settings-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
 .settings-section-lbl{font-size:0.68rem;letter-spacing:0.42em;color:rgba(200,170,100,0.5);text-transform:uppercase;margin-bottom:-6px;}
 .settings-divider{width:240px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.35),transparent);}
@@ -93,7 +93,7 @@ canvas{display:block;}
 .stage-card-sub{font-size:0.56rem;letter-spacing:0.16em;color:rgba(200,170,130,0.4);margin-top:2px;}
 .stage-card-badge{font-size:1.15rem;opacity:0.75;}
 /* ── Stage Complete overlay ── */
-#stageCompleteScreen{position:fixed;inset:0;background:rgba(0,12,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;}
+#stageCompleteScreen{position:fixed;inset:0;background:rgba(0,12,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
 #stageCompleteScreen.show{opacity:1;pointer-events:all;}
 #stageCompleteScreen h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,5vw,2.6rem);color:#40dd80;letter-spacing:0.18em;text-shadow:0 0 30px rgba(0,255,80,0.3);animation:dpulse 1.1s ease-in-out infinite alternate;}
 #stageCompleteScreen .sc-stage-name{font-size:0.72rem;letter-spacing:0.38em;color:rgba(160,220,170,0.5);text-transform:uppercase;margin-top:-8px;}
@@ -151,6 +151,18 @@ canvas{display:block;}
 .prep-confirm-btn{width:100%;padding:18px;font-size:1.05rem;letter-spacing:0.28em;}
 .prep-back-btn{width:100%;font-size:0.84rem;padding:12px;opacity:0.6;}
 @media(max-width:480px){.weapon-grid{grid-template-columns:1fr!important;}}
+
+/* ── PHONE PORTRAIT — compact pause/dead/settings ── */
+@media (max-width:600px) and (orientation:portrait){
+  #pauseScreen{gap:10px;padding:16px 0;}
+  #pauseScreen h2{font-size:1.3rem!important;margin-bottom:0;}
+  #pauseScreen .psub{margin:-4px 0 4px;font-size:0.55rem;}
+  #pauseScreen button:not(.diff-btn){padding:9px 28px;font-size:0.78rem;width:200px;}
+  #pauseScreen .diff-row{width:200px;}
+  #dead{gap:12px;padding:16px 0;}
+  #dead h1{font-size:1.5rem!important;}
+  #dead button{padding:10px 32px;font-size:0.78rem;}
+}
 
 /* ── PHONE LANDSCAPE ── */
 @media (orientation:landscape) and (max-height:500px){
@@ -275,10 +287,19 @@ canvas{display:block;}
   .weapon-grid{padding:0 12px;}
 
   /* ── PAUSE & DEAD ── */
-  #pauseScreen{gap:7px;min-height:100%;}
-  #pauseScreen button{padding:6px 18px;font-size:0.66rem;width:155px;}
-  #dead{gap:7px;min-height:100%;}
+  #pauseScreen{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:12px;}
+  #pauseScreen button:not(.diff-btn){padding:6px 18px;font-size:0.66rem;width:155px;}
+  #pauseScreen .diff-row{width:200px;}
+  #dead{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:12px;}
   #dead button{padding:6px 18px;font-size:0.66rem;}
+
+  /* ── STAGE COMPLETE ── */
+  #stageCompleteScreen{overflow-y:auto;justify-content:flex-start;padding:10px 0;gap:7px;}
+  #stageCompleteScreen h1{font-size:1.15rem!important;letter-spacing:0.12em;animation:none;}
+  #stageCompleteScreen .sc-stage-name{font-size:0.52rem;margin-top:-4px;}
+  #stageCompleteScreen .sc-stats{font-size:0.58rem;line-height:1.5;}
+  #stageCompleteScreen button{padding:7px 20px;min-width:200px!important;font-size:0.72rem;}
+  #stageCompleteScreen .sc-btns{gap:5px;margin-top:2px;}
 }
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
@@ -615,7 +636,8 @@ body.mc-active #bossBar{
 #pauseBtn.visible{display:flex;}
 #pauseScreen{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+  gap:16px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;
+  overflow-y:auto;padding:24px 0;-webkit-overflow-scrolling:touch;}
 #pauseScreen.show{opacity:1;pointer-events:all;}
 #pauseScreen h2{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);
   color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 24px rgba(200,140,30,0.5);margin:0 0 8px;}
@@ -632,7 +654,7 @@ body.mc-active #bossBar{
 #pauseScreen .diff-btn{width:44px;height:44px;}
 
 /* ── DEAD ── */
-#dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;}
+#dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;-webkit-overflow-scrolling:touch;}
 #dead.show{opacity:1;pointer-events:all;}
 #dead h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.6rem,6vw,2.8rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 30px #ff220044;animation:dpulse 1.1s ease-in-out infinite alternate;}
 @keyframes dpulse{from{opacity:.6;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
@@ -1001,19 +1023,19 @@ body.mc-active #bossBar{
   <button id="pauseMobileCtrlBtn" onclick="toggleMobileControls()">
     <span id="pauseMobileCtrlLabel">MOBILE CONTROLS: OFF</span>
   </button>
-  <div class="diff-row">
+  <div class="diff-row" id="pauseHudDesktopRow">
     <button class="diff-btn" onclick="changeHudSize(-5,false)">−</button>
-    <span class="diff-label">HUD DESKTOP</span>
+    <span class="diff-label">HUD SIZE</span>
     <span class="diff-val" id="pauseHudDesktopVal">100%</span>
     <button class="diff-btn" onclick="changeHudSize(5,false)">+</button>
   </div>
-  <div class="diff-row">
+  <div class="diff-row" id="pauseHudMobileRow" style="display:none">
     <button class="diff-btn" onclick="changeHudSize(-5,true)">−</button>
-    <span class="diff-label">HUD MOBILE</span>
+    <span class="diff-label">HUD SIZE</span>
     <span class="diff-val" id="pauseHudMobileVal">100%</span>
     <button class="diff-btn" onclick="changeHudSize(5,true)">+</button>
   </div>
-  <button onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ DEFAULT HUD</button>
+  <button onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ RESET HUD</button>
   <button class="quit-btn" onclick="quitToMenu()">↩ QUIT TO MENU</button>
 </div>
 
@@ -8359,6 +8381,9 @@ function _syncMobileBtn(){
   const lbl=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
   const l=document.getElementById('mobileCtrlLabel'); if(l) l.textContent=lbl;
   const p=document.getElementById('pauseMobileCtrlLabel'); if(p) p.textContent=lbl;
+  // Show only the relevant HUD size row
+  const dr=document.getElementById('pauseHudDesktopRow'); if(dr) dr.style.display=on?'none':'';
+  const mr=document.getElementById('pauseHudMobileRow');  if(mr) mr.style.display=on?'':'none';
 }
 function changeHudSize(delta,forMobile){
   const mob=forMobile!==undefined?forMobile:!!save.mobileControls;
