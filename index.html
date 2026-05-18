@@ -107,50 +107,50 @@ canvas{display:block;}
 
 /* ── PREP SCREEN ── */
 #prepScreen{align-items:stretch;padding:0;}
-.prep-wrap{width:min(520px,96vw);max-height:96vh;overflow-y:auto;overflow-x:hidden;padding:0 0 32px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;margin:auto;}
+.prep-wrap{width:min(700px,96vw);max-height:96vh;overflow-y:auto;overflow-x:hidden;padding:0 0 32px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;margin:auto;}
 .prep-wrap::-webkit-scrollbar{width:4px;}
 .prep-wrap::-webkit-scrollbar-track{background:transparent;}
 .prep-wrap::-webkit-scrollbar-thumb{background:rgba(200,150,40,0.25);border-radius:2px;}
 /* prep header */
 .prep-header{text-align:center;padding:24px 24px 16px;background:linear-gradient(180deg,rgba(200,150,40,0.08) 0%,transparent 100%);border-bottom:1px solid rgba(200,150,40,0.12);margin-bottom:4px;}
-.prep-title{font-family:'Cinzel Decorative',serif;font-size:1.05rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:11px;}
+.prep-title{font-family:'Cinzel Decorative',serif;font-size:1.25rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:13px;}
 .prep-resource-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;}
-.prep-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.65rem;letter-spacing:0.13em;color:rgba(200,170,100,0.72);background:rgba(200,150,40,0.08);border:1px solid rgba(200,150,40,0.2);border-radius:20px;padding:4px 14px;}
+.prep-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.78rem;letter-spacing:0.13em;color:rgba(200,170,100,0.72);background:rgba(200,150,40,0.08);border:1px solid rgba(200,150,40,0.2);border-radius:20px;padding:5px 16px;}
 .prep-chip.pts{color:#ffd060;border-color:rgba(255,210,60,0.35);background:rgba(255,200,40,0.09);}
 .prep-chip.pts.zero{color:rgba(180,160,100,0.28);border-color:rgba(200,150,40,0.1);background:transparent;}
 /* section heads */
 .prep-section-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px 10px;}
 .prep-sh-left{display:flex;align-items:center;gap:10px;}
-.prep-sh-icon{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;flex-shrink:0;}
+.prep-sh-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .prep-sh-icon.attr{background:rgba(255,185,40,0.11);border:1px solid rgba(255,185,40,0.28);}
 .prep-sh-icon.weapon{background:rgba(200,150,40,0.1);border:1px solid rgba(200,150,40,0.28);}
 .prep-sh-icon.magic{background:rgba(120,80,200,0.12);border:1px solid rgba(120,80,200,0.32);}
-.prep-sh-title{font-size:0.58rem;letter-spacing:0.38em;color:rgba(200,150,40,0.65);text-transform:uppercase;}
-.prep-sh-badge{font-size:0.55rem;letter-spacing:0.1em;color:#ffd060;background:rgba(255,200,40,0.1);border:1px solid rgba(255,200,40,0.28);border-radius:20px;padding:3px 11px;transition:opacity 0.2s;}
+.prep-sh-title{font-size:0.74rem;letter-spacing:0.32em;color:rgba(200,150,40,0.65);text-transform:uppercase;}
+.prep-sh-badge{font-size:0.68rem;letter-spacing:0.1em;color:#ffd060;background:rgba(255,200,40,0.1);border:1px solid rgba(255,200,40,0.28);border-radius:20px;padding:4px 13px;transition:opacity 0.2s;}
 .prep-sh-badge.zero{opacity:0;pointer-events:none;}
-.prep-sh-hint{font-size:0.52rem;letter-spacing:0.15em;color:rgba(200,170,100,0.3);}
+.prep-sh-hint{font-size:0.65rem;letter-spacing:0.12em;color:rgba(200,170,100,0.3);}
 /* stat rows */
-.stat-rows-wrap{display:flex;flex-direction:column;gap:5px;padding:0 22px;}
-.stat-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.06);border-radius:4px;transition:border-color 0.15s,background 0.15s;}
+.stat-rows-wrap{display:flex;flex-direction:column;gap:7px;padding:0 22px;}
+.stat-row{display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.06);border-radius:4px;transition:border-color 0.15s,background 0.15s;}
 .stat-row:hover{background:rgba(200,150,40,0.05);border-color:rgba(200,150,40,0.18);}
 .stat-row.gamepad-focused{background:rgba(255,208,96,0.1);border:1px solid rgba(255,208,96,0.46);box-shadow:0 0 14px rgba(255,208,96,0.12);}
-.stat-icon{font-size:1.1rem;width:26px;text-align:center;flex-shrink:0;}
+.stat-icon{font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;}
 .stat-info{flex:1;}
-.stat-name{font-size:0.7rem;letter-spacing:0.18em;color:#c8a040;}
-.stat-desc{font-size:0.54rem;letter-spacing:0.07em;color:rgba(200,180,120,0.36);margin-top:1px;}
-.stat-val{font-size:0.95rem;font-weight:700;min-width:56px;text-align:center;display:flex;align-items:baseline;justify-content:center;gap:2px;flex-shrink:0;}
-.sv-base{color:rgba(255,255,255,0.42);font-size:0.82rem;}
-.sv-arrow{color:rgba(255,200,60,0.4);font-size:0.62rem;padding:0 1px;}
+.stat-name{font-size:0.88rem;letter-spacing:0.16em;color:#c8a040;}
+.stat-desc{font-size:0.66rem;letter-spacing:0.07em;color:rgba(200,180,120,0.42);margin-top:2px;}
+.stat-val{font-size:1.1rem;font-weight:700;min-width:64px;text-align:center;display:flex;align-items:baseline;justify-content:center;gap:2px;flex-shrink:0;}
+.sv-base{color:rgba(255,255,255,0.42);font-size:0.95rem;}
+.sv-arrow{color:rgba(255,200,60,0.4);font-size:0.72rem;padding:0 1px;}
 .sv-total{color:#fff;}
-.sv-delta{font-size:0.68rem;font-weight:600;color:#ffd060;}
-.stat-btn{width:32px;height:32px;border:1px solid rgba(200,150,40,0.35);background:rgba(20,15,5,0.8);color:#c8a040;font-size:1.1rem;cursor:pointer;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all 0.12s;flex-shrink:0;}
+.sv-delta{font-size:0.8rem;font-weight:600;color:#ffd060;}
+.stat-btn{width:40px;height:40px;border:1px solid rgba(200,150,40,0.35);background:rgba(20,15,5,0.8);color:#c8a040;font-size:1.35rem;cursor:pointer;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all 0.12s;flex-shrink:0;}
 .stat-btn:hover:not(:disabled){background:rgba(200,150,40,0.18);color:#ffe080;border-color:rgba(200,150,40,0.6);}
 .stat-btn:disabled{opacity:0.2;cursor:default;}
 /* prep actions */
 .prep-actions{padding:18px 22px 0;display:flex;flex-direction:column;gap:8px;}
-.prep-confirm-btn{width:100%;padding:16px;font-size:0.95rem;letter-spacing:0.28em;}
-.prep-back-btn{width:100%;font-size:0.72rem;padding:10px;opacity:0.6;}
-@media(max-width:420px){.weapon-grid{grid-template-columns:1fr!important;}}
+.prep-confirm-btn{width:100%;padding:18px;font-size:1.05rem;letter-spacing:0.28em;}
+.prep-back-btn{width:100%;font-size:0.84rem;padding:12px;opacity:0.6;}
+@media(max-width:480px){.weapon-grid{grid-template-columns:1fr!important;}}
 
 /* ── PHONE LANDSCAPE ── */
 @media (orientation:landscape) and (max-height:500px){
@@ -256,21 +256,23 @@ canvas{display:block;}
     align-items:center;
   }
   .prep-wrap{
-    width:min(480px,98vw);
+    width:min(520px,98vw);
     max-height:100vh;
     margin:0 auto;
     padding:0 0 10px;
     align-self:center;
   }
-  .prep-header{padding:4px 12px;}
-  .prep-title{font-size:0.74rem!important;}
-  .prep-section-head{padding:4px 12px 3px;}
-  .stat-row{padding:4px 10px;}
-  .prep-actions{padding:4px 12px 0;align-items:center;}
-  .prep-confirm-btn{width:min(340px,86vw)!important;}
-  .prep-back-btn{width:min(340px,86vw)!important;}
-  .prep-tab{padding:6px 4px 5px;font-size:0.46rem;}
-  .weapon-grid{padding:0 10px;}
+  .prep-header{padding:5px 14px;}
+  .prep-title{font-size:0.88rem!important;}
+  .prep-section-head{padding:5px 14px 4px;}
+  .stat-row{padding:6px 12px;}
+  .stat-name{font-size:0.76rem!important;}
+  .stat-desc{font-size:0.58rem!important;}
+  .prep-actions{padding:5px 14px 0;align-items:center;}
+  .prep-confirm-btn{width:min(380px,88vw)!important;}
+  .prep-back-btn{width:min(380px,88vw)!important;}
+  .prep-tab{padding:7px 5px 6px;font-size:0.58rem;}
+  .weapon-grid{padding:0 12px;}
 
   /* ── PAUSE & DEAD ── */
   #pauseScreen{gap:7px;min-height:100%;}
@@ -280,7 +282,7 @@ canvas{display:block;}
 }
 /* tab bar */
 .prep-tabs{display:flex;padding:0 8px;border-bottom:1px solid rgba(200,150,40,0.14);flex-shrink:0;}
-.prep-tab{flex:1;padding:12px 6px 11px;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.2em;color:rgba(200,160,80,0.36);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;text-transform:uppercase;margin-bottom:-1px;}
+.prep-tab{flex:1;padding:14px 8px 13px;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:0.2em;color:rgba(200,160,80,0.36);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;text-transform:uppercase;margin-bottom:-1px;}
 .prep-tab:hover{color:rgba(200,160,80,0.72);}
 .prep-tab.active{color:#ffd060;border-bottom-color:rgba(255,210,60,0.6);}
 .prep-tab.gamepad-focused{color:#ffe080;background:rgba(255,200,40,0.07);border-bottom-color:rgba(255,210,60,0.9);outline:none;}
@@ -315,11 +317,11 @@ canvas{display:block;}
   background:linear-gradient(90deg,transparent,rgba(185,140,50,0.4),transparent);
 }
 .hud-bar-row{display:flex;align-items:center;gap:var(--hud-gap,6px);}
-.hud-icon{font-size:var(--hud-icon,0.85rem);width:var(--hud-icon-w,16px);text-align:center;flex-shrink:0;line-height:1;}
+.hud-icon{font-size:var(--hud-icon,1.02rem);width:var(--hud-icon-w,19px);text-align:center;flex-shrink:0;line-height:1;}
 .hud-icon.h{color:#60ff80;text-shadow:0 0 9px rgba(60,255,110,0.9);}
 .hud-icon.s{color:#ffd050;text-shadow:0 0 9px rgba(230,175,40,0.9);}
 .hud-icon.m{color:#b888ff;text-shadow:0 0 9px rgba(160,100,255,0.9);}
-.bar-wrap{flex:1;position:relative;height:var(--hud-bar-h,9px);}
+.bar-wrap{flex:1;position:relative;height:var(--hud-bar-h,11px);}
 .bar-track{position:absolute;inset:0;border-radius:3px;background:rgba(20,8,2,0.75);border:1px solid rgba(160,110,40,0.3);box-shadow:inset 0 2px 5px rgba(0,0,0,0.7);overflow:hidden;}
 .bar-ghost{position:absolute;inset:0;border-radius:2px;background:rgba(255,200,100,0.18);transform-origin:left;transition:width 0.85s cubic-bezier(0.25,0.46,0.45,0.94);}
 .bar-fill{position:absolute;inset:0;border-radius:2px;transform-origin:left;overflow:hidden;transition:width 0.2s cubic-bezier(0.34,1.4,0.64,1);}
@@ -331,7 +333,7 @@ canvas{display:block;}
 @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 .bar-gloss{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(to bottom,rgba(255,255,255,0.1),transparent);border-radius:2px 2px 0 0;pointer-events:none;}
 .bar-chip-layer{position:absolute;inset:0;overflow:visible;pointer-events:none;}
-.hud-val{font-size:var(--hud-val,0.68rem);font-weight:700;min-width:var(--hud-val-w,32px);text-align:right;letter-spacing:0.02em;flex-shrink:0;font-family:'Cinzel',serif;}
+.hud-val{font-size:var(--hud-val,0.82rem);font-weight:700;min-width:var(--hud-val-w,38px);text-align:right;letter-spacing:0.06em;flex-shrink:0;font-family:'Cinzel',serif;}
 .hud-val.hp{color:#6dff88;text-shadow:0 0 10px rgba(60,255,110,0.7);}
 .hud-val.stamina{color:#ffd050;text-shadow:0 0 10px rgba(230,175,40,0.7);}
 .hud-val.mana{color:#b888ff;text-shadow:0 0 10px rgba(160,100,255,0.7);}
@@ -339,12 +341,12 @@ canvas{display:block;}
 .hud-panel .bar-fill{border-radius:4px;}
 .hud-divider{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,rgba(190,145,55,0.4),transparent);}
 .hud-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.hud-lv{font-size:var(--hud-lv,0.60rem);letter-spacing:0.1em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 8px rgba(220,175,60,0.45);}
+.hud-lv{font-size:var(--hud-lv,0.72rem);letter-spacing:0.12em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 10px rgba(220,175,60,0.6);}
 .hud-pot-wrap{display:flex;align-items:center;gap:4px;pointer-events:all;cursor:pointer;}
-.hud-score-sm{font-size:var(--hud-score,0.52rem);letter-spacing:0.03em;color:rgba(225,190,120,0.88);}
+.hud-score-sm{font-size:var(--hud-score,0.62rem);letter-spacing:0.06em;color:rgba(225,190,120,0.95);}
 .hud-exp-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
-.hud-level{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,180,80,0.85);font-weight:600;}
-.wave-hud{font-size:0.73rem;letter-spacing:0.12em;color:rgba(220,120,70,0.92);font-weight:600;}
+.hud-level{font-size:var(--hud-level,0.73rem);letter-spacing:0.12em;color:rgba(220,180,80,0.95);font-weight:700;text-shadow:0 0 8px rgba(200,150,40,0.5);}
+.wave-hud{font-size:var(--hud-wave,0.73rem);letter-spacing:0.12em;color:rgba(220,120,70,0.98);font-weight:700;text-shadow:0 0 8px rgba(200,80,30,0.5);}
 /* Potion HUD — red vial */
 .potion-flask{
   position:relative;width:22px;height:36px;flex-shrink:0;
@@ -380,7 +382,7 @@ canvas{display:block;}
   content:'';position:absolute;top:15%;left:15%;width:22%;height:52%;
   background:rgba(255,255,255,0.22);border-radius:50%;filter:blur(1.5px);
 }
-#potionCount{font-size:0.9rem;font-weight:700;color:#ff7070;text-shadow:0 0 8px rgba(255,40,40,0.7);min-width:24px;}
+#potionCount{font-size:var(--hud-potion,0.9rem);font-weight:700;color:#ff7070;text-shadow:0 0 8px rgba(255,40,40,0.7);min-width:24px;letter-spacing:0.04em;}
 #potionCount.empty{color:rgba(255,255,255,0.2);text-shadow:none;}
 
 /* EXP bar */
@@ -394,42 +396,41 @@ canvas{display:block;}
 
 /* ── COMBO HUD (center top) ── */
 .combo-hud{
-  position:fixed;top:46px;left:50%;transform:translateX(-50%);
+  position:fixed;top:90px;left:50%;transform:translateX(-50%);
   pointer-events:none;z-index:10;display:none;
+  text-align:center;
 }
+body:not(.mc-active) .combo-hud{top:148px;}
 .combo-inner{
-  display:inline-flex;flex-direction:column;align-items:center;gap:2px;
-  padding:3px 10px 2px;
+  display:inline-flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 16px 4px;
 }
-.combo-icons{
-  font-size:0.68rem;letter-spacing:0.1em;line-height:1;display:block;
-  filter:drop-shadow(0 0 3px rgba(255,220,100,0.4));transition:filter 0.15s,font-size 0.15s;
+.combo-comment{
+  font-family:'Cinzel Decorative',serif;
+  font-size:1.1rem;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  display:block;line-height:1;
+  color:#fff;
+  text-shadow:
+    -1px -1px 0 #000,1px -1px 0 #000,
+    -1px  1px 0 #000,1px  1px 0 #000,
+    0 0 18px rgba(255,255,255,0.4);
+  transition:color 0.1s,text-shadow 0.1s,font-size 0.1s;
 }
-.combo-lbl{
-  font-family:'Cinzel',serif;font-size:0.36rem;font-weight:700;
-  letter-spacing:0.22em;text-transform:uppercase;display:block;line-height:1;
-  color:rgba(240,205,100,0.82);text-shadow:0 0 6px rgba(220,175,60,0.4);
-  transition:color 0.15s,font-size 0.15s,text-shadow 0.15s;
-}
-/* Step 2 — double */
-.combo-hud.c2 .combo-icons{color:#ffd060;filter:drop-shadow(0 0 5px rgba(255,195,40,0.7));}
-.combo-hud.c2 .combo-lbl{color:#ffd878;text-shadow:0 0 8px rgba(255,195,40,0.6);}
-/* Step 3 — ITTO-RIKI */
-.combo-hud.c3 .combo-icons{
-  font-size:0.9rem;color:#ff8844;
-  filter:drop-shadow(0 0 8px rgba(255,100,20,0.85));
-  animation:ittoPop 0.24s cubic-bezier(0.34,1.6,0.64,1);
-}
-.combo-hud.c3 .combo-lbl{
-  font-size:0.44rem;letter-spacing:0.18em;color:#ff7050;
-  text-shadow:0 0 10px rgba(255,80,30,0.85),0 0 24px rgba(255,40,10,0.35);
+.combo-mult{
+  font-family:'Cinzel',serif;font-size:0.52rem;font-weight:700;
+  letter-spacing:0.32em;text-transform:uppercase;
+  color:rgba(255,220,80,0.9);
+  text-shadow:0 0 8px rgba(255,185,20,0.6);
+  display:block;line-height:1;
 }
 @keyframes comboIn{
-  0%{opacity:0;transform:translateX(-50%) translateY(-10px) scale(0.88);}
-  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+  0%  {opacity:0;transform:translateX(-50%) translateY(-12px) scale(0.82);}
+  60% {opacity:1;transform:translateX(-50%) translateY(2px)   scale(1.06);}
+  100%{opacity:1;transform:translateX(-50%) translateY(0)     scale(1);}
 }
-@keyframes ittoPop{
-  0%{transform:scale(0.72);}55%{transform:scale(1.18);}100%{transform:scale(1);}
+@keyframes comboPop{
+  0%{transform:scale(0.72);}55%{transform:scale(1.22);}100%{transform:scale(1);}
 }
 
 /* ── STREAK HUD (top-right) ── */
@@ -442,24 +443,24 @@ canvas{display:block;}
 }
 .streak-num{
   font-family:'Cinzel Decorative',serif;display:block;
-  font-size:1.8rem;font-weight:700;color:#fff;letter-spacing:-0.02em;
+  font-size:var(--streak-num,1.8rem);font-weight:700;color:#fff;letter-spacing:-0.02em;
   line-height:0.88;transition:color 0.25s,text-shadow 0.25s;
-  text-shadow:0 2px 12px rgba(0,0,0,0.8),0 0 20px rgba(200,220,255,0.2);
+  text-shadow:0 2px 14px rgba(0,0,0,0.9),0 0 24px rgba(200,220,255,0.25);
 }
 .streak-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:5px;}
 .streak-lbl{
-  font-family:'Cinzel',serif;font-size:0.58rem;font-weight:700;
-  letter-spacing:0.18em;color:rgba(235,200,130,0.92);text-transform:uppercase;
-  text-shadow:0 1px 6px rgba(0,0,0,0.9);
+  font-family:'Cinzel',serif;font-size:var(--streak-lbl,0.58rem);font-weight:700;
+  letter-spacing:0.20em;color:rgba(235,200,130,0.96);text-transform:uppercase;
+  text-shadow:0 1px 8px rgba(0,0,0,0.95);
 }
 .streak-sep{width:1px;height:10px;background:rgba(200,155,60,0.5);}
 .streak-x{
-  font-family:'Cinzel Decorative',serif;font-size:0.75rem;
+  font-family:'Cinzel Decorative',serif;font-size:var(--streak-x,0.75rem);
   letter-spacing:0.06em;color:#ffcc2e;
-  text-shadow:0 0 10px rgba(255,185,20,0.85),0 1px 6px rgba(0,0,0,0.9);transition:color 0.25s,text-shadow 0.25s;
+  text-shadow:0 0 12px rgba(255,185,20,0.9),0 1px 8px rgba(0,0,0,0.95);transition:color 0.25s,text-shadow 0.25s;
 }
 .streak-bar-wrap{
-  height:5px;margin-top:6px;
+  height:var(--streak-bar,5px);margin-top:6px;
   background:rgba(20,8,2,0.8);border:1px solid rgba(160,110,40,0.35);
   border-radius:3px;overflow:hidden;
   box-shadow:inset 0 1px 3px rgba(0,0,0,0.6);
@@ -534,28 +535,75 @@ body.mc-active #gpHints{display:none!important;}
 .bar-inner.mana{background:linear-gradient(90deg,#0a0a3a 0%,#1a0c6e 25%,#4420cc 55%,#9060ff 85%,#c0a0ff 100%);}
 .bar-inner.mana::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 50%,rgba(255,255,255,0.14),transparent);animation:shine 2.2s ease-in-out infinite;}
 /* ── BOSS HP BAR ─────────────────────────────────────────── */
-#bossBar{position:fixed;top:8px;left:50%;transform:translateX(-50%);
-  width:min(320px,44vw);
-  padding:3px 12px 6px;
-  background:none;
+#bossBar{position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:min(320px,72vw);
+  padding:6px 14px 10px;
   border-radius:4px;pointer-events:none;z-index:9;display:none;}
 #bossBar.show{display:block;}
-.boss-name-lbl{font-family:'Cinzel Decorative',serif;font-size:0.56rem;
-  letter-spacing:0.18em;color:rgba(255,255,255,0.75);
-  text-shadow:
-    -1px -1px 0 #000, 1px -1px 0 #000,
-    -1px  1px 0 #000, 1px  1px 0 #000,
-    0 0 8px rgba(255,80,60,0.3);
-  text-align:center;margin-bottom:3px;text-transform:uppercase;}
-.boss-track{position:relative;height:7px;background:#060104;
-  border:1px solid rgba(200,50,20,0.4);border-radius:2px;overflow:hidden;
-  box-shadow:0 0 10px rgba(200,20,0,0.25),inset 0 1px 4px rgba(0,0,0,0.75);}
-.boss-ghost{position:absolute;inset:0;background:rgba(255,170,150,0.3);width:100%;}
+/* ── BOSS BAR shared Elden Ring style (mobile + desktop) ── */
+#bossBar.show{
+  background:rgba(6,3,2,0.62);
+  border-top:2px solid rgba(185,148,72,0.45);
+  border-bottom:1px solid rgba(185,148,72,0.14);
+  border-left:1px solid rgba(185,148,72,0.14);
+  border-right:1px solid rgba(185,148,72,0.14);
+  border-radius:0 0 4px 4px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.55),0 0 0 1px rgba(0,0,0,0.35);
+  backdrop-filter:blur(10px);
+}
+.boss-name-lbl{
+  font-family:'Cinzel Decorative',serif;font-size:0.82rem;
+  letter-spacing:0.20em;color:rgba(238,220,180,0.95);
+  text-align:center;margin-bottom:0;
+  text-shadow:0 1px 8px rgba(0,0,0,0.9),0 0 18px rgba(200,155,60,0.14);
+  text-transform:uppercase;
+}
+/* thin ornamental rule below name */
+.boss-name-lbl::after{
+  content:'';display:block;
+  height:1px;width:55%;margin:5px auto 7px;
+  background:linear-gradient(90deg,transparent,rgba(185,148,72,0.55),transparent);
+}
+.boss-track{position:relative;height:9px;background:rgba(12,3,2,0.95);
+  border:1px solid rgba(120,30,18,0.6);border-radius:2px;overflow:hidden;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.85),0 0 12px rgba(160,10,0,0.22);}
 .boss-fill-bar{position:absolute;inset:0;width:100%;
-  background:linear-gradient(90deg,#3a0008 0%,#7a0015 20%,#bb001e 50%,#ee1f30 80%,#ff6050 100%);
+  background:linear-gradient(90deg,#280004 0%,#720010 22%,#aa0018 44%,#d81828 64%,#f03040 82%,#ff5c50 96%,#ffaa9a 100%);
   border-radius:2px;transition:width 0.18s;}
 .boss-bar-shine{position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 55%);pointer-events:none;}
+/* HP number */
+.boss-hp-num{display:none;}
+.boss-hp-num.show-num{
+  display:block;font-family:'Cinzel',serif;
+  font-size:0.62rem;letter-spacing:0.10em;font-weight:700;
+  color:rgba(210,185,135,0.78);text-align:right;
+  margin-top:4px;
+  text-shadow:0 1px 5px rgba(0,0,0,0.95);
+}
+/* ── DESKTOP BOSS BAR — larger Elden Ring style ── */
+body:not(.mc-active) #bossBar{
+  width:min(720px,72vw);
+  padding:12px 28px 16px;
+}
+body:not(.mc-active) .boss-name-lbl{
+  font-size:2.0rem;letter-spacing:0.26em;
+}
+body:not(.mc-active) .boss-name-lbl::after{
+  margin:9px auto 12px;
+}
+body:not(.mc-active) .boss-track{
+  height:22px;
+}
+body:not(.mc-active) .boss-hp-num{
+  font-size:0.80rem;margin-top:6px;
+}
+/* ── MOBILE BOSS BAR ── */
+body.mc-active #bossBar{
+  width:min(340px,72vw);
+  padding:6px 14px 10px;
+}
+.boss-ghost{position:absolute;inset:0;background:rgba(255,170,150,0.3);width:100%;}
 .boss-bar-chips{position:absolute;inset:0;overflow:visible;pointer-events:none;}
 
 /* ── PAUSE ── */
@@ -580,6 +628,8 @@ body.mc-active #gpHints{display:none!important;}
 #pauseScreen .quit-btn{border-color:rgba(180,60,60,0.45);color:#c07070;
   background:linear-gradient(135deg,#2a0a04,#0e0202);}
 #pauseScreen .quit-btn:hover{box-shadow:0 0 28px rgba(255,80,60,0.35);}
+#pauseScreen .diff-row{width:220px;border-color:rgba(200,160,80,0.3);}
+#pauseScreen .diff-btn{width:44px;height:44px;}
 
 /* ── DEAD ── */
 #dead{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;}
@@ -599,12 +649,12 @@ body.mc-active #gpHints{display:none!important;}
 #ffl{position:fixed;inset:0;background:rgba(255,255,255,0);pointer-events:none;z-index:15;transition:background 0.05s;}
 
 /* ── WEAPON & SPELL SELECT ── */
-.weapon-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 22px;}
-.weapon-card{display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.07);border-radius:4px;cursor:pointer;transition:border-color 0.15s,background 0.15s;position:relative;}
+.weapon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;padding:0 22px;}
+.weapon-card{display:flex;flex-direction:column;gap:10px;padding:15px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.07);border-radius:4px;cursor:pointer;transition:border-color 0.15s,background 0.15s;position:relative;z-index:0;}
 .weapon-card:hover:not(.locked){background:rgba(200,150,40,0.07);border-color:rgba(200,150,40,0.3);}
-.weapon-card.gamepad-focused{background:rgba(200,150,40,0.12);border-color:rgba(200,150,40,0.62);box-shadow:0 0 14px rgba(200,140,30,0.18);}
+.weapon-card.gamepad-focused{background:rgba(200,150,40,0.12);border-color:rgba(200,150,40,0.62);box-shadow:0 0 14px rgba(200,140,30,0.18);z-index:2;}
 #pauseScreen button.gamepad-focused,#dead button.gamepad-focused{color:#ffe080;border-color:rgba(255,200,60,0.65)!important;box-shadow:0 0 24px rgba(220,170,40,0.35),0 0 0 2px rgba(255,200,60,0.2)!important;background:linear-gradient(135deg,#2a1e08,#140f02)!important;}
-.weapon-card.selected{background:rgba(200,150,40,0.1);border-color:rgba(200,150,40,0.58);box-shadow:0 0 14px rgba(200,140,30,0.15);}
+.weapon-card.selected{background:rgba(200,150,40,0.1);border-color:rgba(200,150,40,0.58);box-shadow:0 0 14px rgba(200,140,30,0.15);z-index:1;}
 .weapon-card.selected.magic-card{background:rgba(120,80,200,0.1);border-color:rgba(140,90,220,0.52);box-shadow:0 0 14px rgba(120,80,200,0.14);}
 .weapon-card.locked{opacity:0.35;cursor:default;pointer-events:none;}
 /* Locked but player can afford — pulse gold border to signal it's purchasable */
@@ -616,23 +666,24 @@ body.mc-active #gpHints{display:none!important;}
 .weapon-card.locked.can-afford.magic-card .weapon-name{color:#b088ff;}
 .weapon-card.locked.can-afford.magic-card.gamepad-focused{border-color:rgba(180,120,255,0.85);box-shadow:0 0 22px rgba(140,90,220,0.5);background:rgba(120,70,200,0.1);}
 /* card internals */
-.wcard-top{display:flex;align-items:center;gap:9px;}
-.wcard-icon-wrap{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:36px;height:36px;}
+.wcard-top{display:flex;align-items:center;gap:11px;}
+.wcard-icon-wrap{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:44px;height:44px;}
 .wcard-icon-wrap canvas{image-rendering:pixelated;border-radius:2px;}
-.wcard-icon-wrap.spell-icon{font-size:1.55rem;}
-.wcard-name-wrap{flex:1;min-width:0;}
-.weapon-name{font-size:0.7rem;letter-spacing:0.16em;color:#c8a040;}
+.wcard-icon-wrap.spell-icon{font-size:1.9rem;}
+.wcard-name-wrap{flex:1;min-width:0;padding-right:6px;}
+.weapon-name{font-size:0.86rem;letter-spacing:0.14em;color:#c8a040;}
 .weapon-card.selected .weapon-name{color:#ffe080;}
 .weapon-card.selected.magic-card .weapon-name{color:#c8a0ff;}
-.weapon-desc{font-size:0.53rem;letter-spacing:0.06em;color:rgba(200,180,120,0.42);margin-top:2px;line-height:1.45;}
+.weapon-desc{font-size:0.66rem;letter-spacing:0.05em;color:rgba(200,180,120,0.48);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .wcard-bottom{display:flex;flex-wrap:wrap;gap:4px;}
-.wcard-stat-chip{font-size:0.5rem;letter-spacing:0.09em;color:rgba(200,175,120,0.55);background:rgba(200,150,40,0.07);border:1px solid rgba(200,150,40,0.16);border-radius:2px;padding:2px 6px;white-space:nowrap;}
+.wcard-stat-chip{font-size:0.62rem;letter-spacing:0.07em;color:rgba(200,175,120,0.6);background:rgba(200,150,40,0.07);border:1px solid rgba(200,150,40,0.16);border-radius:2px;padding:3px 8px;white-space:nowrap;}
 .weapon-card.selected .wcard-stat-chip{color:#c8a040;border-color:rgba(200,150,40,0.3);}
 .weapon-card.selected.magic-card .wcard-stat-chip{color:#a080d0;border-color:rgba(120,80,200,0.28);}
-.weapon-sel-badge{margin-left:auto;align-self:flex-start;flex-shrink:0;font-size:0.44rem;letter-spacing:0.1em;color:#ffd060;background:rgba(200,150,40,0.18);border:1px solid rgba(200,150,40,0.44);border-radius:2px;padding:2px 6px;}
-.spell-sel-badge{margin-left:auto;align-self:flex-start;flex-shrink:0;font-size:0.44rem;letter-spacing:0.1em;color:#b088ff;background:rgba(120,80,200,0.18);border:1px solid rgba(120,80,200,0.44);border-radius:2px;padding:2px 6px;}
-.wcard-lock-badge{position:absolute;top:7px;right:7px;font-size:0.6rem;}
-.wcard-unlock-btn{font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.14em;padding:4px 8px;background:rgba(200,150,40,0.14);border:1px solid rgba(200,150,40,0.38);color:#c8a040;border-radius:2px;cursor:pointer;width:100%;transition:all 0.12s;margin-top:2px;}
+.weapon-sel-badge{position:absolute;top:8px;right:8px;font-size:0.6rem;letter-spacing:0.1em;color:#ffd060;background:rgba(200,150,40,0.18);border:1px solid rgba(200,150,40,0.44);border-radius:2px;padding:3px 8px;}
+.wcard-elem-chip{font-size:0.62rem;letter-spacing:0.07em;background:rgba(255,255,255,0.04);border:1px solid;border-radius:2px;padding:3px 8px;white-space:nowrap;}
+.spell-sel-badge{margin-left:auto;align-self:flex-start;flex-shrink:0;font-size:0.6rem;letter-spacing:0.1em;color:#b088ff;background:rgba(120,80,200,0.18);border:1px solid rgba(120,80,200,0.44);border-radius:2px;padding:3px 8px;}
+.wcard-lock-badge{position:absolute;top:8px;right:8px;font-size:0.75rem;}
+.wcard-unlock-btn{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.12em;padding:6px 10px;background:rgba(200,150,40,0.14);border:1px solid rgba(200,150,40,0.38);color:#c8a040;border-radius:2px;cursor:pointer;width:100%;transition:all 0.12s;margin-top:3px;}
 .wcard-unlock-btn:hover{background:rgba(200,150,40,0.28);color:#ffe080;}
 #status{display:none;position:fixed;top:10px;right:10px;font-size:0.7rem;color:#ffd060;white-space:nowrap;font-family:monospace;z-index:100;background:rgba(0,0,0,0.7);padding:6px 10px;border:1px solid rgba(255,208,96,0.3);border-radius:3px;transition:opacity 0.6s ease;}
 #gpHints{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;padding:5px 20px 6px;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);border-top:1px solid rgba(255,255,255,0.07);justify-content:center;align-items:center;gap:4px 22px;flex-wrap:wrap;}
@@ -711,6 +762,12 @@ body.mc-active #gpHints{display:none!important;}
       <span id="fsLabel">ENTER FULLSCREEN</span>
     </button>
     <div class="settings-divider"></div>
+    <div class="settings-section-lbl">Motion Smoothing</div>
+    <button class="menu-btn settings-fs-btn" id="fpsToggleBtn" onclick="toggleSim120()">
+      <span id="fpsToggleLabel">◈ MOTION SMOOTHING: OFF</span>
+    </button>
+    <div class="diff-desc">Interpolates frames between ticks — smoother motion on any display</div>
+    <div class="settings-divider"></div>
     <div class="settings-section-lbl">Difficulty Multiplier</div>
     <div class="diff-row">
       <button class="diff-btn" onclick="changeDifficulty(-10)">−</button>
@@ -725,6 +782,22 @@ body.mc-active #gpHints{display:none!important;}
       <span>📱</span><span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
     </button>
     <div class="diff-desc">Touch HUD for phones in landscape</div>
+    <div class="settings-divider"></div>
+    <div class="settings-section-lbl">HUD Size</div>
+    <div class="diff-row">
+      <button class="diff-btn" onclick="changeHudSize(-5,false)">−</button>
+      <span class="diff-label">DESKTOP</span>
+      <span class="diff-val" id="hudSizeDesktopVal">100%</span>
+      <button class="diff-btn" onclick="changeHudSize(5,false)">+</button>
+    </div>
+    <div class="diff-row">
+      <button class="diff-btn" onclick="changeHudSize(-5,true)">−</button>
+      <span class="diff-label">MOBILE</span>
+      <span class="diff-val" id="hudSizeMobileVal">100%</span>
+      <button class="diff-btn" onclick="changeHudSize(5,true)">+</button>
+    </div>
+    <div class="diff-desc">50% – 200% · affects health, bars &amp; streak HUD</div>
+    <button class="menu-btn" onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ RESET HUD TO DEFAULT</button>
     <div class="settings-divider"></div>
     <button class="menu-btn danger" onclick="confirmReset()">☠ CLEANSE SAVE</button>
     <button class="menu-btn" onclick="closeSettings()" style="margin-top:4px">↩ BACK</button>
@@ -874,8 +947,8 @@ body.mc-active #gpHints{display:none!important;}
   </div>
   <div class="combo-hud" id="comboHud">
     <div class="combo-inner">
-      <span class="combo-icons" id="comboIcons">⚔</span>
-      <span class="combo-lbl" id="comboLbl">COMBO</span>
+      <span class="combo-comment" id="comboComment">Stylish!</span>
+      <span class="combo-mult" id="comboMult">×1.1 EXP</span>
     </div>
   </div>
   <div id="streakHud">
@@ -901,6 +974,7 @@ body.mc-active #gpHints{display:none!important;}
     <div class="boss-fill-bar" id="bossFill"></div>
     <div class="boss-bar-shine"></div>
   </div>
+  <div class="boss-hp-num" id="bossHpNum"></div>
 </div>
 
 <div id="status">Connect controller...</div>
@@ -923,6 +997,23 @@ body.mc-active #gpHints{display:none!important;}
   <h2>PAUSED</h2>
   <p class="psub">IRONVEIL</p>
   <button onclick="resumeGame()">▶ RESUME</button>
+  <button id="pauseFsBtn" onclick="toggleFullscreen()">⛶ ENTER FULLSCREEN</button>
+  <button id="pauseMobileCtrlBtn" onclick="toggleMobileControls()">
+    <span id="pauseMobileCtrlLabel">MOBILE CONTROLS: OFF</span>
+  </button>
+  <div class="diff-row">
+    <button class="diff-btn" onclick="changeHudSize(-5,false)">−</button>
+    <span class="diff-label">HUD DESKTOP</span>
+    <span class="diff-val" id="pauseHudDesktopVal">100%</span>
+    <button class="diff-btn" onclick="changeHudSize(5,false)">+</button>
+  </div>
+  <div class="diff-row">
+    <button class="diff-btn" onclick="changeHudSize(-5,true)">−</button>
+    <span class="diff-label">HUD MOBILE</span>
+    <span class="diff-val" id="pauseHudMobileVal">100%</span>
+    <button class="diff-btn" onclick="changeHudSize(5,true)">+</button>
+  </div>
+  <button onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ DEFAULT HUD</button>
   <button class="quit-btn" onclick="quitToMenu()">↩ QUIT TO MENU</button>
 </div>
 
@@ -1000,6 +1091,9 @@ const DEFAULT_SAVE={
   clearedStages:[],
   difficulty:100,
   mobileControls:false,
+  sim120:false,
+  hudSizeDesktop:100,
+  hudSizeMobile:100,
 };
 let save={...DEFAULT_SAVE};
 
@@ -1021,6 +1115,7 @@ function showSettings(){
   updateFsButton();
   _syncDiffDisplay();
   _syncMobileBtn();
+  _syncHudSizeDisplays();
 }
 function changeDifficulty(delta){
   save.difficulty=Math.max(100,Math.min(10000,(save.difficulty||100)+delta));
@@ -1034,6 +1129,22 @@ function _syncDiffDisplay(){
 function closeSettings(){
   document.getElementById('settingsScreen').classList.add('hidden');
   showMenu();
+}
+
+// ── 120 FPS INTERPOLATED RENDER ──────────────────
+let _sim120 = false;          // runtime mirror of save.sim120
+let _renderAlpha = 1;         // sub-tick interpolation factor (0→1)
+let _prevPX=0,_prevPY=0;      // player position at start of last tick
+let _prevCamXI = 0;           // camX at start of last tick
+function toggleSim120(){
+  save.sim120 = !save.sim120;
+  _sim120 = save.sim120;
+  _syncFpsBtn();
+  writeSave();
+}
+function _syncFpsBtn(){
+  const el = document.getElementById('fpsToggleLabel');
+  if(el) el.textContent = _sim120 ? '◈ MOTION SMOOTHING: ON' : '◈ MOTION SMOOTHING: OFF';
 }
 
 function exitGame(){
@@ -1059,10 +1170,11 @@ function updateFsButton(){
   const full=isFullscreen();
   const icon=document.getElementById('fsIcon');
   const lbl=document.getElementById('fsLabel');
-  if(!icon||!lbl) return;
-  icon.textContent='⛶';
-  lbl.textContent=full?'EXIT FULLSCREEN':'ENTER FULLSCREEN';
-  document.getElementById('fsBtn').classList.toggle('active',full);
+  if(icon) icon.textContent='⛶';
+  if(lbl)  lbl.textContent=full?'EXIT FULLSCREEN':'ENTER FULLSCREEN';
+  document.getElementById('fsBtn')?.classList.toggle('active',full);
+  const pauseFs=document.getElementById('pauseFsBtn');
+  if(pauseFs) pauseFs.textContent='⛶ '+(full?'EXIT FULLSCREEN':'ENTER FULLSCREEN');
 }
 document.addEventListener('fullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
 document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
@@ -1070,7 +1182,7 @@ document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); update
 function calcMaxHp(){ return 80 + save.stats.vit*20; }
 function calcMaxSt(){ return 60 + save.stats.end*20; }
 function calcBaseDmg(){ return 28 + save.stats.str*5; }
-function calcStRegen(){ return 0.385 + save.stats.agi*0.15; }
+function calcStRegen(){ return 0.539 + save.stats.agi*0.15; }
 function calcMaxMp(){ return 30 + (save.stats.int||1)*15; }
 function calcMpRegen(){ return 0.06 + (save.stats.int||1)*0.01; }
 
@@ -1082,6 +1194,8 @@ async function loadSave(){
     equipWeapon(save.weapon||'sword');
     equipSpell(save.spell||'fireball');
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
+  _sim120 = !!save.sim120;
+  _syncFpsBtn();
   updateSaveInfo();
 }
 async function writeSave(){ await dbSet('save',{...save}); }
@@ -1140,11 +1254,29 @@ heroImg.src='GFX/character_sheet.png';
 // To swap weapon: replace weapon_sheet.png with your own.
 // To point at a different frame: change sx (x = frame number × 96).
 
+// ── PER-SLOT WEAPON SPRITES ────────────────────────────────────────────────
+// Each weapon defines sprites:{ weapon, trail, hit } — any slot can be null
+// to use the procedural canvas fallback instead of a PNG.
+// swordImg / swordLoaded kept for backward-compat sheet reads (SWORD_ATK_FRAMES etc.)
 const swordImg = new Image();
 let swordLoaded = false;
 swordImg.onload  = () => { swordLoaded = true; };
-swordImg.onerror = (e) => { console.error('Weapon sheet failed', e); };
+swordImg.onerror = () => { swordLoaded = false; };
 swordImg.src = 'GFX/weapon_sheet.png';
+
+// Active weapon per-slot image objects.
+// null  → use procedural fallback (intentional)
+// Image → use sprite when loaded, procedural until then
+const _WS = { weapon: null, trail: null, hit: null };
+const _WL = { weapon: false, trail: false, hit: false };
+// Anchor metadata: where in the PNG the guard/pivot sits (fractions 0-1).
+// Default (0.5, 0.1) matches legacy spritesheet behaviour.
+// Editor exports object-format sprites that carry their own anchorX/Y.
+const _WM = { weapon:{anchorX:0.5,anchorY:0.1}, trail:{anchorX:0.5,anchorY:0.1}, hit:{anchorX:0.5,anchorY:0.1} };
+
+function _wsUseSheet(slot){ return _WS[slot] && _WL[slot]; }
+// Returns true when the slot is ready to render (either loaded or intentionally null/proc)
+function _wsReady(slot){ return _WS[slot] === null || _WL[slot]; }
 
 // ── SPECIAL ATTACK SPRITE ──────────────────────────────────────────────────
 // Each weapon can have a spSheet PNG.  Layout: single row of 96×96 cells.
@@ -1185,6 +1317,8 @@ const SWORD_IDLE_FRAME = SWORD_ATK_FRAMES[0];
 
 // Internal animation state — do not edit
 const swingAnim = {frame:0, trailFrame:0, tick:0, active:false, impactFrame:-1, impactTick:0, impactX:0, impactY:0};
+// Pending burst hits — each entry fires one individual hit with a small frame delay
+const _multiHitQueue = [];
 
 // ── CHARACTER SHEET LAYOUT (96×96 px cells, all rows start at sx=0) ────────
 // Row 0 (sy=0)   → IDLE    2 frames
@@ -1249,7 +1383,7 @@ function tickHeroAnim(p){
   const frames=HERO_FRAMES[next];if(!frames)return;
   if(a.name!==next){if(a.name==='defeat')return;a.name=next;a.frame=0;a.tick=0;}
   a.tick++;
-  const spd={idle:80,walk:30,jump:99,fall:6,attack:30,evade:14,hurt:5,defeat:10,launch:12,airSmash:99}[next]||6;
+  const spd={idle:18,walk:10,jump:99,fall:6,attack:30,evade:14,hurt:5,defeat:10,launch:12,airSmash:99}[next]||6;
   if(a.tick>=spd){
     a.tick=0;
     if(next==='defeat'||next==='hurt'||next==='launch'||next==='evade'||next==='airSmash')a.frame=Math.min(a.frame+1,frames.length-1);
@@ -1265,7 +1399,7 @@ const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 =
 const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-10; // +20% fall gravity (0.334 × 1.20)
 const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
-const AIR_ATK_FREEZE_FRAMES = 28;  // halved freeze frames — snappier air attack
+const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
 const PW=30,PH=58, EW=28,EH=52;
 const SWORD_RANGE = 85; // kept for trail math — actual hit detection uses getSwordTip()
@@ -1285,7 +1419,7 @@ function getSwordTip(p){
   // Tip = pivot + sword length along swing angle (facing flips X)
   const bladeLen = SWORD_H * 0.85;
   const tipX = px + p.facing * Math.cos(angleRad) * bladeLen;
-  const tipY = py +             Math.sin(angleRad) * bladeLen;
+  const tipY = py + p.facing * Math.sin(angleRad) * bladeLen;
   return { tipX, tipY, bladeLen };
 }
 // ══════════════════════════════════════════
@@ -1348,30 +1482,73 @@ function playSfx(file,volume=1.0){
 //  WEAPONS & SPELLS
 // ══════════════════════════════════════════
 function weaponStats(w){
-  return [`DMG ×${w.dmgMult.toFixed(1)}`,`SPD ×${w.atkSpeed.toFixed(1)}`,`ST ×${w.stCostMult.toFixed(1)}`];
+  const steps = w.steps || [];
+  const avgSt = steps.length ? Math.round(steps.reduce((s,st)=>s+st.stamCost,0)/steps.length) : '?';
+  const base  = calcBaseDmg();
+  const wMult = w.dmgMult ?? 1.0;
+  const dmgs  = steps.map(st => Math.round(base * (st.dmgMult ?? 1.0) * wMult));
+  const minD  = dmgs.length ? Math.min(...dmgs) : null;
+  const maxD  = dmgs.length ? Math.max(...dmgs) : null;
+  const dmgChip = minD !== null
+    ? (minD === maxD ? `DMG ~${minD}` : `DMG ${minD}–${maxD}`)
+    : 'DMG ?';
+  return [dmgChip, `SPD ×${w.atkSpeed.toFixed(1)}`, `ST ~${avgSt}`];
 }
 
 let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
 
-// Base swing durations (in frames) — scaled by activeWeapon.atkSpeed
-const ATK_FRAMES_BASE = [19, 19, 19]; // +20% faster attack speed from base
-// ATK_FRAMES is recomputed by equipWeapon() each time a weapon is selected
-let ATK_FRAMES = [...ATK_FRAMES_BASE];
+// ATK_FRAMES is recomputed by equipWeapon() from weapon.steps
+let ATK_FRAMES = [19,19,19];
 
 const COMBO_WINDOW=42;
-const FREEZE_FRAMES=[5,7,11]; // halved from [10,14,22]
-const SHAKE_MAGS=[6,8,18];
+const FREEZE_FRAMES=[4,5,8,9,11,12,13,14,15,16,17];
+const SHAKE_MAGS  =[6,8,18,19,20,21,22,23,24,25,26];
 // Combo: [swingStart, swingEnd, pivotX, pivotY]
-// hit0: downward cut (shoulder pivot, up→down)
-// hit1: upward cut   (hip pivot, down→up)
-// hit2: iaido slash  (mid pivot, fast horizontal)
-const COMBO=[
-  {start:-2.1,end:0.9, px:PW*.45,py:-PH*.30, dmgMult:1.0},
-  {start:1.0, end:-1.8,px:PW*.40,py: PH*.10, dmgMult:1.3},
-  {start:2.7, end:-0.2,px:PW*.42,py: PH*.05, dmgMult:2.0},
-];
-const STAMINA_COST=[18,22,35]; // per combo step
 const ST_REGEN_DELAY=42; // frames after attacking before stamina starts recovering
+
+// ── COMBO DISPLAY STRINGS (index = hits landed, 1-based) ──────────────────
+// ── DMC-STYLE COMBO COMMENTS — shown when streak tier increases ───────────────
+// Tier 1 (10 hits) through tier 10 (100 hits), escalating hype
+const COMBO_TIER_COMMENTS=[
+  'Stylish!',
+  'Come on!',
+  'Showtime!',
+  'Savage!',
+  'Brutal!!',
+  'Mindless!!!',
+  'ANARCHIC!!',
+  'BEAST MODE!!',
+  'GODLIKE!!!',
+  'SON OF SPARDA!!',
+];
+const COMBO_TIER_COLORS=[
+  '#e8e8ff',   // 1 — soft white-blue     (Stylish)
+  '#40ffcc',   // 2 — mint green          (Come on)
+  '#20c8ff',   // 3 — electric cyan       (Showtime)
+  '#a060ff',   // 4 — violet              (Savage)
+  '#ffd020',   // 5 — gold                (Brutal)
+  '#ff8000',   // 6 — orange              (Mindless)
+  '#ff2020',   // 7 — hot red             (Anarchic)
+  '#ff0080',   // 8 — hot pink            (Beast Mode)
+  '#00ff44',   // 9 — toxic green         (Godlike)
+  '#ffe860',   // 10 — blazing yellow     (Son of Sparda)
+];
+const COMBO_TIER_SIZES=[
+  '1.1rem','1.2rem','1.3rem','1.5rem',
+  '1.7rem','1.9rem','2.1rem','2.3rem',
+  '2.5rem','2.8rem',
+];
+
+// ── HELPERS — read active weapon step data ─────────────────────────────────
+// Each weapon defines steps[]; these helpers provide safe fallbacks.
+const _FALLBACK_STEP={
+  motion:'arc', startAngle:-115, endAngle:100, easing:'linear',
+  pivotX:20, pivotY:0.18, swingH:104, frameIdx:0,
+  duration:19, dmgMult:1.0, stamCost:18,
+  hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12],
+};
+function getStep(i){ return (activeWeapon?.steps?.[i]) ?? _FALLBACK_STEP; }
+function getMaxSteps(){ return activeWeapon?.steps?.length ?? 3; }
 
 // ──────────────────────────────────────────────────────────────────────────────
 //  WEAPON DEFINITIONS
@@ -1401,16 +1578,29 @@ const ST_REGEN_DELAY=42; // frames after attacking before stamina starts recover
 //    desc         — one-line description shown in the selection UI
 //    unlocked     — true = always available; false = greyed-out / locked
 // ──────────────────────────────────────────────────────────────────────────────
+// ── ELEMENTAL AFFINITY ────────────────────────────────────────────────────
+// Each element adds 1% of the hit's rolled damage as typed elemental damage.
+// Set weapon.elemental = 'fire'|'ice'|'wind'|'lightning'|'holy'|'dark'|null
+const ELEMENTAL_FLOAT_COLORS = {
+  fire:      '#ff7030',
+  ice:       '#70e8ff',
+  wind:      '#90ffd8',
+  lightning: '#ffff50',
+  holy:      '#fff4a0',
+  dark:      '#d060ff',
+};
+const ELEMENTAL_LABELS = {
+  fire: '🔥', ice: '❄', wind: '💨', lightning: '⚡', holy: '✦', dark: '💀',
+};
+// ──────────────────────────────────────────────────────────────────────────────
+
 const WEAPONS = {
+  // ── IRON SWORD — 3-hit balanced combo ────────────────────────────────────
   sword: {
     name: 'Iron Sword', icon: '⚔',
-    sheet: 'GFX/ironsword_sheet.png',
-    swingSound: 'Audio/sword.wav',
-    hitSound:   'Audio/sword_hit.wav',
-    spSound:    'Audio/sword_sp.wav',
-    spHitSound: 'Audio/sword_hit.wav',
-    spSheet:      'GFX/sword_sp_sheet.png',
-    spFrameCount: 6,
+    sprites: { weapon: null, trail: null, hit: null},
+    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       const {bladeLen}=getSwordTip(p); const range=bladeLen*1.8; let hit=false;
       enemies.forEach(e=>{
@@ -1425,22 +1615,23 @@ const WEAPONS = {
         particles.push({type:'spark',x:p.x+PW/2,y:p.y+PH/2,vx:Math.cos(a)*8,vy:Math.sin(a)*8-2,
           life:1,decay:.055,r:3,color:`hsl(${270+Math.random()*30|0},100%,${65+Math.random()*20|0}%)`});}
     },
-    swingType: 'slash',
-    // Balanced: 19 frames base — reliable arc, medium margin, 5 sweep samples
-    atkSpeed: 1.0, dmgMult: 1.0, stCostMult: 1.0,
-    hitMargin: 8, sweepSteps: 5, hitCD: 20, knockback: [4,5,12],
+    atkSpeed: 1.0,
+    steps:[
+      {motion:'arc', startAngle:-115,endAngle:120, easing:'linear', pivotX:20,pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1.0, stamCost:18, hitMargin:8,  sweepSteps:5, hitCD:20, knockback:[4,5,12]},
+      {motion:'arc', startAngle:  58,endAngle:-108, easing:'in',   pivotX:16,pivotY:0.42, swingH: 98, frameIdx:1, duration:19, dmgMult:1.3, stamCost:22, hitMargin:8,  sweepSteps:5, hitCD:20, knockback:[4,5,12]},
+      {motion:'thrust',                            easing:'out', pivotX:14,pivotY:0.30, swingH:104, frameIdx:2, duration:19, dmgMult:2.0, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, knockback:[6,7,18]},
+    ],
     desc: 'A balanced blade. Reliable in all situations.',
+    elemental: null,
     unlocked: true, cost: 0,
   },
+
+  // ── DAGGER — 5-hit rapid stab chain ──────────────────────────────────────
   dagger: {
     name: 'Dagger', icon: '🗡',
-    sheet: 'GFX/dagger_sheet.png',
-    swingSound: null,
-    hitSound:   'Audio/daggerhit.wav',
-    spSound:    'Audio/dagger_sp.wav',
-    spHitSound: 'Audio/daggerhit.wav',
-    spSheet:      null,
-    spFrameCount: 6,
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/daggerhit.wav',
+    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/daggerhit.wav',
     special(p){
       const alive=enemies.filter(e=>!e.dead);
       if(!alive.length)return;
@@ -1453,22 +1644,21 @@ const WEAPONS = {
         particles.push({type:'spark',x:t.x+EW/2,y:t.y+EH/2,vx:Math.cos(a)*7,vy:Math.sin(a)*7-2,
           life:1,decay:.07,r:2,color:`hsl(160,100%,${60+Math.random()*25|0}%)`});}
     },
-    swingType: 'stab',
-    // Very fast stab: ~10 frames. High sweep count to catch fast tunnel-through. Small margin (short blade).
-    atkSpeed: 0.52, dmgMult: 0.75, stCostMult: 0.6,
-    hitMargin: 10, sweepSteps: 8, hitCD: 10, knockback: [2,3,6],
-    desc: 'Strikes twice as fast. Low damage, low stamina cost.',
+    atkSpeed: 0.52,
+    steps:[
+      { motion:'thrust', startAngle:0, endAngle:0, easing:'out', pivotX:23, pivotY:0.48, swingH:104, frameIdx:2, duration:19, dmgMult:0.1, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, hitCount:5, knockback:[6,7,18] }
+    ],
+    desc: 'Five rapid stabs. Low damage per hit, high total output.',
+    elemental: null,
     unlocked: true, cost: 80,
   },
+
+  // ── GREATSWORD — 2-hit devastating combo ─────────────────────────────────
   greatsword: {
     name: 'Greatsword', icon: '🏹',
-    sheet: 'GFX/greatsword_sheet.png',
-    swingSound: null,
-    hitSound:   'Audio/greatsword_hit.wav',
-    spSound:    'Audio/greatsword_sp.wav',
-    spHitSound: 'Audio/greatsword_hit.wav',
-    spSheet:      null,
-    spFrameCount: 6,
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
+    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -1484,22 +1674,22 @@ const WEAPONS = {
         particles.push({type:'spark',x:p.x+PW/2+ox,y:p.y+PH-4,vx:p.facing*(2+i*.5),vy:-(Math.random()*5+2),
           life:1,decay:.06+i*.003,r:3+i*.2,color:`hsl(40,100%,${55+Math.random()*20|0}%)`});}
     },
-    swingType: 'slash',
-    // Slow and heavy: 28 frames. Long blade arc — very wide margin, fewer sweeps needed.
-    atkSpeed: 1.45, dmgMult: 2.1, stCostMult: 1.5,
-    hitMargin: 16, sweepSteps: 4, hitCD: 26, knockback: [8,10,28],
-    desc: 'Slow and punishing. Devastating on the third combo hit.',
+    atkSpeed: 1.45,
+    steps:[
+      {motion:'arc', startAngle:-120,endAngle:110, easing:'linear', pivotX:22,pivotY:0.16, swingH:120, frameIdx:0, duration:28, dmgMult:1.6, stamCost:28, hitMargin:16, sweepSteps:4, hitCD:26, knockback:[8,10,28]},
+      {motion:'arc', startAngle:  65,endAngle:-116, easing:'in',   pivotX:18,pivotY:0.44, swingH:116, frameIdx:1, duration:28, dmgMult:2.6, stamCost:36, hitMargin:16, sweepSteps:4, hitCD:26, knockback:[10,12,32]},
+    ],
+    desc: 'Two brutal strikes. Slow but earth-shattering power.',
+    elemental: null,
     unlocked: true, cost: 200,
   },
+
+  // ── WAR AXE — 3-hit overhead chain ───────────────────────────────────────
   axe: {
     name: 'War Axe', icon: '🪓',
-    sheet: 'GFX/axe.png',
-    swingSound: null,
-    hitSound:   null,
-    spSound:    null,
-    spHitSound: null,
-    spSheet:      null,
-    spFrameCount: 6,
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: null,
+    spSound: null, spHitSound: null,
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -1512,68 +1702,107 @@ const WEAPONS = {
         particles.push({type:'spark',x:p.x+PW/2,y:p.y+PH/2,vx:Math.cos(a)*10,vy:Math.sin(a)*10,
           life:1,decay:.045,r:4,color:`hsl(${20+Math.random()*30|0},100%,${55+Math.random()*20|0}%)`});}
     },
-    swingType: 'slash',
-    // Medium-heavy chop: 24 frames. Wide head — large margin, good sweep.
-    atkSpeed: 1.25, dmgMult: 1.55, stCostMult: 1.2,
-    hitMargin: 14, sweepSteps: 5, hitCD: 22, knockback: [6,7,18],
-    desc: 'Heavy and relentless. Builds pressure on each combo step.',
+    atkSpeed: 1.25,
+    steps:[
+      {motion:'arc', startAngle:-110,endAngle:106, easing:'linear', pivotX:20,pivotY:0.14, swingH:112, frameIdx:0, duration:24, dmgMult:1.2, stamCost:22, hitMargin:14, sweepSteps:5, hitCD:22, knockback:[6,7,18]},
+      {motion:'arc', startAngle:  62,endAngle:-112, easing:'in',   pivotX:18,pivotY:0.40, swingH:110, frameIdx:1, duration:24, dmgMult:1.4, stamCost:24, hitMargin:14, sweepSteps:5, hitCD:22, knockback:[6,7,18]},
+      {motion:'arc', startAngle:-105,endAngle:112, easing:'linear', pivotX:22,pivotY:0.16, swingH:116, frameIdx:0, duration:26, dmgMult:1.9, stamCost:30, hitMargin:16, sweepSteps:5, hitCD:24, knockback:[8,9,22]},
+    ],
+    desc: 'Heavy and relentless. Three-hit overhead chain.',
+    elemental: null,
     unlocked: true, cost: 150,
   },
+
+  // ── KATANA — 4-hit flowing combo ─────────────────────────────────────────
   katana: {
     name: 'Katana', icon: '🔪',
-    sheet: 'GFX/katana_sheet.png',
-    swingSound: 'Audio/katana.wav',
-    hitSound:   'Audio/sword_hit.wav',
-    spSound:    'Audio/katana_sp.wav',
-    spHitSound: 'Audio/sword_hit.wav',
-    spSheet:    null,
-    spFrameCount: 4,
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/katana_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
-      const dmg=Math.round(calcBaseDmg()*activeWeapon.dmgMult*0.5+(Math.random()*8|0));
+      const dmg=Math.round(calcBaseDmg()*activeWeapon.steps[0].dmgMult*0.5+(Math.random()*8|0));
       beams.push({
-        x:p.x+PW/2, startX:p.x+PW/2,
-        y:p.y+PH*0.42,
-        vx:p.facing*7,
-        facing:p.facing,
-        len:300, halfH:40,
-        life:1.0, dead:false,
-        hitSet:new Set(), dmg,
+        x:p.x+PW/2, startX:p.x+PW/2, y:p.y+PH*0.42,
+        vx:p.facing*7, facing:p.facing,
+        len:300, halfH:40, life:1.0, dead:false, hitSet:new Set(), dmg,
       });
       for(let i=0;i<14;i++){
-        particles.push({type:'spark',
-          x:p.x+PW/2,y:p.y+PH*0.42,
+        particles.push({type:'spark',x:p.x+PW/2,y:p.y+PH*0.42,
           vx:p.facing*(5+Math.random()*8),vy:(Math.random()-0.5)*5,
           life:1,decay:0.055,r:2+Math.random()*2,
           color:`hsl(${190+Math.random()*30|0},100%,${70+Math.random()*25|0}%)`});
       }
     },
-    swingType: 'slash',
-    // Fast precise slash: 17 frames. Thin but long blade — small margin, high sweep.
-    atkSpeed: 0.88, dmgMult: 0.95, stCostMult: 0.95,
-    hitMargin: 6, sweepSteps: 7, hitCD: 16, knockback: [3,4,10],
-    desc: 'Swift and precise. Special fires a beam blade through all enemies.',
+    atkSpeed: 0.88,
+    steps:[
+      {motion:'arc', startAngle:-115,endAngle: 98, easing:'linear', pivotX:18,pivotY:0.16, swingH: 98, frameIdx:0, duration:17, dmgMult:0.80, stamCost:14, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
+      {motion:'arc', startAngle:  55,endAngle:-106, easing:'in',   pivotX:14,pivotY:0.42, swingH: 95, frameIdx:1, duration:17, dmgMult:0.90, stamCost:15, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[3,4,10]},
+      {motion:'arc', startAngle:-112,endAngle:102, easing:'linear', pivotX:18,pivotY:0.18, swingH:100, frameIdx:0, duration:17, dmgMult:1.00, stamCost:16, hitMargin:6, sweepSteps:7, hitCD:16, knockback:[4,5,12]},
+      {motion:'thrust',                            easing:'inout', pivotX:14,pivotY:0.30, swingH:104, frameIdx:2, duration:20, dmgMult:1.80, stamCost:28, hitMargin:8, sweepSteps:7, hitCD:18, knockback:[6,7,16]},
+    ],
+    desc: 'Four flowing cuts ending in a decisive thrust. Fires a beam on special.',
+    elemental: null,
     unlocked: true, cost: 120,
   },
+
+  // ── CESTUS — 10-hit punch combo ────────────────────────────────────────────
   cestus: {
     name: 'Cestus', icon: '👊',
-    sheet: 'GFX/cestus_sheet.png',
-    swingSound: null,
-    hitSound:   'Audio/sword_hit.wav',
-    spSound:    'Audio/cestus_sp.wav',
-    spHitSound: 'Audio/cestus_sp_hit.wav',
-    spSheet:    null,
-    spFrameCount: 4,
+    sprites: { weapon: null, trail: null, hit: null },
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/cestus_sp.wav', spHitSound: 'Audio/cestus_sp_hit.wav',
     special(p){
       if(p.rsWindup) return;
       p.rsWindup=true; p.rsF=0;
       rumble(120, 0.25, 0.1);
     },
-    swingType: 'strike',
-    // Fast punches: 13 frames. Blunt fist — biggest margin, most sweep samples, shortest hitCD.
-    atkSpeed: 0.68, dmgMult: 1.8, stCostMult: 0.9,
-    hitMargin: 20, sweepSteps: 10, hitCD: 12, knockback: [3,4,8],
-    desc: 'Iron-bound fists. Devastatingly short range, bone-shattering power.',
+    atkSpeed: 1.0,
+    steps:[
+      // 1 — Lead jab  · fast entry, zero commitment
+      {motion:'strike', startAngle: -5, endAngle:  4, easing:'linear', pivotX: 8,pivotY:0.38, swingH:18, frameIdx:0, duration: 5, dmgMult:0.85, stamCost: 3, hitMargin:10, sweepSteps:3, hitCD: 5, knockback:[ 2, 3, 5]},
+      // 2 — Right cross  · straight power, punches through
+      {motion:'strike', startAngle:-12, endAngle:  9, easing:'out',    pivotX:13,pivotY:0.36, swingH:22, frameIdx:1, duration: 6, dmgMult:1.10, stamCost: 4, hitMargin:11, sweepSteps:3, hitCD: 6, knockback:[ 4, 5, 7]},
+      // 3 — Left hook  · wide sweep, great at range
+      {motion:'strike', startAngle:-44, endAngle: 25, easing:'out',    pivotX:15,pivotY:0.34, swingH:30, frameIdx:2, duration: 7, dmgMult:1.20, stamCost: 5, hitMargin:12, sweepSteps:4, hitCD: 7, knockback:[ 5, 6, 9]},
+      // 4 — Body shot  · breaks the high-low rhythm
+      {motion:'strike', startAngle:-14, endAngle:  7, easing:'linear', pivotX:11,pivotY:0.57, swingH:18, frameIdx:1, duration: 6, dmgMult:1.05, stamCost: 4, hitMargin:11, sweepSteps:3, hitCD: 6, knockback:[ 3, 4, 6]},
+      // 5 — Rising uppercut  · upward sweep, best air-juggle tool
+      {motion:'strike', startAngle: 46, endAngle:-26, easing:'out',    pivotX:12,pivotY:0.64, swingH:24, frameIdx:0, duration: 8, dmgMult:1.45, stamCost: 7, hitMargin:13, sweepSteps:4, hitCD: 8, knockback:[ 3, 4, 6]},
+      // 6 — Snappy reset jab  · keeps pressure, lets you bail or commit
+      {motion:'strike', startAngle: -4, endAngle:  4, easing:'linear', pivotX: 9,pivotY:0.38, swingH:16, frameIdx:0, duration: 5, dmgMult:0.90, stamCost: 3, hitMargin:10, sweepSteps:3, hitCD: 5, knockback:[ 2, 3, 5]},
+      // 7 — Spinning backfist  · dramatic wide arc, most visually distinct
+      {motion:'strike', startAngle:-56, endAngle: 42, easing:'out',    pivotX:18,pivotY:0.32, swingH:36, frameIdx:2, duration: 9, dmgMult:1.60, stamCost: 8, hitMargin:14, sweepSteps:5, hitCD: 9, knockback:[ 6, 7,10]},
+      // 8 — Tight elbow  · close and vicious, breaks range expectation
+      {motion:'strike', startAngle:-22, endAngle: 16, easing:'inout',  pivotX: 8,pivotY:0.30, swingH:18, frameIdx:1, duration: 6, dmgMult:1.30, stamCost: 5, hitMargin:12, sweepSteps:3, hitCD: 6, knockback:[ 4, 5, 7]},
+      // 9 — Heavy overhand  · telegraphs the finale, big stagger
+      {motion:'strike', startAngle:-30, endAngle: 18, easing:'out',    pivotX:20,pivotY:0.36, swingH:34, frameIdx:1, duration:10, dmgMult:1.85, stamCost: 9, hitMargin:14, sweepSteps:5, hitCD:10, knockback:[ 6, 8,11]},
+      // 10 — Haymaker  · earth-shattering wide finisher
+      {motion:'strike', startAngle:-70, endAngle: 46, easing:'inout',  pivotX:24,pivotY:0.26, swingH:58, frameIdx:2, duration:13, dmgMult:2.80, stamCost:15, hitMargin:18, sweepSteps:8, hitCD:13, knockback:[10,11,14]},
+    ],
+    desc: 'Iron-bound fists. Jab–cross–hook, body shot, rising uppercut, reset, backfist, elbow, heavy overhand — haymaker.',
+    elemental: null,
     unlocked: true, cost: 175,
+  },
+
+  // ── EXCALIBUR — legendary blade, stage-wide overhead beam special ─────────
+  excalibur: {
+    name: 'Excalibur', icon: '✨',
+    sprites: { weapon: { src: 'GFX/excalibur.png', cell: 256, anchorX: 0.500, anchorY: 0.850 }, trail: null, hit: null },
+    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    special(p){
+      // Begin windup — beam fires at end of timer
+      p.excaliburWindup = true;
+      p.excaliburWindupF = 0;
+      playSfx(activeWeapon.spSound);
+    },
+    atkSpeed: 1.95,
+    steps: [
+    { motion:'arc', startAngle:-180, endAngle:180, easing:'out', pivotX:20, pivotY:0.18, swingH:104, frameIdx:0, duration:30, dmgMult:1.00, stamCost:18, hitMargin:29, sweepSteps:5, hitCD:20, hitCount:6, knockback:[4,5,12] }
+    ],
+    desc: 'The legendary sword. Charged special calls down a divine beam across the entire stage.',
+    elemental: 'holy',
+    unlocked: true, cost: 1,
   },
 };
 activeWeapon = WEAPONS.sword;
@@ -1582,22 +1811,57 @@ function equipWeapon(key){
   const w = WEAPONS[key];
   if(!w){ console.warn('Unknown weapon:', key); return; }
   activeWeapon = w;
-  ATK_FRAMES = ATK_FRAMES_BASE.map(f => Math.round(f * w.atkSpeed));
-  save.weapon = key;
-  const sheet = w.sheet || 'GFX/weapon_sheet.png';
-  if(swordImg.src !== sheet && !swordImg.src.endsWith(sheet)){
-    swordLoaded = false;
-    swordImg.src = sheet;
-  }
-  // Load special sprite sheet (separate PNG per weapon, optional)
-  if(w.spSheet){
-    if(!spImg.src.endsWith(w.spSheet)){
-      spLoaded = false;
-      spImg.src = w.spSheet;
-    }
+  // Derive ATK_FRAMES directly from weapon steps — each step has its own duration
+  if(w.steps && w.steps.length){
+    ATK_FRAMES = w.steps.map(s => Math.max(1, Math.round(s.duration * w.atkSpeed)));
   } else {
-    spLoaded = false;
+    ATK_FRAMES = [19, 19, 19]; // fallback
   }
+  save.weapon = key;
+
+  // ── Per-slot sprite loading ──────────────────────────────────────────────
+  // Each slot: null = procedural, string = load PNG, undefined = fall back to sheet row
+  const sp = w.sprites || {};
+  ['weapon','trail','hit'].forEach(slot => {
+    const src = sp[slot]; // undefined | null | 'path.png' | { src, cell, anchorX, anchorY }
+    _WM[slot] = { anchorX: 0.5, anchorY: 0.1 }; // reset to legacy default
+    if(src === null){
+      // Explicitly null → always use procedural fallback
+      _WS[slot] = null;
+      _WL[slot] = false;
+    } else if(typeof src === 'string'){
+      // Legacy plain-string path
+      const img = new Image();
+      _WS[slot] = img;
+      _WL[slot] = false;
+      img.onload  = () => { if(_WS[slot]===img) _WL[slot]=true; };
+      img.onerror = () => { if(_WS[slot]===img){ _WS[slot]=null; _WL[slot]=false; } };
+      img.src = src;
+    } else if(src && typeof src === 'object' && src.src){
+      // Editor object format: { src: 'path.png', cell: 256, anchorX: 0.5, anchorY: 0.85 }
+      _WM[slot] = { anchorX: src.anchorX ?? 0.5, anchorY: src.anchorY ?? 0.1 };
+      const img = new Image();
+      _WS[slot] = img;
+      _WL[slot] = false;
+      img.onload  = () => { if(_WS[slot]===img) _WL[slot]=true; };
+      img.onerror = () => { if(_WS[slot]===img){ _WS[slot]=null; _WL[slot]=false; } };
+      img.src = src.src;
+    } else {
+      // undefined → use the old single-sheet system via swordImg for that row
+      _WS[slot] = undefined; // sentinel: "use swordImg row"
+      _WL[slot] = false;
+    }
+  });
+
+  // Legacy single-sheet path (sheet key still supported)
+  const sheet = w.sheet;
+  if(sheet){
+    if(!swordImg.src.endsWith(sheet)){
+      swordLoaded = false;
+      swordImg.src = sheet;
+    }
+  }
+  spLoaded = false;
 }
 
 // ══════════════════════════════════════════
@@ -1643,6 +1907,24 @@ function renderWeaponSelect(){
     bottom.className = 'wcard-bottom';
     if(isUnlocked){
       bottom.innerHTML = weaponStats(w).map(s=>`<span class="wcard-stat-chip">${s}</span>`).join('');
+      // Elemental affinity chip
+      if(w.elemental){
+        const _base  = calcBaseDmg();
+        const _wm    = w.dmgMult ?? 1.0;
+        const _steps = w.steps || [];
+        const _avgDmg = _steps.length
+          ? _steps.reduce((s,st)=>s+Math.round(_base*(st.dmgMult??1.0)*_wm),0) / _steps.length
+          : _base;
+        const _ed  = Math.max(1, Math.round(_avgDmg * 0.10));
+        const _col = ELEMENTAL_FLOAT_COLORS[w.elemental] || '#ffffff';
+        const _lbl = ELEMENTAL_LABELS[w.elemental] || '';
+        const ec = document.createElement('span');
+        ec.className = 'wcard-elem-chip';
+        ec.textContent = `${_lbl} +${_ed} ${w.elemental.toUpperCase()}`;
+        ec.style.color = _col;
+        ec.style.borderColor = _col;
+        bottom.appendChild(ec);
+      }
     } else {
       const costChip = document.createElement('span');
       costChip.className = 'wcard-stat-chip';
@@ -1658,21 +1940,31 @@ function renderWeaponSelect(){
       }
     }
 
-    // badges
-    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='weapon-sel-badge'; b.textContent='✓ EQUIPPED'; topRow.appendChild(b); }
-    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; topRow.appendChild(lk); }
-
     card.appendChild(topRow);
     card.appendChild(bottom);
+    // badges — position:absolute, appended last so they layer on top of content
+    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='weapon-sel-badge'; b.textContent='✓ EQUIPPED'; card.appendChild(b); }
+    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; card.appendChild(lk); }
     list.appendChild(card);
 
-    // sprite
-    if(w.sheet){
-      const img=new Image();
-      img.onload=()=>{ const c=cvs.getContext('2d'); c.clearRect(0,0,36,36); c.drawImage(img,0,0,96,96,0,0,36,36); };
-      img.src=w.sheet;
+    // sprite — prefer sprites.weapon PNG (new system), fall back to w.sheet (legacy), then emoji
+    const _iconSrc = (typeof w.sprites?.weapon === 'string') ? w.sprites.weapon
+                   : (typeof w.sheet === 'string')           ? w.sheet
+                   : null;
+    if(_iconSrc){
+      const img = new Image();
+      img.onload = () => {
+        const c = cvs.getContext('2d');
+        c.clearRect(0, 0, 36, 36);
+        // Draw frame 0 of the attack row (top-left 96×96 cell of the sheet)
+        c.drawImage(img, 0, 0, 96, 96, 0, 0, 36, 36);
+      };
+      img.src = _iconSrc;
     } else {
-      const c=cvs.getContext('2d'); c.clearRect(0,0,36,36); c.font='22px serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(w.icon||'?',18,18);
+      const c = cvs.getContext('2d');
+      c.clearRect(0, 0, 36, 36);
+      c.font = '22px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(w.icon || '?', 18, 18);
     }
   });
 }
@@ -1807,7 +2099,7 @@ const SPELLS={
     radius:15,
     cooldown:25,
     knockback:8, knockbackUp:2,
-    castSound:'Audio/frostbolt.mp4a',
+    castSound:'Audio/frostbolt.wav',
     impactSound:'Audio/frostbolt_hit.wav',
     desc:'A chilling bolt that shatters on impact, slowing enemies.',
     stats:['DMG 22+INT×2','SPD Medium','MP 15'],
@@ -1930,6 +2222,70 @@ function _triggerArcaneExplosion(sp){
   playSfx(sp.impactSound);
 }
 
+function _fireExcaliburBeam(){
+  const dmg = Math.max(1, Math.round(calcBaseDmg() * 4.5 + (Math.random()*30|0)));
+  const cy  = player.y + PH * 0.35;
+  const px  = player.x + PW/2;
+  const f   = player.facing;
+  const beamStart = px;
+  const beamEnd   = f === 1 ? STAGE_RIGHT : STAGE_LEFT;
+
+  // Hit only enemies in the facing direction
+  enemies.forEach(e=>{
+    if(e.dead) return;
+    const ex = e.x+EW/2;
+    if(f === 1 && ex < px) return;
+    if(f ===-1 && ex > px) return;
+    _spHit(e, dmg, '#fffbe8', '⚡');
+    e.vx = f * 18;
+    e.vy = -8;
+  });
+
+  // Beam from player forward to stage edge
+  beams.push({
+    x:        f === 1 ? beamEnd : beamStart,
+    startX:   f === 1 ? beamStart : beamEnd,
+    vx: 0,
+    y: cy,
+    len: Math.abs(beamEnd - beamStart),
+    halfH: 120,
+    life: 1.0,
+    dead: false,
+    hitSet: new Set(),
+    dmg: 0,
+    facing: f,
+    excalibur: true,
+  });
+
+  // Golden burst particles forward only
+  for(let i=0;i<80;i++){
+    const ang  = Math.random()*Math.PI*2;
+    const spd  = 5+Math.random()*18;
+    const x    = px + f*(Math.random()*(Math.abs(beamEnd-px)));
+    particles.push({type:'spark', x, y:cy+(Math.random()-.5)*80,
+      vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-6,
+      life:1, decay:0.014+Math.random()*0.018,
+      r:3+Math.random()*7,
+      color:`hsl(${44+Math.random()*20|0},100%,${72+Math.random()*22|0}%)`});
+  }
+  // Shockwave ring at player
+  for(let i=0;i<48;i++){
+    const ang=(i/48)*Math.PI*2;
+    particles.push({type:'spark',
+      x:px+Math.cos(ang)*12, y:cy+Math.sin(ang)*12,
+      vx:Math.cos(ang)*22, vy:Math.sin(ang)*22-3,
+      life:1, decay:0.025, r:4,
+      color:'#fffbe0'});
+  }
+
+  triggerHitFlash();
+  triggerShake(55);
+  triggerFreeze(28);
+  rumble(800, 1.0, 1.0);
+  setTimeout(()=>rumble(500, 0.8, 0.5), 180);
+  playSfx(activeWeapon.spHitSound);
+}
+
 function castSpell(){
   const sp=activeSpell;
   if(player.mp<sp.mpCost||player.mpCD>0||player.dead) return;
@@ -2011,9 +2367,9 @@ const JUGGLE_ENEMY_GRAV_MULT=JUGGLE_GRAV/(0.401*1.5); // = JUGGLE_GRAV/(GRAV*ENE
 const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
-const EVADE_COOLDOWN      = 50;  // cooldown frames before next evade is allowed
+const EVADE_COOLDOWN      = 32;  // cooldown frames before next evade is allowed
 const PARRY_WINDOW        = 43;  // -10% from 48
-const PARRY_COOLDOWN      = 72;  // cooldown frames before next parry is allowed
+const PARRY_COOLDOWN      = 0;   // no cooldown after successful parry — Sekiro-style chain deflects
 const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
 const PARRY_FREEZE        = 26;  // halved from 52 — snappier parry
 const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
@@ -2062,7 +2418,7 @@ const SHAMAZ_COMBO_GAP1     = 22;
 const SHAMAZ_COMBO_SWING2   = 21;
 const SHAMAZ_COMBO_GAP2     = 22;
 const SHAMAZ_COMBO_SWING3   = 26;
-const SHAMAZ_CANNON_WINDUP  = 240;  // 4 s at 60 fps
+const SHAMAZ_CANNON_WINDUP  = 144;  // ~2.4 s at 60 fps (40% faster than original 4 s)
 const SHAMAZ_CANNON_SPEED   = 14;
 const SHAMAZ_CANNON_RADIUS  = 22;
 
@@ -2071,6 +2427,7 @@ const SHAMAZ_CANNON_RADIUS  = 22;
 // ══════════════════════════════════════════
 let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,parry:false,grapple:false};
 let jumpEdge=false, atkEdge=false, evadeEdge=false, parryEdge=false, prevLaunchHeld=false, launchHoldFrames=0;
+let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
 let gameOver=false,frameId=null,paused=false;
 let frozen=0,shakeMag=0,shakeX=0,shakeY=0;
 let camX=0;
@@ -2122,6 +2479,9 @@ function pauseGame(){
   if(gameOver||paused) return;
   paused=true;
   writeSave();
+  updateFsButton();
+  _syncMobileBtn();
+  _syncHudSizeDisplays();
   document.getElementById('pauseScreen').classList.add('show');
 }
 
@@ -2275,10 +2635,12 @@ function startRun(){
   runKills=0; runGold=0; runExp=0;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
   updateComboHud(0);
+  hideComboHud();
   document.getElementById('streakHud').style.display='none';
   lastHitEnemy=null; lockedTarget=null; grappleTarget=null; grappleState='none'; grappleTimer=0; grappleCooldown=0; grappleHoldFrames=0;
   grappleRopeNodes=[]; grappleRopeProgress=0;
   gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[];
+  jumpBuffer=0; coyoteFrames=0;
   heroAnim.name='idle'; heroAnim.frame=0; heroAnim.tick=0;
 
   const maxHp=calcMaxHp(), maxSt=calcMaxSt(), maxMp=calcMaxMp();
@@ -2289,10 +2651,11 @@ function startRun(){
     stamina:maxSt,maxStamina:maxSt,
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:2,
-    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSmashTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
+    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
     comboStep:0,comboTimer:0,comboQueued:false,curStep:0,
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,
+    excaliburWindup:false,excaliburWindupF:0,
     potions:1,
   };
   enemies=[]; particles=[]; bloodDecals=[]; projectiles=[]; beams=[]; enemyProjectiles=[];
@@ -2591,7 +2954,7 @@ function floatText(x,y,txt,col='#fff',big=false){
     type:'text', x, y:y-10,
     vy:-(1.8+Math.random()*0.6),
     text:txt, color:col,
-    life:1, decay:0.007,   // ~140 frames ≈ 2.3s
+    life:1, decay:0.022,   // ~45 frames ≈ 0.75s — shorter lifespan reduces canvas shadow load
     scale:1.9,             // pops large then shrinks to 1
     big,
   });
@@ -2622,7 +2985,11 @@ function iaidoLines(x,y,facing){
 // ── PHYSICS ──────────────────────────────
 function physics(e,isP,gravMult=1){
   const _gm=gravMult*(isP?1:ENEMY_GRAV_MULT);
-  e.vy+=GRAV*_gm*GAME_SPEED; e.x+=e.vx*GAME_SPEED; e.y+=e.vy*GAME_SPEED;
+  e.vy+=GRAV*_gm*GAME_SPEED;
+  // Terminal velocity — slammed entities exempt so slam spike lands with full force
+  if(!isP && !e.slammed && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
+  else if(isP && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
+  e.x+=e.vx*GAME_SPEED; e.y+=e.vy*GAME_SPEED;
   const fh=floorY()-(isP?PH:EH);
   if(e.y>=fh){
     const wasAirborne=!e.onGround;
@@ -2645,23 +3012,28 @@ function triggerShake(m){ shakeMag=Math.max(shakeMag,m); }
 
 // ── Sword angle helpers ───────────────────
 function swordAngle(prog,step){
-  const c=COMBO[step];
+  const s = getStep(step);
+  const p = Math.min(1, prog);
   let ease;
-  if(step===2) ease=Math.pow(Math.min(1,prog),0.35);
-  else if(step===0) ease=1-Math.pow(1-Math.min(1,prog),2.5);
-  else ease=1-Math.pow(1-Math.min(1,prog),3);
-  return c.start+(c.end-c.start)*ease;
+  const easing = s.easing || 'out';
+  if(easing === 'in')     ease = p * p;
+  else if(easing === 'inout') ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+  else                        ease = 1 - Math.pow(1-p, 2.5); // out (default)
+  // Convert degrees to radians for canvas rotation
+  return (s.startAngle + (s.endAngle - s.startAngle) * ease) * Math.PI / 180;
 }
 function comboPiv(step){
-  const c=COMBO[step];
-  return{px:player.x+PW/2+player.facing*c.px, py:player.y+PH/2+c.py};
+  const s = getStep(step);
+  return { px: player.x+PW/2 + player.facing*s.pivotX,
+           py: player.y + s.pivotY * PH };
 }
 
 // ══════════════════════════════════════════
 //  ATTACK / COMBAT
 // ══════════════════════════════════════════
 function launchAttack(step){
-  const stCost=Math.round(STAMINA_COST[step]*activeWeapon.stCostMult);
+  const stepData = getStep(step);
+  const stCost = stepData.stamCost ?? 18;
   if(player.stamina<stCost||player.stDepleted) return;
   player.stamina=Math.max(0,player.stamina-stCost);
   if(player.stamina<8) player.stDepleted=true;
@@ -2670,17 +3042,17 @@ function launchAttack(step){
 
   playSfx(activeWeapon.swingSound, 0.8);
   player.atk=true; player.atkF=0; player.atkCD=12; player.juggleFollow=false;
-  player.comboStep=step+1; player.comboTimer=ATK_FRAMES[step]+COMBO_WINDOW;
+  player.comboStep=step+1; player.comboTimer=(ATK_FRAMES[step]||19)+COMBO_WINDOW;
   player.curStep=step;
   player.atkHitDone=false;
-  player.swingHitSet = new Set(); // tracks which enemies already hit this swing
+  player.swingHitMap = new Map();
   player.swingStreakCounted=false;
   player._prevAtkF=0;
 
   if(step===0&&!player.onGround&&!player.airAtkUsed){ player.airAtkFreezeTimer=AIR_ATK_FREEZE_FRAMES; player.vy=0; player.vx=0; player.airAtkUsed=true; }
-  if(step===2){
+  // Last step in combo resets for next combo chain
+  if(step >= getMaxSteps()-1){
     player.comboStep=0; player.comboTimer=0; player.atkCD=38;
-    // HUD shown on hit in tickAttackHits
     return;
   }
   // HUD shown on hit in tickAttackHits
@@ -2713,87 +3085,98 @@ function _segAABB(ax,ay,bx,by,x0,y0,x1,y1,margin){
 }
 
 // Returns blade as {hx,hy,tx,ty} at a given swing progress value.
-// Matches the actual visual geometry for both slash and stab weapon types.
+// Reads motion type and geometry from the active weapon's step definition.
 function getBladeSegment(p, prog){
-  const swingType = (activeWeapon && activeWeapon.swingType) || 'slash';
-  if(swingType === 'stab'){
-    const step = p.curStep || 0;
-    //              bladeLen pull reach handOut handDown outF
-    const SG = [
-      [52,  -6,  42, 14, 0.28, 0.28], // jab:   fast poke
-      [58, -10,  58, 14, 0.33, 0.42], // thrust: committed
-      [66, -14,  72, 16, 0.30, 0.38], // lunge:  startup→hold→pullback
-    ];
-    const [bLen, pull, reach, hOut, hDown, outF] = SG[step];
-    let ap = prog;
-    if(step === 2){ const D=0.15; ap = prog < D ? 0 : (prog-D)/(1-D); }
-    let se;
-    if(step === 2){
-      if(ap <= outF)         se = (ap/outF)*(ap/outF);       // ease-in to peak
-      else if(ap <= 0.60)    se = 1.0;                        // hold at extension
-      else                   se = 1-(ap-0.60)/(1-0.60);       // pull back
-    } else {
-      const t2 = ap < outF ? ap/outF : 1-(ap-outF)/(1-outF);
-      se = step === 0 ? t2*(2-t2) : t2 < 0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
-    }
-    const stabOffset = pull + (reach-pull)*se;
-    const hx = p.x + PW/2 + p.facing*hOut;
-    const hy = p.y + PH*hDown;
-    return { hx: hx+p.facing*stabOffset, hy,
-             tx: hx+p.facing*(stabOffset+bLen*0.85), ty: hy };
-  }
-  if(swingType === 'strike'){
-    const step = p.curStep || 0;
-    // [handY frac, forward reach px, vertical reach px (neg=up), out-frac, in-frac]
-    const SCFG = [
-      [0.22, 44,   0, 0.32, 0.68], // jab:     straight forward, fast snap
-      [0.30, 48,  14, 0.40, 0.60], // hook:    forward + slight downward arc
-      [0.40, 38, -24, 0.38, 0.62], // uppercut: forward-diagonal upward
-    ];
-    const [baseY, fwd, vert, outF, inF] = SCFG[step];
-    // uppercut: brief startup hold (fist hangs at base, then launches)
-    let ap = prog;
-    if(step === 2){ const D=0.14; ap = prog < D ? 0 : (prog-D)/(1-D); }
-    const t2 = ap < outF ? ap/outF : 1-(ap-outF)/(1-outF);
-    const pe = t2 < 0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
-    const hx = p.x + PW/2 + p.facing * 8;
-    const hy = p.y + PH * baseY;
-    return { hx, hy, tx: hx + p.facing*(pe*fwd), ty: hy + pe*vert };
-  }
-  // slash (arc) — per-step geometry matches renderer easing exactly
   const step = p.curStep || 0;
+  const s = getStep(step);
+  const motion = s.motion || 'arc';
 
-  if(step === 2){
-    // Finisher: frontal lunge stab — matches renderer exactly
-    const sPull=0, sReach=82, sHOut=14, sHDown=0.30, sOutF=0.28, bLen=66;
-    const D=0.10;
-    let ap = prog < D ? 0 : (prog-D)/(1-D);
+  // Base pivot — same formula as drawSwordSprite (world space, no camX)
+  const pivX = p.x + PW/2 + p.facing * s.pivotX;
+  const pivY = p.y + PH * s.pivotY;
+
+  if(motion === 'thrust'){
+    const bLen   = s.swingH * 0.65;
+    const pull   = -8, reach = s.swingH * 0.80, outF = 0.30;
+    const D = 0.10;
+    let ap = prog < D ? 0 : (prog - D) / (1 - D);
     let se;
-    if(ap <= sOutF)     se = (ap/sOutF)*(ap/sOutF);
+    if(ap <= outF)      se = (ap / outF) * (ap / outF);
     else if(ap <= 0.62) se = 1.0;
-    else                se = 1-(ap-0.62)/(1-0.62);
-    const stabOffset = sPull + (sReach-sPull)*se;
-    const hx = p.x + PW/2 + p.facing*sHOut;
-    const hy = p.y + PH*sHDown;
-    return { hx: hx + p.facing*stabOffset, hy,
-             tx: hx + p.facing*(stabOffset + bLen), ty: hy - 8 };
+    else                se = 1 - (ap - 0.62) / (1 - 0.62);
+    // Tip base is the pivot translated by the stab offset (matches visual translation)
+    const stabOff = pull + (reach - pull) * se;
+    const guardOff = bLen * 0.20;
+    return {
+      hx: pivX + p.facing * (stabOff + guardOff),
+      hy: pivY,
+      tx: pivX + p.facing * (stabOff + bLen),
+      ty: pivY,
+    };
   }
 
-  //             bladeLen start  end   hOut hDown
-  const SG = [
-    [88, -115,  70, 20, 0.16], // step 0: overhead downward chop
-    [83,   58, -88, 16, 0.42], // step 1: rising upward cut
-  ];
-  const [bLen, start, end, hOut, hDown] = SG[step] || SG[0];
-  let e;
-  if(step === 0) e = prog*(2-prog);  // ease-out
-  else           e = prog*prog;       // ease-in
-  const angleRad = (start+(end-start)*e) * Math.PI/180;
-  const hx = p.x + PW/2 + p.facing*hOut;
-  const hy = p.y + PH*hDown;
-  return { hx, hy,
-           tx: hx + p.facing*Math.cos(angleRad)*bLen,
-           ty: hy +           Math.sin(angleRad)*bLen };
+  if(motion === 'strike'){
+    const fwd  = Math.max(s.swingH * 0.44, 20);
+    const vert = -s.swingH * 0.22;
+    const outF = 0.35;
+    const t2 = prog < outF ? prog / outF : 1 - (prog - outF) / (1 - outF);
+    const pe = t2 < 0.5 ? 2 * t2 * t2 : -1 + (4 - 2 * t2) * t2;
+    // Visual translates the ENTIRE sprite by pe*fwd/vert — match that for hx/hy too
+    const cx = pivX + p.facing * (pe * fwd);
+    const cy = pivY + pe * vert;
+    const reach = s.swingH * 0.50; // fist knuckle to reach
+    return {
+      hx: cx,
+      hy: cy,
+      tx: cx + p.facing * reach,
+      ty: cy,
+    };
+  }
+
+  // arc — rotational swing
+  const bLen     = s.swingH * 0.88;
+  const guardOff = bLen * 0.18;
+  const angleRad = swordAngle(prog, step);
+  const cx = pivX + p.facing * Math.cos(angleRad) * guardOff;
+  const cy = pivY +             Math.sin(angleRad) * guardOff;
+  return {
+    hx: cx,
+    hy: cy,
+    tx: pivX + p.facing * Math.cos(angleRad) * bLen,
+    ty: pivY +             Math.sin(angleRad) * bLen,
+  };
+}
+
+// Processes queued burst hits — each entry waits `delay` frames then fires individually.
+// Called every game tick so multi-hit bursts play out as rapid separate damage events.
+function _tickMultiHitQueue(){
+  if(!_multiHitQueue.length) return;
+  for(let i = _multiHitQueue.length - 1; i >= 0; i--){
+    const h = _multiHitQueue[i];
+    if(--h.delay > 0) continue;
+    _multiHitQueue.splice(i, 1);
+    const e = h.e;
+    if(e.dead) continue;
+    // Apply this individual hit
+    const prev = e.hp;
+    e.hp -= h.roll + h.elemDmg;
+    e.ghostHp = prev; e.ghostDrainDelay = 62;
+    spawnEnemyBarChips(e, prev, e.hp);
+    // Light spark only — blood/gore already fired on first contact, no need to repeat
+    if(particles.length < 350) sparkBurst(e.x+EW/2, e.y+EH*.25, 1);
+    // Float numbers stagger vertically so they don't pile up
+    const yOff = h.hitIdx * 10;
+    floatText(
+      e.x+EW/2-14 + (Math.random()-0.5)*8,
+      e.y - (h.isFinisher ? 32 : 16) - yOff,
+      h.isFinisher ? `⚡${h.roll}` : `-${h.roll}`,
+      h.isFinisher ? '#ffc840' : '#ff6060'
+    );
+    if(h.elemDmg > 0){
+      floatText(e.x+EW/2+10, e.y-(h.isFinisher?50:32)-yOff, `${h.el}${h.elemDmg}`, h.ec, false);
+    }
+    if(e.hp<=0 && !e.dead){ e.dead=true; onEnemyKilled(e); }
+  }
 }
 
 // Called every frame while player.atk is true.
@@ -2808,26 +3191,30 @@ function tickAttackHits(){
   player._prevAtkF = player.atkF;
 
   // Active sweep window — skip windup and follow-through
-  const swingType = (activeWeapon && activeWeapon.swingType) || 'slash';
-  const WIN_START = swingType === 'stab' ? 0.15 : swingType === 'strike' ? 0.15 : 0.08;
-  const WIN_END   = swingType === 'stab' ? 0.72 : swingType === 'strike' ? 0.72 : 0.88;
+  const stepData = getStep(step);
+  const motion = stepData.motion || 'arc';
+  const WIN_START = (motion === 'thrust' || motion === 'strike') ? 0.15 : 0.08;
+  const WIN_END   = (motion === 'thrust' || motion === 'strike') ? 0.72 : 0.88;
   if(curProg < WIN_START || prevProg > WIN_END) return;
   const from = Math.max(prevProg, WIN_START);
   const to   = Math.min(curProg,  WIN_END);
 
-  const isFinisher = step === 2;
-  const dmg = Math.round(calcBaseDmg() * COMBO[step].dmgMult * activeWeapon.dmgMult);
-  const isStrike = swingType === 'strike';
-  // Per-weapon tuning — fall back to sensible defaults if not set
-  const margin = activeWeapon.hitMargin ?? (isStrike ? 18 : isFinisher ? 10 : 6);
-  const SWEEP_STEPS = activeWeapon.sweepSteps ?? (isStrike ? 8 : 4);
-  const weaponHitCD = activeWeapon.hitCD ?? (isStrike ? 14 : 22);
+  const isFinisher = step >= getMaxSteps()-1;
+  const dmg = Math.round(calcBaseDmg() * (stepData.dmgMult ?? 1.0) * (activeWeapon.dmgMult ?? 1.0));
+  const isStrike = motion === 'strike';
+  const margin      = stepData.hitMargin  ?? (isStrike ? 18 : isFinisher ? 10 : 6);
+  const SWEEP_STEPS = stepData.sweepSteps ?? (isStrike ? 8 : 4);
+  const weaponHitCD = stepData.hitCD      ?? (isStrike ? 14 : 22);
 
-  if(!player.swingHitSet) player.swingHitSet = new Set();
+  // hitCount hits all land simultaneously on first contact — no path spacing
+  const hitCount = stepData.hitCount ?? 1;
+
+  if(!player.swingHitMap) player.swingHitMap = new Map();
   let hitAny = false;
 
   enemies.forEach(e=>{
-    if(e.dead || e.hitCD>0 || player.swingHitSet.has(e.id)) return;
+    if(e.dead || e.hitCD>0) return;
+    if(player.swingHitMap.has(e.id)) return; // already hit this enemy this step
     const ex0=e.x, ex1=e.x+EW, ey0=e.y, ey1=e.y+EH;
     let touched = false;
     for(let i=0; i<=SWEEP_STEPS && !touched; i++){
@@ -2836,22 +3223,28 @@ function tickAttackHits(){
       touched = _segAABB(seg.hx, seg.hy, seg.tx, seg.ty, ex0, ey0, ex1, ey1, margin);
     }
     if(touched){
-      player.swingHitSet.add(e.id);
+      player.swingHitMap.set(e.id, true);
       lastHitEnemyExp=e.exp; lastHitEnemy=e;
-      const roll=dmg+(Math.random()*12|0);
-      const prev=e.hp;
-      e.hp-=roll; e.hitCD=weaponHitCD;
-      e.ghostHp=prev; e.ghostDrainDelay=62;
-      spawnEnemyBarChips(e,prev,e.hp);
-      const kb = (activeWeapon.knockback ?? [10,10,20])[step];
+      const kb = (stepData.knockback ?? activeWeapon.knockback ?? [10,10,20])[Math.min(step, 2)];
+      // Queue each hit individually — fires 3 frames apart for the bam-bam-bam burst feel
+      for(let h = 0; h < hitCount; h++){
+        const roll = dmg + (Math.random()*12|0);
+        const elemDmg = activeWeapon.elemental ? Math.max(1, Math.round(roll * 0.10)) : 0;
+        _multiHitQueue.push({
+          e, roll, elemDmg, isFinisher,
+          delay: h * 3,   // 0, 3, 6, 9 … frames — very fast burst
+          hitIdx: h,
+          kb, step,
+          ec: activeWeapon.elemental ? (ELEMENTAL_FLOAT_COLORS[activeWeapon.elemental]||'#fff') : null,
+          el: activeWeapon.elemental ? (ELEMENTAL_LABELS[activeWeapon.elemental]||'')           : null,
+        });
+      }
+      // Immediate feedback on first contact (sound, freeze, shake, knockback, impact)
+      e.hitCD = weaponHitCD + (hitCount - 1) * 3; // cover the full burst window
+      if(particles.length < 350) goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
       e.vx+=player.facing*kb; e.vy-=isFinisher?5:3;
-      bloodBurst(e.x+EW/2,e.y+EH*.35,isFinisher?26:14);
-      sparkBurst(e.x+EW/2,e.y+EH*.25,isFinisher?18:9);
-      goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
-      floatText(e.x+EW/2-14,e.y-(isFinisher?32:16),isFinisher?`⚡${roll}`:`-${roll}`,isFinisher?'#ffc840':'#ff6060');
       hitAny=true;
       triggerImpact(e.x+EW/2, e.y+EH*0.35);
-      if(e.hp<=0&&!e.dead){ e.dead=true; onEnemyKilled(e); }
     }
   });
 
@@ -2868,7 +3261,7 @@ function tickAttackHits(){
       player.swingStreakCounted=true;
       // Show combo HUD on first confirmed hit of this swing
       if(isFinisher){
-        updateComboHud(3);
+        updateComboHud(getMaxSteps());
         setTimeout(()=>updateComboHud(0), 700);
       } else {
         updateComboHud(step+1);
@@ -2912,8 +3305,9 @@ function launchSpecial(){
   if(player.mp<SP_MANA_COST) return;
   player.mp=Math.max(0,player.mp-SP_MANA_COST);
   setMpBar(player.mp,player.maxMp);
-  if(activeWeapon.swingType === 'strike'){
-    // Resolved Steel uses its own windup state — skip the normal spAtk flow
+  // Weapons whose special sets rsWindup (cestus-style) skip normal spAtk flow
+  const _hasRsWindup = activeWeapon.steps && activeWeapon.steps.some(s=>s.motion==='strike');
+  if(_hasRsWindup){
     player.spCD=120;
     playSfx(activeWeapon.spSound);
     activeWeapon.special(player);
@@ -3006,13 +3400,15 @@ function airSlamEnemy(){
   target.ghostHp=_spikePrev; target.ghostDrainDelay=62;
   spawnEnemyBarChips(target,_spikePrev,target.hp);
   floatText(target.x+EW/2-12,target.y-24,`⬇${_spikeDmg}`,'#ff4400',true);
-  // Spike enemy hard downward
+  // Spike hard downward — slam landing fires on ground impact
   target.vy=SLAM_VY*1.3;
   target.vx=0;
   target.slammed=true;
-  target.juggled=true;
+  // juggled=true uses 1/6th gravity — correct for regular enemies, wrong for boss slam
+  if(!target.boss) target.juggled=true;
   target.onGround=false;
   target.hitCD=8;
+  if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
   // Player: short hang then drop fast
   player.airSlamUsed=true;
   player.airSlamArmed=false;
@@ -3025,13 +3421,13 @@ function airSlamEnemy(){
   sparkBurst(target.x+EW/2,target.y+EH*0.2,18,true);
   goreBurst(target.x+EW/2,target.y+EH*0.35,player.facing,true);
   playSfx(AIR_SMASH_SOUND);
-  triggerFreeze(12); triggerShake(18);
-  rumble(250,1.0,0.7);
+  const _isBossSmash = target.boss;
+  triggerFreeze(_isBossSmash?18:12); triggerShake(_isBossSmash?28:18);
+  rumble(_isBossSmash?400:250, 1.0, _isBossSmash?1.0:0.7);
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
   const _slamTier=Math.floor(hitStreak/10);
   if(_slamTier>hitStreakTier){hitStreakTier=_slamTier;onStreakMilestone(_slamTier,lastHitEnemyExp);}
   updateStreakHud();
-  if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
 }
 
 // ══════════════════════════════════════════
@@ -3401,6 +3797,7 @@ function _airRelaunch(){
     player.vy=JUGGLE_PLAYER_VY;
     player.juggleFollow=true;
     player.juggleFollowUsed=true;
+    player.airSlamNeedsRehold=true; // must release and re-hold to slam after air-tap relaunch
     rumble(180,0.7,0.45);
     playSfx(LAUNCH_SOUND);
     triggerFreeze(6); triggerShake(6);
@@ -3441,17 +3838,9 @@ function launchEnemy(held=false){
   });
   if(hit){
     rumble(220, 0.85, 0.55);
-    if(anyJuggled && held){
-      // Only follow if button is still held — tap = launch only, hold = follow
-      player.onGround=false;
-      player.juggleFollow=true;
-      player.juggleFollowUsed=true;
-      player.launchJumpReady=false;
-      player.vx=0;
-      player.y-=10;
-      player.vy=JUGGLE_PLAYER_VY;
-      bloodBurst(player.x+PW/2, player.y+PH*0.3, 10);
-      sparkBurst(player.x+PW/2, player.y+PH*0.3, 8, false);
+    if(anyJuggled){
+      // Flag a potential follow — actual jump only fires after a sustained hold (see physics loop)
+      player.pendingAirFollow=true;
     }
     if(anyJuggled) floatText(player.x+PW/2-72, player.y-52, 'SKY IS THE LIMIT !', '#40e8ff', true);
     playSfx(LAUNCH_SOUND); triggerFreeze(8); triggerShake(7);
@@ -3470,6 +3859,11 @@ function updateBossBar(e){
   const gpct=Math.max(0,e.ghostHp/e.maxHp)*100;
   document.getElementById('bossFill').style.width=pct+'%';
   document.getElementById('bossGhostFill').style.width=gpct+'%';
+  const numEl=document.getElementById('bossHpNum');
+  if(numEl){
+    numEl.textContent=Math.max(0,Math.round(e.hp)).toLocaleString()+' / '+e.maxHp.toLocaleString();
+    numEl.classList.add('show-num');
+  }
 }
 
 function spawnBoss(isBossRush=false){
@@ -3666,7 +4060,7 @@ function onEnemyKilled(e){
   // Death explosion — massive burst centered on enemy body
   const cx=e.x+EW/2, cy=e.y+EH/2;
   playSfx(ENEMY_DEATH_SOUND);
-  triggerFreeze(28);
+  triggerFreeze(8);
   triggerShake(22);
   triggerHitFlash();
 
@@ -3811,23 +4205,49 @@ function menuStageSelect(stageId){
 }
 
 // ── COMBO HUD ────────────────────────────
-const comboIcons=['','⚔','⚔  ⚔','⚔  ⚔  ⚔'];
-const comboNames=['','COMBO','DOUBLE STRIKE','TRIPLE THREAT'];
-const comboClasses=['','c1','c2','c3'];
-function updateComboHud(step){
-  const el=document.getElementById('comboHud');
-  if(step<=0){el.style.display='none';return;}
-  // Re-trigger entrance animation on each step change
-  el.style.animation='none';
-  void el.offsetWidth;
-  el.style.animation='comboIn 0.18s cubic-bezier(0.34,1.5,0.64,1)';
-  el.style.display='block';
-  el.className='combo-hud '+comboClasses[step];
-  const iconsEl=document.getElementById('comboIcons');
-  const lblEl=document.getElementById('comboLbl');
-  if(iconsEl) iconsEl.textContent=comboIcons[step];
-  if(lblEl)   lblEl.textContent=comboNames[step];
+let _comboHideTimer = null;
+
+function showComboComment(tier){
+  const el  = document.getElementById('comboHud');
+  const txt = document.getElementById('comboComment');
+  const mlt = document.getElementById('comboMult');
+  if(!el||!txt) return;
+  const idx  = Math.min(tier-1, COMBO_TIER_COMMENTS.length-1);
+  const col  = COMBO_TIER_COLORS[idx]  || '#fff';
+  const sz   = COMBO_TIER_SIZES[idx]   || '1.1rem';
+  const mult = (1 + tier*0.1).toFixed(1);
+
+  txt.textContent  = COMBO_TIER_COMMENTS[idx];
+  txt.style.color  = col;
+  txt.style.fontSize = sz;
+  txt.style.textShadow =
+    `-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,`+
+    `0 0 ${12+idx*4}px ${col},0 0 ${28+idx*8}px ${col.replace(/[\d.]+\)$/,'0.35)')}`;
+  txt.style.animation='none'; void txt.offsetWidth;
+  txt.style.animation='comboPop 0.22s cubic-bezier(0.34,1.6,0.64,1)';
+
+  if(mlt){
+    mlt.textContent  = `×${mult} EXP`;
+    mlt.style.color  = col;
+  }
+
+  el.style.display = 'block';
+  el.style.animation='none'; void el.offsetWidth;
+  el.style.animation='comboIn 0.2s cubic-bezier(0.34,1.5,0.64,1)';
+
+  // Auto-hide after 2.2s
+  if(_comboHideTimer) clearTimeout(_comboHideTimer);
+  _comboHideTimer = setTimeout(()=>{ el.style.display='none'; _comboHideTimer=null; }, 2200);
 }
+
+function hideComboHud(){
+  const el=document.getElementById('comboHud');
+  if(el) el.style.display='none';
+  if(_comboHideTimer){ clearTimeout(_comboHideTimer); _comboHideTimer=null; }
+}
+
+// Legacy stub — no longer shows on every hit, kept so old call-sites don't crash
+function updateComboHud(step){ /* replaced by showComboComment on tier change */ }
 
 // ── STREAK HUD ───────────────────────────
 const STREAK_TIER_COLORS=['rgba(200,220,255,0.85)','rgba(80,200,255,0.95)','rgba(60,255,180,0.95)','rgba(255,200,60,0.95)','rgba(255,120,40,1)','rgba(255,60,200,1)'];
@@ -3878,6 +4298,7 @@ function resetHitStreak(){
   if(hitStreak<=0)return;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
   document.getElementById('streakHud').style.display='none';
+  hideComboHud();
 }
 
 function onStreakMilestone(tier,baseExp){
@@ -3885,9 +4306,8 @@ function onStreakMilestone(tier,baseExp){
   const bonus=Math.round(baseExp*(1+tier*0.1));
   gainExp(bonus);
   runExp+=bonus;
-  // Float text at center of screen
-  const fx=canvas.width/2-60, fy=canvas.height*0.28;
-  floatText(fx,fy,`COMBO ×${mult}!  +${bonus}xp`,'#ffe060',true);
+  // DMC-style comment
+  showComboComment(tier);
   // Pop animation on the whole streak block
   const inner=document.getElementById('streakInner');
   inner.style.animation='none';
@@ -4073,282 +4493,842 @@ function drawSpecialSprite(p){
   ctx.restore();
 }
 
-function drawSwordSprite(p, trailOnly=false){
-  const _swType = (activeWeapon && activeWeapon.swingType) || 'slash';
-  if(_swType === 'strike'){
-    if(!trailOnly) tickSwingAnim(p);
-    const isAtk = p.atk || p.atkCD > 0;
-    const isSp  = p.spAtk;
-    if(!isAtk && !isSp && !swingAnim.active && !p.rsWindup) return;
-    if(!swordLoaded || !swordImg.complete) return;
+// ══════════════════════════════════════════════════════════════════════════════
+//  PROCEDURAL WEAPON FALLBACKS
+//  Called when a sprite slot is null or not yet loaded.
+// ══════════════════════════════════════════════════════════════════════════════
 
-    // ── RESOLVED STEEL WINDUP: cocked fist with charge glow ──────────────
-    if(p.rsWindup){
-      if(trailOnly) return;
-      const pct = p.rsF / RS_WINDUP_FRAMES;
-      const af = SWORD_ATK_FRAMES[0]; // held at frame 0 (raised/ready)
-      if(!af) return;
-      const FIST_H = 64 + pct * 28; // fist grows as charge builds
-      const fs = FIST_H / af.sh, fw = af.sw * fs, fh = af.sh * fs;
-      // Pull back further as charge increases
-      const pullX = p.facing * -(18 + pct * 22);
-      const fx = p.x + PW/2 - camX + pullX;
-      const fy = p.y + PH * (0.25 - pct * 0.08); // rises slightly
-      // Glow halo behind fist
-      const glowR = 18 + pct * 32;
-      const grad = ctx.createRadialGradient(fx, fy, 2, fx, fy, glowR);
-      grad.addColorStop(0, `rgba(255,160,40,${0.5 + pct*0.4})`);
-      grad.addColorStop(1, 'rgba(255,100,10,0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(fx, fy, glowR, 0, Math.PI*2); ctx.fill();
-      // Fist sprite
-      ctx.save();
-      ctx.translate(fx, fy);
-      if(p.facing === -1) ctx.scale(-1, 1);
-      ctx.drawImage(swordImg, af.sx, af.sy, af.sw, af.sh, -fw*0.5, -fh*0.5, fw, fh);
-      ctx.restore();
-      return;
+// ── WEAPON SPRITE fallback ────────────────────────────────────────────────────
+// Each weapon has its own distinct procedural shape.
+function _procWeapon(pivX, pivY, angleRad, stepData, facing, weaponKey){
+  const motion = stepData.motion || 'arc';
+  const sH = stepData.swingH || 104;
+  ctx.save();
+  ctx.translate(pivX, pivY);
+  if(facing === -1) ctx.scale(-1, 1);
+
+  if(motion === 'strike'){
+    // ── CESTUS — iron-plated gauntlet ──────────────────────────────────────
+    ctx.rotate(angleRad * 0.3);
+    // Fixed fist size — swingH drives hit range, not visual scale
+    const fw = 22, fh = 16;
+    // Iron back plate
+    ctx.shadowColor = 'rgba(200,120,40,0.8)'; ctx.shadowBlur = 12;
+    const pg = ctx.createLinearGradient(-fw*0.5,-fh*0.5, fw*0.5,fh*0.5);
+    pg.addColorStop(0,'#585060'); pg.addColorStop(1,'#2e2830');
+    ctx.fillStyle = pg;
+    ctx.beginPath(); ctx.roundRect(-fw*0.5,-fh*0.5, fw,fh, 4); ctx.fill();
+    // Knuckle ridge bar
+    ctx.shadowBlur = 0;
+    const rg = ctx.createLinearGradient(0,-fh*0.5-7, 0,-fh*0.5);
+    rg.addColorStop(0,'#a09090'); rg.addColorStop(1,'#686070');
+    ctx.fillStyle = rg;
+    ctx.beginPath(); ctx.roundRect(-fw*0.46,-fh*0.5-5, fw*0.92,7, 3); ctx.fill();
+    // Four metal studs
+    ctx.fillStyle = '#c8b8b8';
+    for(let i=0;i<4;i++){
+      ctx.beginPath(); ctx.arc(-fw*0.36+i*(fw*0.24), -fh*0.5-2, 2.5, 0,Math.PI*2); ctx.fill();
     }
-    const step = p.curStep || 0;
-    const t = swingAnim.prog || 0;
+    // Wrist strap
+    ctx.strokeStyle = '#4a3020'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-fw*0.5,fh*0.3); ctx.lineTo(fw*0.5,fh*0.3); ctx.stroke();
+    // Side metal trim
+    ctx.strokeStyle = '#807880'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(-fw*0.5,-fh*0.5, fw,fh, 4); ctx.stroke();
 
-    // Mirror the same config used in getBladeSegment for strike
-    // [handY frac, forward reach, vert reach (neg=up), outFrac, sprite rot (rad), sprite H]
-    const SCFG = [
-      [0.22, 44,   0, 0.32,  0.00, 62], // jab:     horizontal, no rotation
-      [0.30, 48,  14, 0.40, -0.26, 68], // hook:    slight downward angle (-15°)
-      [0.40, 38, -24, 0.38, -0.55, 76], // uppercut: diagonal upward (-31°), readable in 2D
-    ];
-    const [baseY, fwd, vert, outF,, sprH] = SCFG[step];
-    const sprRot = SCFG[step][4];
-
-    // Uppercut: 14-frame startup hold — fist sits behind before launching
-    let ap = t;
-    if(step === 2){ const D=0.14; ap = t < D ? 0 : (t-D)/(1-D); }
-
-    const t2   = ap < outF ? ap/outF : 1-(ap-outF)/(1-outF);
-    const pEase = t2 < 0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
-
-    const hx = p.x + PW/2 - camX + p.facing * 8;
-    const hy = p.y + PH * baseY;
-    const fx = hx + p.facing * (pEase * fwd);
-    const fy = hy + pEase * vert;
-
-    if(trailOnly){
-      // Motion smear: draw a faded copy of the fist one frame behind
-      if(ap < 0.05 || ap > 0.75) return; // only during extension phase
-      const tf = SWORD_ATK_FRAMES[Math.max(0, (swingAnim.frame||0) - 1)];
-      if(!tf) return;
-      const prevAp = Math.max(0, ap - 0.12);
-      const pt2    = prevAp < outF ? prevAp/outF : 1-(prevAp-outF)/(1-outF);
-      const ppEase  = pt2 < 0.5 ? 2*pt2*pt2 : -1+(4-2*pt2)*pt2;
-      const pfx = hx + p.facing * (ppEase * fwd);
-      const pfy = hy + ppEase * vert;
-      const ts = sprH / tf.sh, tw = tf.sw * ts, th = tf.sh * ts;
-      ctx.save();
-      ctx.translate(pfx, pfy);
-      if(p.facing === -1) ctx.scale(-1, 1);
-      ctx.rotate(sprRot);
-      ctx.globalAlpha = 0.35;
-      ctx.drawImage(swordImg, tf.sx, tf.sy, tf.sw, tf.sh, -tw*0.5, -th*0.5, tw, th);
-      ctx.globalAlpha = 1;
-      ctx.restore();
-      return;
+  } else if(weaponKey === 'dagger'){
+    // ── DAGGER — short twin-edged blade, black hilt with gold wrap ─────────
+    // Thrust: rotate -π/2 so tip (drawn at -Y) maps to +X (toward enemy).
+    // Arc: +π/2 correction aligns sprite tip (-Y) with hitbox direction.
+    ctx.rotate(motion === 'thrust' ? Math.PI/2 : angleRad + Math.PI/2);
+    const bLen = sH*0.58, bW = 3.5;
+    ctx.shadowColor = 'rgba(60,255,190,0.8)'; ctx.shadowBlur = 12;
+    // Tip
+    ctx.fillStyle = '#f0fff8';
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen);
+    ctx.lineTo(-bW,-bLen*0.68);
+    ctx.lineTo( bW,-bLen*0.68);
+    ctx.closePath(); ctx.fill();
+    // Blade body with teal gradient
+    const dg = ctx.createLinearGradient(-bW,-bLen*0.68, bW,0);
+    dg.addColorStop(0,'#c0f0e0'); dg.addColorStop(1,'#70b0a0');
+    ctx.fillStyle = dg;
+    ctx.fillRect(-bW/2,-bLen*0.68, bW,bLen*0.58);
+    // Edge highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillRect(-bW/2,-bLen*0.68, 1.2,bLen*0.58);
+    // Guard — dark narrow crosspiece
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#2e2838';
+    ctx.fillRect(-9,-bLen*0.10, 18,4);
+    // Handle — black with gold wraps
+    ctx.fillStyle = '#14121e';
+    ctx.fillRect(-2,-bLen*0.10+4, 4,bLen*0.20);
+    ctx.strokeStyle = '#c0a028'; ctx.lineWidth = 1.5;
+    for(let i=0;i<3;i++){
+      const wy=-bLen*0.10+6+i*5;
+      ctx.beginPath(); ctx.moveTo(-2,wy); ctx.lineTo(2,wy); ctx.stroke();
     }
+    // Pommel — round gold bead
+    ctx.fillStyle = '#b89028';
+    ctx.beginPath(); ctx.arc(0,-bLen*0.10+4+bLen*0.20+3, 3.5,0,Math.PI*2); ctx.fill();
 
-    if(!(isAtk || isSp)) return;
-    const af = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 3)];
-    if(!af) return;
+  } else if(weaponKey === 'axe'){
+    // ── WAR AXE — crescent head + spike + wooden haft ───────────────────────
+    ctx.rotate(angleRad + Math.PI/2);
+    const hLen = sH*0.70;
+    const headY = -hLen*0.60;
+    // Wooden haft
+    ctx.shadowColor = 'rgba(160,70,10,0.5)'; ctx.shadowBlur = 5;
+    const hg = ctx.createLinearGradient(-3,0, 3,0);
+    hg.addColorStop(0,'#7a4818'); hg.addColorStop(0.5,'#a06828'); hg.addColorStop(1,'#623410');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.roundRect(-3,-hLen*0.90, 6,hLen*0.86, 2); ctx.fill();
+    // Axe head — iron crescent
+    ctx.shadowColor = 'rgba(255,110,20,0.7)'; ctx.shadowBlur = 14;
+    const ag = ctx.createLinearGradient(-20,headY-20, 16,headY+32);
+    ag.addColorStop(0,'#c4beb8'); ag.addColorStop(0.4,'#8c9898'); ag.addColorStop(1,'#484e56');
+    ctx.fillStyle = ag;
+    ctx.beginPath();
+    ctx.moveTo(0, headY-28);
+    ctx.quadraticCurveTo(22,headY-18, 18,headY+22);
+    ctx.quadraticCurveTo(5,headY+34, -2,headY+29);
+    ctx.quadraticCurveTo(-10,headY+10, 2,headY-5);
+    ctx.quadraticCurveTo(9,headY-20, 0,headY-28);
+    ctx.closePath(); ctx.fill();
+    // Blade edge highlight
+    ctx.strokeStyle = 'rgba(240,238,220,0.88)'; ctx.lineWidth = 1.5; ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.moveTo(18,headY-14);
+    ctx.quadraticCurveTo(22,headY+4, 15,headY+24);
+    ctx.stroke();
+    // Top spike
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#b4b4ac';
+    ctx.beginPath();
+    ctx.moveTo(0,headY-28); ctx.lineTo(-4,headY-46); ctx.lineTo(4,headY-46);
+    ctx.closePath(); ctx.fill();
+    // Iron binding bands
+    ctx.shadowBlur = 0; ctx.strokeStyle = '#5c6670'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(-4,headY-10); ctx.lineTo(4,headY-10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-4,headY+10); ctx.lineTo(4,headY+10); ctx.stroke();
 
-    const fs = sprH / af.sh, fw = af.sw * fs, fh = af.sh * fs;
-    ctx.save();
-    ctx.translate(fx, fy);
-    if(p.facing === -1) ctx.scale(-1, 1);
-    ctx.rotate(sprRot);
-    ctx.drawImage(swordImg, af.sx, af.sy, af.sw, af.sh, -fw*0.5, -fh*0.5, fw, fh);
-    ctx.restore();
-    return;
+  } else if(weaponKey === 'katana'){
+    // ── KATANA — long curved blade, tsuba, cloth-wrapped tsuka ─────────────
+    // Thrust: -π/2 maps sprite tip (-Y) to +X; arc: +π/2 correction.
+    ctx.rotate(motion === 'thrust' ? Math.PI/2 : angleRad + Math.PI/2);
+    const bLen = sH*0.96, bW = 3;
+    ctx.shadowColor = 'rgba(160,240,255,0.9)'; ctx.shadowBlur = 14;
+    // Blade as a curved stroke
+    const kg = ctx.createLinearGradient(0,-bLen, 0,0);
+    kg.addColorStop(0,'#ffffff'); kg.addColorStop(0.35,'#d0ecff'); kg.addColorStop(1,'#80b8d0');
+    ctx.strokeStyle = kg; ctx.lineWidth = bW; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(1,-bLen*0.08);
+    ctx.quadraticCurveTo(6,-bLen*0.52, 0,-bLen);
+    ctx.stroke();
+    // Edge highlight
+    ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 1; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(1,-bLen*0.08);
+    ctx.quadraticCurveTo(5,-bLen*0.52, 0.5,-bLen);
+    ctx.stroke();
+    // Tsuba — small round guard
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#26222e'; ctx.strokeStyle = '#524858'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0,-bLen*0.07, 6,0,Math.PI*2);
+    ctx.fill(); ctx.stroke();
+    // Tsuka — long dark handle with diamond wrap
+    ctx.shadowBlur = 0; ctx.fillStyle = '#16121e';
+    ctx.fillRect(-2.5,-bLen*0.07+6, 5,bLen*0.17);
+    ctx.strokeStyle = 'rgba(180,155,95,0.65)'; ctx.lineWidth = 1.2;
+    for(let i=0;i<5;i++){
+      const hy=-bLen*0.07+8+i*5.2;
+      ctx.beginPath(); ctx.moveTo(-2.5,hy); ctx.lineTo(2.5,hy); ctx.stroke();
+    }
+    // Kashira (pommel)
+    ctx.fillStyle = '#2e2e3a';
+    ctx.beginPath(); ctx.roundRect(-3,-bLen*0.07+6+bLen*0.17, 6,7, 2); ctx.fill();
+
+  } else if(weaponKey === 'greatsword'){
+    // ── GREATSWORD — wide imposing blade, ornate guard, two-hand grip ───────
+    ctx.rotate(angleRad + Math.PI/2);
+    const bLen = sH*0.92, bW = 12;
+    ctx.shadowColor = 'rgba(240,190,60,0.7)'; ctx.shadowBlur = 16;
+    // Blade — tapers toward tip
+    const gbg = ctx.createLinearGradient(-bW*0.5,-bLen, bW*0.5,0);
+    gbg.addColorStop(0,'#eff4f8'); gbg.addColorStop(0.4,'#c4d2de'); gbg.addColorStop(1,'#6888a0');
+    ctx.fillStyle = '#f0f6ff';
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen);
+    ctx.lineTo(-bW*0.6,-bLen*0.82);
+    ctx.lineTo(bW*0.6,-bLen*0.82);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = gbg;
+    ctx.beginPath();
+    ctx.moveTo(-bW*0.5,-bLen*0.82); ctx.lineTo(-2,0);
+    ctx.lineTo(2,0); ctx.lineTo(bW*0.5,-bLen*0.82);
+    ctx.closePath(); ctx.fill();
+    // Fuller (blood groove)
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(90,120,150,0.6)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,-bLen*0.80); ctx.lineTo(0,-bLen*0.16); ctx.stroke();
+    // Edge highlight
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-bW*0.5,-bLen*0.82); ctx.lineTo(-2,0); ctx.stroke();
+    // Ornate guard with curved quillons
+    ctx.shadowColor = 'rgba(200,160,50,0.6)'; ctx.shadowBlur = 10;
+    ctx.fillStyle = '#5e6e7e';
+    ctx.beginPath();
+    ctx.moveTo(-26,-bLen*0.07);
+    ctx.quadraticCurveTo(-30,-bLen*0.11,-25,-bLen*0.14);
+    ctx.lineTo(25,-bLen*0.14);
+    ctx.quadraticCurveTo(30,-bLen*0.11,26,-bLen*0.07);
+    ctx.lineTo(26,-bLen*0.03);
+    ctx.quadraticCurveTo(30,0,25,bLen*0.01);
+    ctx.lineTo(-25,bLen*0.01);
+    ctx.quadraticCurveTo(-30,0,-26,-bLen*0.03);
+    ctx.closePath(); ctx.fill();
+    // Two-hand grip
+    ctx.shadowBlur = 0; ctx.fillStyle = '#38251a';
+    ctx.beginPath(); ctx.roundRect(-3.5,bLen*0.01, 7,bLen*0.21, 2); ctx.fill();
+    ctx.strokeStyle = '#8a6040'; ctx.lineWidth = 2;
+    for(let i=0;i<5;i++){
+      const gy=bLen*0.015+i*bLen*0.038;
+      ctx.beginPath(); ctx.moveTo(-3.5,gy); ctx.lineTo(3.5,gy); ctx.stroke();
+    }
+    // Large pommel
+    ctx.fillStyle = '#708090'; ctx.shadowColor = 'rgba(210,180,90,0.5)'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(0,bLen*0.01+bLen*0.21, 8,0,Math.PI*2); ctx.fill();
+
+  } else {
+    // ── IRON SWORD — balanced straight blade (default / 'sword') ────────────
+    // Thrust: -π/2 maps sprite tip (-Y) to +X; arc: +π/2 correction.
+    ctx.rotate(motion === 'thrust' ? Math.PI/2 : angleRad + Math.PI/2);
+    const bLen = sH*0.88, bW = 5;
+    ctx.shadowColor = 'rgba(130,195,255,0.85)'; ctx.shadowBlur = 12;
+    // Tip
+    ctx.fillStyle = '#eef6ff';
+    ctx.beginPath();
+    ctx.moveTo(0,-bLen);
+    ctx.lineTo(-bW*0.7,-bLen*0.80);
+    ctx.lineTo(bW*0.7,-bLen*0.80);
+    ctx.closePath(); ctx.fill();
+    // Body
+    const sg = ctx.createLinearGradient(-bW*0.5,-bLen, bW*0.5,0);
+    sg.addColorStop(0,'#e4f0ff'); sg.addColorStop(0.5,'#b8ccde'); sg.addColorStop(1,'#6888a0');
+    ctx.fillStyle = sg;
+    ctx.fillRect(-bW/2,-bLen*0.80, bW,bLen*0.72);
+    // Edge highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.52)';
+    ctx.fillRect(-bW/2,-bLen*0.80, 1.5,bLen*0.72);
+    // Fuller
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(90,130,175,0.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0,-bLen*0.78); ctx.lineTo(0,-bLen*0.20); ctx.stroke();
+    // Crossguard
+    ctx.fillStyle = '#526272'; ctx.shadowColor = 'rgba(90,140,185,0.5)'; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.roundRect(-8,-bLen*0.08, 16,5, 2); ctx.fill();
+    // Handle
+    ctx.shadowBlur = 0; ctx.fillStyle = '#422c12';
+    ctx.fillRect(-2.5,-bLen*0.08+5, 5,bLen*0.14);
+    ctx.strokeStyle = 'rgba(155,110,55,0.7)'; ctx.lineWidth = 1.5;
+    for(let i=0;i<3;i++){
+      ctx.beginPath();
+      ctx.moveTo(-2.5,-bLen*0.08+7+i*5);
+      ctx.lineTo( 2.5,-bLen*0.08+7+i*5);
+      ctx.stroke();
+    }
+    // Pommel
+    ctx.fillStyle = '#647888'; ctx.shadowColor = 'rgba(110,165,220,0.6)'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(0,-bLen*0.08+5+bLen*0.14, 4,0,Math.PI*2); ctx.fill();
   }
-  if(!swordLoaded || !swordImg.complete) return;
-  // Tick the animation state (only on the non-trail pass to avoid double-advancing)
-  if(!trailOnly) tickSwingAnim(p);
+  ctx.restore();
+}
 
-  const isAtk = p.atk || p.atkCD > 0;
-  const isSp  = p.spAtk;
-  const ACTIVE = isAtk || isSp || swingAnim.active;
-  if(!ACTIVE) return; // sword completely hidden when not attacking
+// ── TRAIL fallback ────────────────────────────────────────────────────────────
+// Each weapon has its own distinct trail colour / shape.
+function _procTrail(pivX, pivY, prog, step, stepData, facing, weaponKey){
+  const motion = stepData.motion || 'arc';
+  const bLen   = (stepData.swingH || 104) * 0.88;
+  ctx.save();
+  ctx.translate(pivX, pivY);
+  if(facing === -1) ctx.scale(-1, 1);
 
-  if(trailOnly){
-    // ─── SWING TRAIL (drawn BEHIND the player) ───────────────────────────────
-    // Source: SWORD_TRAIL_FRAMES[swingAnim.trailFrame] — 128×128 px on sheet
-    // Rendered at SWORD_TRAIL_H px tall on screen.
-    //
-    // TUNING:
-    //   SWORD_TRAIL_H  = on-screen height of the trail arc (px)
-    //                    increase → bigger trail, decrease → smaller
-    //   p.facing * 30  = horizontal offset from player centre (px)
-    //                    positive = in front of player, negative = behind
-    //   PH * 0.28      = vertical offset from player TOP (fraction of physics height)
-    //                    0 = top of body, 0.5 = mid body, 1.0 = feet
-    //   -tw*0.35       = shifts trail LEFT so its visual centre aligns with pivot
-    //   -th*0.5        = shifts trail UP  so its vertical centre aligns with pivot
-    const SWORD_TRAIL_H = 120;  // ← CHANGE: on-screen trail arc height (px)
-    const tf = SWORD_TRAIL_FRAMES[Math.min(swingAnim.trailFrame||0, 7)];
-    if(!tf) return;
-    const ts = SWORD_TRAIL_H / tf.sh;  // scale factor
-    const tw = tf.sw * ts;             // on-screen trail width  (px)
-    const th = tf.sh * ts;             // on-screen trail height (px)
-
-    // Pivot point for trail — matches slash hand position per combo step
-    const _tStep = p.curStep || 0;
-    const _tOut  = [20, 16, 22][_tStep];
-    const _tDown = [0.16, 0.42, 0.25][_tStep];
-    const tx = p.x + PW/2 - camX + p.facing * _tOut;
-    const ty = p.y + PH * _tDown;
-
-    ctx.save();
-    ctx.translate(tx, ty);
-    if(p.facing === -1) ctx.scale(-1, 1);  // mirror when facing left
-    ctx.globalAlpha = 0.85;
-    ctx.drawImage(swordImg,
-      tf.sx, tf.sy, tf.sw, tf.sh,   // source on sheet (128×128)
-      -tw * 0.35,                   // ← dest X: shift left to centre trail on pivot
-      -th * 0.5,                    // ← dest Y: shift up  to centre trail on pivot
-      tw, th                        // dest size on screen
-    );
+  if(motion === 'strike'){
+    // ── CESTUS — orange-amber fist smear ────────────────────────────────────
+    const fwd = Math.max(stepData.swingH * 0.44, 20); // floor so tiny-swingH jabs still leave a smear
+    const outF = 0.35;
+    for(let i=1;i<=4;i++){
+      const pp = Math.max(0, prog-i*0.07);
+      const t2 = pp<outF ? pp/outF : 1-(pp-outF)/(1-outF);
+      const pe = t2<0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
+      ctx.globalAlpha = (0.22-i*0.04) * Math.min(1,prog*4);
+      ctx.shadowColor = 'rgba(255,130,20,0.6)'; ctx.shadowBlur = 10;
+      ctx.fillStyle = `rgba(255,${155-i*18},${35},${0.22-i*0.04})`;
+      ctx.beginPath(); ctx.roundRect(pe*fwd-16,-13, 32,26, 5); ctx.fill();
+    }
     ctx.globalAlpha = 1;
-    ctx.restore();
-    return;
+
+  } else if(motion === 'thrust'){
+    // ── Thrust speed streak — colour varies by weapon ────────────────────────
+    const reach = (stepData.swingH||104)*0.80;
+    const outF = 0.30;
+    let se;
+    if(prog<=outF) se=(prog/outF)*(prog/outF);
+    else if(prog<=0.62) se=1.0;
+    else se=1-(prog-0.62)/(1-0.62);
+    const ext = se*reach;
+    // Pick streak colour: dagger=teal, katana=white/cyan, sword (default)=blue-white
+    const thrustCols = {
+      dagger: ['rgba(60,255,190,0.9)','rgba(40,220,170,0.8)'],
+      katana: ['rgba(210,248,255,0.92)','rgba(150,225,255,0.75)'],
+    };
+    const [sTint,sGlow] = thrustCols[weaponKey] || ['rgba(190,225,255,0.88)','rgba(130,195,255,0.70)'];
+    for(let i=-2;i<=2;i++){
+      ctx.lineWidth = i===0?2.8:1.1;
+      ctx.globalAlpha = (i===0?0.68:0.28)*se;
+      ctx.strokeStyle = sTint;
+      ctx.shadowColor = sGlow; ctx.shadowBlur = i===0?14:6;
+      ctx.beginPath(); ctx.moveTo(0,i*3); ctx.lineTo(ext,i*3); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+  } else {
+    // ── ARC weapons — each with unique colour palette ────────────────────────
+    const startRad = stepData.startAngle * Math.PI/180;
+    const curRad   = swordAngle(prog, step);
+    const from = startRad, to = curRad;
+    const ccw = from > to;
+
+    // Per-weapon: [outerColor, innerColor, glowColor, outerWidthFactor, innerLineW]
+    const palettes = {
+      axe:        ['rgba(220,70,15,0.48)','rgba(255,145,45,0.90)','rgba(255,90,10,0.75)',  0.30, 3.0],
+      greatsword: ['rgba(215,175,30,0.48)','rgba(255,230,110,0.90)','rgba(245,195,50,0.75)',0.34, 3.5],
+      katana:     ['rgba(175,240,255,0.38)','rgba(248,255,255,0.92)','rgba(150,225,255,0.65)',0.14, 1.6],
+      sword:      ['rgba(155,205,255,0.48)','rgba(218,238,255,0.88)','rgba(130,195,255,0.70)',0.22, 2.5],
+    };
+    const [oCol,iCol,gCol,owF,ilW] = palettes[weaponKey] || palettes.sword;
+
+    ctx.globalAlpha = 0.45;
+    ctx.strokeStyle = oCol;
+    ctx.lineWidth = bLen * owF;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = gCol; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(0,0, bLen*0.72, from,to, ccw); ctx.stroke();
+
+    ctx.globalAlpha = 0.66;
+    ctx.strokeStyle = iCol;
+    ctx.lineWidth = ilW;
+    ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(0,0, bLen*0.88, from,to, ccw); ctx.stroke();
+
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+
+// ── ELEMENTAL BLADE EFFECT ────────────────────────────────────────────────────
+// All effects orbit/wrap AROUND the blade using the perpendicular normal (nx,ny).
+// Nothing draws straight along the blade — every particle is offset perpendicularly
+// so the effect looks like an enchantment coating the weapon.
+function _drawElementalEffect(p){
+  if(!p.atk || !swingAnim.active) return;
+  const elem = activeWeapon && activeWeapon.elemental;
+  if(!elem) return;
+  const prog = swingAnim.prog || 0;
+  if(prog < 0.04 || prog > 0.93) return;
+
+  const seg = getBladeSegment(p, prog);
+  const hx = seg.hx - camX, hy = seg.hy;
+  const tx = seg.tx - camX, ty = seg.ty;
+  const dx = tx - hx, dy = ty - hy;
+  const blen = Math.sqrt(dx*dx + dy*dy) || 1;
+  // Unit vectors: along blade (ax,ay) and perpendicular (nx,ny)
+  const ax = dx/blen, ay = dy/blen;
+  const nx = -ay,     ny =  ax;
+  const now = Date.now();
+
+  // Helper: radial glow orb at (ox,oy), radius r, inner/outer color
+  function glowOrb(ox, oy, r, innerCol, outerCol, alpha){
+    const rg = ctx.createRadialGradient(ox,oy,0, ox,oy,r);
+    rg.addColorStop(0,   innerCol);
+    rg.addColorStop(1,   outerCol);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = rg;
+    ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI*2); ctx.fill();
   }
 
-  // ─── ATTACK SWORD FRAME (drawn ON TOP of player) ─────────────────────────
-  // Source: SWORD_ATK_FRAMES[swingAnim.frame] — 96×96 px on sheet
-  // Rendered at SWORD_H px tall on screen.
-  //
-  // TUNING:
-  //   SWORD_H          = on-screen height of the sword sprite (px)
-  //                      increase → bigger sword, decrease → smaller
-  //   PW * 0.3         = horizontal offset from player centre (fraction of physics width)
-  //                      0 = body centre, 0.5 = right edge of body
-  //   PH * 0.2         = vertical offset from player TOP (fraction of physics height)
-  //                      0 = top of body, 0.5 = mid body
-  //   -aw * 0.5        = centres sword horizontally on pivot point
-  //   -ah * 0.42       = positions sword vertically (0 = top at pivot, -1.0 = fully above)
-  if(isAtk || isSp){
-    const swingType = (activeWeapon && activeWeapon.swingType) || 'slash';
-    const af = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
-    if(af){
-      const t    = swingAnim.prog || 0;
-      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease in-out
+  ctx.save();
 
-      if(swingType === 'slash'){
-        const slashStep = isSp ? 2 : (p.curStep || 0);
+  if(elem === 'fire'){
+    // Flame tongues weave in a sinusoidal spiral around the blade.
+    // They grow larger toward the tip and flicker rapidly.
+    const N = 9;
+    for(let i = 0; i < N; i++){
+      const u = (i + 0.5) / N;
+      // Perpendicular offset oscillates — opposite phase on alternate embers
+      const phase = now/55 + i * 0.9;
+      const perp  = Math.sin(phase) * (8 + 6*u);        // grows toward tip
+      const bx = hx + dx*u + nx*perp;
+      const by = hy + dy*u + ny*perp;
+      const r  = 5 + 4*u + 2*Math.abs(Math.sin(now/40 + i*1.3));
+      const hue = 15 + 25*Math.abs(Math.sin(now/35 + i));
+      glowOrb(bx, by, r,
+        `hsla(${hue|0},100%,75%,0.9)`,
+        `hsla(${hue|0},100%,45%,0)`,
+        0.70);
+    }
+    // Thin bright core line so the blade itself looks hot
+    ctx.strokeStyle = 'rgba(255,220,120,0.55)';
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+  }
 
-        if(slashStep === 2){
-          // Finisher: frontal lunge stab — startup hold → burst forward → hold → pull back
-          const sH=104, sAngle=-10, sPull=0, sReach=82, sHOut=14, sHDown=0.30, sOutF=0.28;
-          const D=0.10;
-          let ap = t < D ? 0 : (t-D)/(1-D);
-          let se;
-          if(ap <= sOutF)     se = (ap/sOutF)*(ap/sOutF);   // burst forward
-          else if(ap <= 0.62) se = 1.0;                      // hold at extension
-          else                se = 1-(ap-0.62)/(1-0.62);     // pull back
-          const stabOffset = sPull + (sReach-sPull)*se;
-          const as_ = sH/af.sh, aw = af.sw*as_, ah = af.sh*as_;
-          const ax = p.x + PW/2 - camX + p.facing*sHOut;
-          const ay = p.y + PH*sHDown;
-          ctx.save();
-          ctx.translate(ax, ay);
-          if(p.facing === -1) ctx.scale(-1, 1);
-          ctx.translate(stabOffset, 0);
-          ctx.rotate((-90+sAngle) * Math.PI/180);
-          ctx.drawImage(swordImg, af.sx, af.sy, af.sw, af.sh, -aw*0.5, -ah*0.1, aw, ah);
-          ctx.restore();
-        } else {
-          //                H    start  end  hOut hDown
-          const SLASH_CFG = [
-            [104, -115,  70, 20, 0.16], // overhead downward chop
-            [ 98,   58, -88, 16, 0.42], // rising upward cut
-          ];
-          const [sH, sStart, sEnd, sOut, sDown] = SLASH_CFG[slashStep] || SLASH_CFG[0];
-          let se;
-          if(slashStep === 0) se = t*(2-t);   // ease-out: fast chop, follow-through
-          else                se = t*t;         // ease-in:  rising momentum
-
-          const as_ = sH / af.sh, aw = af.sw*as_, ah = af.sh*as_;
-          const angleDeg = sStart + (sEnd-sStart)*se;
-          const ax = p.x + PW/2 - camX + p.facing*sOut;
-          const ay = p.y + PH*sDown;
-          ctx.save();
-          ctx.translate(ax, ay);
-          if(p.facing === -1) ctx.scale(-1, 1);
-          ctx.rotate(angleDeg * Math.PI/180);
-          ctx.drawImage(swordImg, af.sx, af.sy, af.sw, af.sh, -aw*0.5, -ah*0.1, aw, ah);
-          ctx.restore();
-        }
-
-      } else if(swingType === 'stab'){
-        const stabStep = isSp ? 2 : (p.curStep || 0);
-        //                H   angle pull reach hOut hDown outF
-        const STAB_CFG = [
-          [ 70,   0,  -6,  42, 14, 0.28, 0.28], // quick jab:    rapid poke, snappy return
-          [ 80,  -8, -10,  58, 14, 0.33, 0.42], // deep thrust:  committed, arm locks out
-          [ 92, -18, -14,  72, 16, 0.30, 0.38], // power lunge:  startup → hold → pullback
-        ];
-        const [sH, sAngle, sPull, sReach, sHOut, sHDown, sOutF] = STAB_CFG[stabStep] || STAB_CFG[0];
-
-        let ap = t;
-        if(stabStep === 2){ const D=0.15; ap = t < D ? 0 : (t-D)/(1-D); }
-
-        let se;
-        if(stabStep === 2){
-          if(ap <= sOutF)      se = (ap/sOutF)*(ap/sOutF);       // ease-in burst to peak
-          else if(ap <= 0.60)  se = 1.0;                          // hold at full extension
-          else                 se = 1-(ap-0.60)/(1-0.60);         // smooth pullback
-        } else {
-          const t2 = ap < sOutF ? ap/sOutF : 1-(ap-sOutF)/(1-sOutF);
-          se = stabStep === 0 ? t2*(2-t2) : t2 < 0.5 ? 2*t2*t2 : -1+(4-2*t2)*t2;
-        }
-        const stabOffset = sPull + (sReach-sPull)*se;
-
-        const as_ = sH/af.sh, aw = af.sw*as_, ah = af.sh*as_;
-        const ax = p.x + PW/2 - camX + p.facing*sHOut;
-        const ay = p.y + PH*sHDown;
-        ctx.save();
-        ctx.translate(ax, ay);
-        if(p.facing === -1) ctx.scale(-1, 1);
-        ctx.translate(stabOffset, 0);
-        ctx.rotate((-90+sAngle) * Math.PI/180);
-        ctx.drawImage(swordImg, af.sx, af.sy, af.sw, af.sh, -aw*0.5, -ah*0.1, aw, ah);
-        ctx.restore();
+  else if(elem === 'ice'){
+    // Frost crystals extend symmetrically on BOTH sides of the blade —
+    // like ice coating each edge. Paired orbs + thin symmetric arms.
+    const N = 7;
+    for(let i = 0; i < N; i++){
+      const u = (i + 0.5) / N;
+      const pulse = 0.6 + 0.4 * Math.sin(now/280 + i*1.1);
+      const perp  = (7 + 4*pulse);                       // static distance from blade
+      // Both sides simultaneously
+      for(const side of [-1, 1]){
+        const bx = hx + dx*u + nx*perp*side;
+        const by = hy + dy*u + ny*perp*side;
+        const r  = 3.5 + 2.5*pulse;
+        glowOrb(bx, by, r,
+          `rgba(230,248,255,${0.85*pulse})`,
+          'rgba(140,210,255,0)',
+          0.80);
+        // Short crystal arm jutting further out
+        const ex = bx + nx*r*side*0.7;
+        const ey = by + ny*r*side*0.7;
+        ctx.strokeStyle = `rgba(200,240,255,${0.5*pulse})`;
+        ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(ex,ey); ctx.stroke();
       }
     }
+    // Icy white centre spine
+    ctx.strokeStyle = 'rgba(200,240,255,0.45)';
+    ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
   }
 
-  // ─── SLASH IMPACT BURST ─────────────────────────────────────────────────
-  // Shown at the enemy hit position when impactFrame >= 0.
-  // Uses SWORD_IMPACT_FRAMES (128×128 px on sheet), drawn at native size × 0.85.
-  //
-  // TUNING:
-  //   impactScale      = multiply source size for on-screen size
-  //                      1.0 = native sheet size, 0.5 = half, 2.0 = double
-  //   impactX, impactY = world coords of hit (set by triggerImpact on enemy hit)
-  if(swingAnim.impactFrame >= 0){
-    const impactScale = 0.85;  // ← CHANGE: size of the hit-burst effect
-    const imp = SWORD_IMPACT_FRAMES[Math.min(swingAnim.impactFrame, SWORD_IMPACT_FRAMES.length-1)];
-    if(imp){
-      const iw = imp.sw * impactScale;
-      const ih = imp.sh * impactScale;
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, (swingAnim.impactFrame + 1) / 3);
-      ctx.drawImage(swordImg,
-        imp.sx, imp.sy, imp.sw, imp.sh,                   // source on sheet
-        swingAnim.impactX - camX - iw/2,                  // centred on hit X
-        swingAnim.impactY - ih/2,                         // centred on hit Y
-        iw, ih
-      );
+  else if(elem === 'wind'){
+    // Three helical ribbon strands spiraling around the blade.
+    // Each strand is 120° out of phase, amplitude grows tip-ward.
+    const SEGS = 24;
+    const strands = [
+      { phase: 0,          col: 'rgba(100,255,210,0.75)', lw: 2.5 },
+      { phase: Math.PI*2/3, col: 'rgba(255,255,255,0.65)', lw: 1.8 },
+      { phase: Math.PI*4/3, col: 'rgba(80,230,190,0.55)',  lw: 2.0 },
+    ];
+    for(const {phase, col, lw} of strands){
+      ctx.strokeStyle = col;
+      ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.globalAlpha = 1;
+      ctx.beginPath();
+      for(let i = 0; i <= SEGS; i++){
+        const u    = i / SEGS;
+        const amp  = 6 + 8*u;                             // widens toward tip
+        const perp = amp * Math.sin(u * Math.PI*3 + phase + now/90);
+        const bx   = hx + dx*u + nx*perp;
+        const by   = hy + dy*u + ny*perp;
+        i === 0 ? ctx.moveTo(bx,by) : ctx.lineTo(bx,by);
+      }
+      ctx.stroke();
+    }
+  }
+
+  else if(elem === 'lightning'){
+    // Electric arcs branch PERPENDICULARLY off the blade — like electricity
+    // jumping sideways. Two arc pairs, redrawn each frame for flicker.
+    // Soft outer aura first
+    ctx.strokeStyle = 'rgba(200,220,255,0.18)';
+    ctx.lineWidth = 18; ctx.lineCap = 'round';
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+
+    const BRANCHES = 4;
+    for(let i = 0; i < BRANCHES; i++){
+      const u   = (i + 0.3 + Math.random()*0.4) / BRANCHES;
+      const bx  = hx + dx*u, by = hy + dy*u;
+      const dir = (i%2===0 ? 1 : -1);
+      const reach = (10 + Math.random()*14) * dir;
+      // Mid-point jitter
+      const midU  = 0.4 + Math.random()*0.2;
+      const mx    = bx + nx*reach*midU + ax*(Math.random()-0.5)*6;
+      const my    = by + ny*reach*midU + ay*(Math.random()-0.5)*6;
+      const ex    = bx + nx*reach;
+      const ey    = by + ny*reach;
+      // Outer arc glow
+      ctx.strokeStyle = 'rgba(180,200,255,0.40)';
+      ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(mx,my); ctx.lineTo(ex,ey); ctx.stroke();
+      // Bright arc
+      ctx.strokeStyle = '#e8f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.9 + 0.1*Math.random();
+      ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(mx,my); ctx.lineTo(ex,ey); ctx.stroke();
+      // Tip spark
+      glowOrb(ex, ey, 4+Math.random()*3, 'rgba(255,255,255,0.9)', 'rgba(160,180,255,0)', 0.8);
+    }
+    // Bright white core
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+  }
+
+  else if(elem === 'holy'){
+    // Orbiting halos — bright orbs slowly revolve around the blade in a
+    // uniform helix. Evenly spaced, majestic slow rotation.
+    const N = 7;
+    const orbitSpeed = now / 900;
+    for(let i = 0; i < N; i++){
+      const u    = (i + 0.5) / N;
+      // Orbit angle combines position along blade + slow rotation
+      const angle = u * Math.PI*2 + orbitSpeed;
+      const perp  = 10 * Math.sin(angle);
+      // Small secondary cross-axis shift using blade direction
+      const along = 3  * Math.cos(angle);
+      const bx    = hx + dx*u + nx*perp + ax*along;
+      const by    = hy + dy*u + ny*perp + ay*along;
+      const r     = 5 + 2*Math.abs(Math.sin(now/250 + i));
+      glowOrb(bx, by, r,
+        'rgba(255,255,240,0.95)',
+        'rgba(255,230,100,0)',
+        0.75);
+    }
+    // Wide golden outer aura
+    ctx.strokeStyle = 'rgba(255,230,100,0.20)';
+    ctx.lineWidth = 16; ctx.lineCap = 'round';
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+    // Thin gold core
+    ctx.strokeStyle = 'rgba(255,240,160,0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+  }
+
+  else if(elem === 'dark'){
+    // Shadow tendrils curl off the blade like dark flames — but on both sides,
+    // chaotic and jagged, fading into purple-black.
+    const N = 8;
+    for(let i = 0; i < N; i++){
+      const u     = (i + 0.5) / N;
+      const phase = now/70 + i*1.05;
+      const perp  = Math.sin(phase) * (9 + 5*u);
+      // Second harmonic adds chaotic curl
+      const curl  = Math.sin(phase*2.3 + 0.8) * 4;
+      const bx    = hx + dx*u + nx*(perp + curl);
+      const by    = hy + dy*u + ny*(perp + curl);
+      const r     = 5 + 3.5*u + 1.5*Math.abs(Math.sin(now/60 + i));
+      const hue   = 270 + 20*Math.sin(now/80 + i);
+      glowOrb(bx, by, r,
+        `hsla(${hue|0},100%,55%,0.85)`,
+        `hsla(${hue|0},100%,20%,0)`,
+        0.65);
+    }
+    // Dark inner glow — voids light near blade
+    ctx.strokeStyle = 'rgba(30,0,60,0.45)';
+    ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tx,ty); ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ── HIT fallback ──────────────────────────────────────────────────────────────
+// Per-weapon colour palette — ring flash + spikes + centre dot.
+function _procHit(wx, wy, impactFrame, isFinisher, weaponKey){
+  const t = 1 - impactFrame / 6;
+  const alpha = Math.max(0, 1 - t*t);
+  if(alpha < 0.02) return;
+  const sx = wx - camX;
+  const r  = (isFinisher ? 36 : 22) * (1 + t*0.6);
+  ctx.save();
+  ctx.translate(sx, wy);
+  ctx.globalAlpha = alpha;
+
+  // [ringColor, spikeColor, glowColor, dotColor, spikeCount, lineW]
+  const HIT_PAL = {
+    sword:      isFinisher
+      ? ['rgba(255,220,80,0.9)','rgba(255,242,145,0.88)','rgba(255,178,28,1)','rgba(255,255,200,0.96)',10,2.2]
+      : ['rgba(195,228,255,0.9)','rgba(218,240,255,0.88)','rgba(155,208,255,1)','rgba(240,250,255,0.95)',7,1.7],
+    dagger:     ['rgba(50,255,180,0.92)','rgba(110,255,200,0.88)','rgba(30,215,160,1)','rgba(195,255,238,0.96)',isFinisher?8:4,1.5],
+    greatsword: ['rgba(255,210,55,0.92)','rgba(255,238,135,0.88)','rgba(245,185,18,1)','rgba(255,255,195,0.96)',isFinisher?12:8,2.5],
+    axe:        ['rgba(255,95,18,0.92)','rgba(255,158,55,0.88)','rgba(255,75,8,1)','rgba(255,218,155,0.96)',isFinisher?8:6,2.2],
+    katana:     ['rgba(198,244,255,0.92)','rgba(240,255,255,0.88)','rgba(155,228,255,1)','rgba(255,255,255,0.98)',isFinisher?10:4,1.4],
+    cestus:     ['rgba(255,138,28,0.92)','rgba(255,198,75,0.88)','rgba(255,115,8,1)','rgba(255,238,198,0.96)',isFinisher?8:5,2.0],
+  };
+  const [ringCol,spikeCol,glowCol,dotCol,spikes,lw] = HIT_PAL[weaponKey] || HIT_PAL.sword;
+
+  // Ring flash
+  ctx.strokeStyle = ringCol;
+  ctx.lineWidth   = isFinisher ? 3 : 2;
+  ctx.shadowColor = glowCol; ctx.shadowBlur = 18;
+  ctx.beginPath(); ctx.arc(0,0, r,0,Math.PI*2); ctx.stroke();
+
+  // Spikes
+  ctx.strokeStyle = spikeCol;
+  ctx.lineWidth = lw; ctx.shadowBlur = 10;
+  for(let i=0;i<spikes;i++){
+    const a = (i/spikes)*Math.PI*2;
+    const inner=r*0.35, outer=r*(1.1+(i%2)*0.4);
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*inner, Math.sin(a)*inner);
+    ctx.lineTo(Math.cos(a)*outer, Math.sin(a)*outer);
+    ctx.stroke();
+  }
+
+  // Dagger — sharp cross overlay
+  if(weaponKey==='dagger'){
+    ctx.strokeStyle='rgba(60,255,185,0.65)'; ctx.lineWidth=1.2; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.moveTo(-r*1.4,0); ctx.lineTo(r*1.4,0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-r*1.4); ctx.lineTo(0,r*1.4); ctx.stroke();
+  }
+  // Katana — diagonal slash line
+  if(weaponKey==='katana'){
+    ctx.strokeStyle='rgba(235,255,255,0.72)';
+    ctx.lineWidth=isFinisher?2:1; ctx.shadowBlur=12;
+    ctx.beginPath(); ctx.moveTo(-r*1.6,-r*0.2); ctx.lineTo(r*1.6,r*0.2); ctx.stroke();
+  }
+
+  // Centre dot
+  ctx.fillStyle=dotCol; ctx.shadowBlur=20;
+  ctx.beginPath(); ctx.arc(0,0,r*0.18,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ── Slot-aware draw helpers ───────────────────────────────────────────────────
+// Returns the Image to use for a slot, or null if procedural.
+// undefined in _WS[slot] means "use swordImg row" (legacy sheet system).
+function _slotImg(slot){
+  const s = _WS[slot];
+  if(s === undefined) return swordLoaded ? swordImg : null; // legacy
+  if(s === null)      return null; // procedural
+  return _WL[slot] ? s : null;    // PNG: use when loaded, proc until then
+}
+
+function drawSwordSprite(p, trailOnly=false){
+  if(!trailOnly) tickSwingAnim(p);
+
+  // Special attack: suppress all sword swing/trail/impact rendering unconditionally.
+  // drawSpecialSprite() handles the sp visual; cestus rsWindup is a separate flag (p.rsWindup)
+  // and is unaffected since rsWindup=false by the time spAtk becomes true.
+  if(p.spAtk) return;
+
+  const isAtk = p.atk || p.atkCD > 0;
+  const isSp  = false; // spAtk already returned above
+  const ACTIVE = isAtk || swingAnim.active || p.rsWindup;
+  if(!ACTIVE) return;
+
+  const step     = p.curStep || 0;
+  const stepData = getStep(isSp ? getMaxSteps()-1 : step);
+  const motion   = stepData.motion || 'arc';
+  const t        = swingAnim.prog || 0;
+  const af       = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
+
+  const wKey = activeWeapon ? Object.keys(WEAPONS).find(k=>WEAPONS[k]===activeWeapon)||'sword' : 'sword';
+
+  // ── RESOLVED STEEL WINDUP (strike-type special: charge glow + cocked fist) ─
+  if(p.rsWindup){
+    if(trailOnly) return;
+    const pct  = p.rsF / RS_WINDUP_FRAMES;
+    const fx = p.x + PW/2 - camX + p.facing * -(18 + pct * 22);
+    const fy = p.y + PH * (0.25 - pct * 0.08);
+    // Glow halo (always procedural)
+    const glowR = 18 + pct * 32;
+    const grad = ctx.createRadialGradient(fx, fy, 2, fx, fy, glowR);
+    grad.addColorStop(0, `rgba(255,160,40,${0.5 + pct*0.4})`);
+    grad.addColorStop(1, 'rgba(255,100,10,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(fx, fy, glowR, 0, Math.PI*2); ctx.fill();
+    // Fist — sheet or procedural
+    const wImg = _slotImg('weapon');
+    const waf  = SWORD_ATK_FRAMES[0];
+    if(wImg && waf){
+      const FIST_H = 64 + pct * 28;
+      const fs = FIST_H/waf.sh, fw = waf.sw*fs, fh = waf.sh*fs;
+      ctx.save(); ctx.translate(fx, fy);
+      if(p.facing===-1) ctx.scale(-1,1);
+      ctx.drawImage(wImg, waf.sx, waf.sy, waf.sw, waf.sh, -fw*0.5, -fh*0.5, fw, fh);
       ctx.restore();
+    } else {
+      _procWeapon(fx, fy, 0, stepData, p.facing, wKey);
+    }
+    return;
+  }
+
+  // ─── TRAIL PASS (drawn BEHIND player) ─────────────────────────────────────
+  if(trailOnly){
+    const trailStep = isSp ? getMaxSteps()-1 : step;
+    const trailData = getStep(trailStep);
+    const pivX = p.x + PW/2 - camX + p.facing * trailData.pivotX;
+    const pivY = p.y + PH * trailData.pivotY;
+    const tImg = _slotImg('trail');
+
+    if(tImg){
+      const isSingleFrameTrail = tImg.naturalWidth === tImg.naturalHeight;
+      const tAncX = _WM.trail.anchorX, tAncY = _WM.trail.anchorY;
+      if(isSingleFrameTrail){
+        // Single-frame square PNG — draw at current swing angle using anchor metadata
+        const TRAIL_H = stepData.swingH * 1.1;
+        const ts = TRAIL_H / tImg.naturalHeight, tw = tImg.naturalWidth*ts, th = tImg.naturalHeight*ts;
+        if(motion === 'strike'){
+          if(t < 0.05 || t > 0.75) return;
+          const fwd = stepData.swingH*0.44, vert = -stepData.swingH*0.22, outF = 0.35;
+          const prevAp = Math.max(0, t-0.12);
+          const pt2 = prevAp<outF?prevAp/outF:1-(prevAp-outF)/(1-outF);
+          const ppE = pt2<0.5?2*pt2*pt2:-1+(4-2*pt2)*pt2;
+          ctx.save();
+          ctx.translate(pivX + p.facing*(ppE*fwd), pivY + ppE*vert);
+          if(p.facing===-1) ctx.scale(-1,1);
+          ctx.globalAlpha = 0.45;
+          ctx.drawImage(tImg, 0, 0, tImg.naturalWidth, tImg.naturalHeight, -tw*tAncX, -th*tAncY, tw, th);
+          ctx.globalAlpha = 1; ctx.restore();
+        } else {
+          const trailAngle = swordAngle(t, trailStep) + Math.PI/2;
+          ctx.save(); ctx.translate(pivX, pivY);
+          if(p.facing===-1) ctx.scale(-1,1);
+          ctx.rotate(trailAngle);
+          ctx.globalAlpha = 0.75;
+          ctx.drawImage(tImg, 0, 0, tImg.naturalWidth, tImg.naturalHeight, -tw*tAncX, -th*tAncY, tw, th);
+          ctx.globalAlpha = 1; ctx.restore();
+        }
+      } else {
+        // Spritesheet trail (frame-based)
+        if(motion === 'strike'){
+          if(t < 0.05 || t > 0.75) return;
+          const tf = SWORD_ATK_FRAMES[Math.max(0, (swingAnim.frame||0)-1)];
+          if(!tf) return;
+          const fwd = stepData.swingH*0.44, vert = -stepData.swingH*0.22, outF = 0.35;
+          const prevAp = Math.max(0, t-0.12);
+          const pt2 = prevAp<outF?prevAp/outF:1-(prevAp-outF)/(1-outF);
+          const ppE = pt2<0.5?2*pt2*pt2:-1+(4-2*pt2)*pt2;
+          const sprH = stepData.swingH;
+          const ts = sprH/tf.sh, tw = tf.sw*ts, th = tf.sh*ts;
+          ctx.save();
+          ctx.translate(pivX + p.facing*(ppE*fwd), pivY + ppE*vert);
+          if(p.facing===-1) ctx.scale(-1,1);
+          ctx.globalAlpha = 0.35;
+          ctx.drawImage(tImg, tf.sx, tf.sy, tf.sw, tf.sh, -tw*0.5, -th*0.5, tw, th);
+          ctx.globalAlpha = 1; ctx.restore();
+        } else {
+          const SWORD_TRAIL_H = 120;
+          const tf = SWORD_TRAIL_FRAMES[Math.min(swingAnim.trailFrame||0, 7)];
+          if(!tf) return;
+          const ts = SWORD_TRAIL_H/tf.sh, tw = tf.sw*ts, th = tf.sh*ts;
+          ctx.save(); ctx.translate(pivX, pivY);
+          if(p.facing===-1) ctx.scale(-1,1);
+          ctx.globalAlpha = 0.85;
+          ctx.drawImage(tImg, tf.sx, tf.sy, tf.sw, tf.sh, -tw*0.35, -th*0.5, tw, th);
+          ctx.globalAlpha = 1; ctx.restore();
+        }
+      }
+    } else {
+      // Procedural trail
+      _procTrail(pivX, pivY, t, trailStep, trailData, p.facing, wKey);
+    }
+    return;
+  }
+
+  // ─── WEAPON SPRITE (drawn ON TOP of player) ──────────────────────────────
+  if(isAtk || isSp){
+    const wImg = _slotImg('weapon');
+    const af   = SWORD_ATK_FRAMES[Math.min(swingAnim.frame||0, 5)];
+    const sH   = stepData.swingH || 104;
+
+    // Derive draw position directly from hitbox segment — weapon always follows hitbox
+    const seg = getBladeSegment(p, t);
+
+    // For rendering, convert world→screen (subtract camX from x only)
+    const drawPivX = seg.hx - camX, drawPivY = seg.hy;
+
+    if(wImg && af){
+      // Single-frame: square image (w===h), any export size.  Spritesheet: wider than tall.
+      const isSingleFrame = wImg.naturalWidth === wImg.naturalHeight;
+      const srcX = isSingleFrame ? 0                    : af.sx;
+      const srcY = isSingleFrame ? 0                    : af.sy;
+      const srcW = isSingleFrame ? wImg.naturalWidth    : af.sw;
+      const srcH = isSingleFrame ? wImg.naturalHeight   : af.sh;
+      const as_ = sH/srcH, aw = srcW*as_, ah = srcH*as_;
+      // Anchor: where in the PNG the guard sits.  Read from weapon definition metadata.
+      // For single-frame exports this is set by the editor; for legacy spritesheets uses (0.5,0.1).
+      const ancX = isSingleFrame ? _WM.weapon.anchorX : 0.5;
+      const ancY = isSingleFrame ? _WM.weapon.anchorY : 0.1;
+      if(motion === 'thrust'){
+        // +π/2 matches tip-at-top convention (same as arc and proc weapon).
+        // Legacy -π/2 assumed tip-at-bottom (old spritesheet only).
+        ctx.save(); ctx.translate(drawPivX, drawPivY);
+        if(p.facing===-1) ctx.scale(-1,1);
+        ctx.rotate(Math.PI/2);
+        ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
+        ctx.restore();
+      } else if(motion === 'strike'){
+        ctx.save(); ctx.translate(drawPivX, drawPivY);
+        if(p.facing===-1) ctx.scale(-1,1);
+        ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
+        ctx.restore();
+      } else {
+        const drawAngle = swordAngle(t, step) + Math.PI/2;
+        ctx.save(); ctx.translate(drawPivX, drawPivY);
+        if(p.facing===-1) ctx.scale(-1,1);
+        ctx.rotate(drawAngle);
+        ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
+        ctx.restore();
+      }
+    } else {
+      // Procedural weapon — position and angle driven by getBladeSegment
+      const drawX = drawPivX, drawY = drawPivY;
+      _procWeapon(drawX, drawY, swordAngle(t, step), stepData, p.facing, wKey);
+    }
+  }
+
+  // ─── IMPACT BURST ────────────────────────────────────────────────────────
+  if(swingAnim.impactFrame >= 0){
+    const hitImg = _slotImg('hit');
+    const isFinisher = (p.curStep||0) >= getMaxSteps()-1;
+    if(hitImg){
+      const isSingleFrameHit = hitImg.naturalWidth === hitImg.naturalHeight;
+      if(isSingleFrameHit){
+        const HIT_H = 96;
+        const hs = HIT_H / hitImg.naturalHeight, hw = hitImg.naturalWidth*hs, hh = hitImg.naturalHeight*hs;
+        const hAncX = _WM.hit.anchorX, hAncY = _WM.hit.anchorY;
+        const alpha = Math.min(1, (swingAnim.impactFrame+1)/3);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(swingAnim.impactX - camX, swingAnim.impactY);
+        ctx.drawImage(hitImg, 0, 0, hitImg.naturalWidth, hitImg.naturalHeight, -hw*hAncX, -hh*hAncY, hw, hh);
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      } else {
+        const impactScale = 0.85;
+        const imp = SWORD_IMPACT_FRAMES[Math.min(swingAnim.impactFrame, SWORD_IMPACT_FRAMES.length-1)];
+        if(imp){
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, (swingAnim.impactFrame+1)/3);
+          ctx.drawImage(hitImg,
+            imp.sx, imp.sy, imp.sw, imp.sh,
+            swingAnim.impactX - camX - imp.sw*impactScale/2,
+            swingAnim.impactY - imp.sh*impactScale/2,
+            imp.sw*impactScale, imp.sh*impactScale);
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        }
+      }
+    } else {
+      _procHit(swingAnim.impactX, swingAnim.impactY, swingAnim.impactFrame, isFinisher, wKey);
     }
   }
 }
@@ -4361,7 +5341,7 @@ function drawSwordTrail(){
     const a=swordTrail[i-1],b=swordTrail[i];
     const alpha=(1-b.age)*(i/n)*0.88;
     if(alpha<0.02) continue;
-    const isF=b.step===2;const isSp=b.sp;
+    const isF=b.step>=getMaxSteps()-1;const isSp=b.sp;
     ctx.save();ctx.globalAlpha=alpha;
     ctx.beginPath();
     ctx.moveTo(a.bx-camX,a.by);ctx.lineTo(a.tx-camX,a.ty);
@@ -5329,7 +6309,7 @@ function _bossHitPlayer(e, dmg, knockVx, knockVy){
 
 function onParrySuccess(attacker, {skipStun=false, fastReady=false}={}){
   player.parryTimer=0;
-  player.parryCD=fastReady ? 28 : PARRY_COOLDOWN; // fast re-ready for dual-parry combo window
+  player.parryCD=fastReady ? 16 : PARRY_COOLDOWN; // fast re-ready for combo parry window (must be < smallest boss combo gap: 22)
   player.invuln=true;
   setTimeout(()=>{ player.invuln=false; },800);
 
@@ -5451,10 +6431,19 @@ function loop(now=0){
   _lastT = now;
   _accumulator += frameTime;
   while(_accumulator >= FIXED_DT){
+    // Save positions at the start of each tick — after the loop, these hold the
+    // "previous tick" state so the renderer can interpolate between them and current
+    if(_sim120){
+      _prevPX=player.x; _prevPY=player.y; _prevCamXI=camX;
+      enemies.forEach(e=>{ e._ipx=e.x; e._ipy=e.y; });
+    }
+    _tickMultiHitQueue(); // always runs — burst hits fire through freeze frames uninterrupted
     if(frozen > 0){ frozen--; }
-    else { pollGamepad(); _loopUpdate(); }
+    else { _loopUpdate(); }
     _accumulator -= FIXED_DT;
   }
+  // How far into the next (not-yet-run) tick are we? Use this to interpolate renders.
+  _renderAlpha = _sim120 ? Math.min(1, _accumulator / FIXED_DT) : 1;
   _loopDraw();
 }
 function _loopUpdate(){
@@ -5493,13 +6482,25 @@ function _loopUpdate(){
   else if(player.evadeTimer>0){ player.vx=player.evadeDir*EVADE_SPEED*GAME_SPEED; }
   else if(player.airAtkFreezeTimer>0){ player.vx=goL?-AIR_ATK_FREEZE_DRIFT:goR?AIR_ATK_FREEZE_DRIFT:0; }
   else {
-    if(goL){player.vx-=1.6*GAME_SPEED;player.facing=-1;}
-    if(goR){player.vx+=1.6*GAME_SPEED;player.facing=1;}
-    player.vx=Math.max(-6*GAME_SPEED,Math.min(6*GAME_SPEED,player.vx));
+    if(goL){player.vx-=2.0*GAME_SPEED;player.facing=-1;}
+    if(goR){player.vx+=2.0*GAME_SPEED;player.facing=1;}
+    // Gentle air drag when no directional input held — stops floaty drift
+    if(!goL&&!goR&&!player.onGround) player.vx*=0.88;
+    player.vx=Math.max(-7*GAME_SPEED,Math.min(7*GAME_SPEED,player.vx));
   }
-  if(player.onGround){ player.jumpsLeft=2; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
-  if(jumpEdge&&player.jumpsLeft>0&&!player.dead){player.vy=JUMP_V*GAME_SPEED;player.jumpsLeft--;player.juggleFollow=false;}
-  jumpEdge=false;
+  if(player.onGround){ player.jumpsLeft=2; coyoteFrames=6; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSlamNeedsRehold=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
+  else if(coyoteFrames>0){ coyoteFrames--; } // off-ledge grace window
+  // Jump buffer: queue a jump press for up to 10 frames
+  if(jumpEdge){ jumpBuffer=10; } jumpEdge=false;
+  if(jumpBuffer>0) jumpBuffer--;
+  // Allow jump if buffered — coyote extends the "on ground" window 6 frames after walking off edge
+  const canJump = player.jumpsLeft>0 || coyoteFrames>0;
+  if(jumpBuffer>0&&canJump&&!player.dead){
+    player.vy=JUMP_V*GAME_SPEED;
+    // Coyote jump uses the first jump slot so double-jump still works normally
+    if(player.jumpsLeft>0) player.jumpsLeft--;
+    jumpBuffer=0; coyoteFrames=0; player.juggleFollow=false; player.pendingAirFollow=false;
+  }
 
   // STAMINA REGEN
   if(player.stRegenDelay>0){ player.stRegenDelay--; }
@@ -5530,7 +6531,7 @@ function _loopUpdate(){
   if(doAtk&&!player.dead&&!player.rsWindup){
     if(!player.atk&&player.atkCD<=0&&!player.spAtk){
       launchAttack(player.comboStep);
-    } else if(player.atk&&player.atkF>ATK_FRAMES[player.curStep]*0.35){
+    } else if(player.atk&&player.atkF>ATK_FRAMES[player.curStep]*0.20){
       player.comboQueued=true;
     }
   }
@@ -5567,6 +6568,29 @@ function _loopUpdate(){
       player.arcaneWindupSpell=null;
     }
   }
+  // ── EXCALIBUR WINDUP ──────────────────────────────────────────────────────
+  const EXCALIBUR_WINDUP_FRAMES = 90; // 1.5s charge
+  if(player.excaliburWindup&&!player.dead){
+    player.excaliburWindupF++;
+    const prog = player.excaliburWindupF / EXCALIBUR_WINDUP_FRAMES;
+    const cx = player.x+PW/2, cy = player.y+PH*0.2;
+    // Rising golden sparks converging from above
+    if(Math.random()<0.55+prog*0.4){
+      const sx = cx+(Math.random()-.5)*(200-prog*100);
+      const sy = cy-(60+Math.random()*120);
+      particles.push({type:'spark',x:sx,y:sy,
+        vx:(cx-sx)*0.08+(Math.random()-.5)*1.5,
+        vy:(cy-sy)*0.08+Math.random()*0.5,
+        life:0.9,decay:0.025+Math.random()*0.02,
+        r:2+Math.random()*3+prog*3,
+        color:`hsl(${42+Math.random()*18|0},100%,${70+Math.random()*25|0}%)`});
+    }
+    if(player.excaliburWindupF >= EXCALIBUR_WINDUP_FRAMES){
+      player.excaliburWindup = false;
+      player.excaliburWindupF = 0;
+      _fireExcaliburBeam();
+    }
+  }
   // EVADE
   if(doEvade&&!player.dead&&!player.evadeTimer&&!player.evadeCD&&!player.stDepleted&&player.stamina>=EVADE_STAMINA){
     player.stamina=Math.max(0,player.stamina-EVADE_STAMINA);
@@ -5592,28 +6616,45 @@ function _loopUpdate(){
   if(player.parryTimer>0) player.parryTimer--;
   if(player.parryCD>0) player.parryCD--;
 
-  // Ground launch on tap/hold
+  // Ground launch — always launch enemy immediately; follow only after sustained hold
   if(launchEdge&&!player.dead&&player.onGround){
-    launchEnemy(launchHeld);
-    if(launchHeld) launchHoldFrames=0; // reset so hold-to-follow doesn't bleed into slam
+    launchEnemy();
+    launchHoldFrames=0;
   }
 
   if(launchHeld){
     launchHoldFrames++;
-    // Arm slam when airborne — juggleFollow check removed so re-press after follow works
-    if(!player.onGround&&!player.airSlamUsed) player.airSlamArmed=true;
+    // Ground follow: trigger jump only after holding ≥10 frames (distinguishes tap from hold)
+    if(player.pendingAirFollow&&player.onGround&&launchHoldFrames>=10&&!player.dead){
+      player.pendingAirFollow=false;
+      player.onGround=false;
+      player.juggleFollow=true;
+      player.juggleFollowUsed=true;
+      player.launchJumpReady=false;
+      player.vx=0;
+      player.y-=10;
+      player.vy=JUGGLE_PLAYER_VY;
+      bloodBurst(player.x+PW/2, player.y+PH*0.3, 10);
+      sparkBurst(player.x+PW/2, player.y+PH*0.3, 8, false);
+      player.airSlamNeedsRehold=true; // must release and re-hold to air-smash
+      launchHoldFrames=0;
+    }
+    // Only arm slam on a FRESH hold — if we just did an air-follow, button must be released first
+    if(!player.onGround&&!player.airSlamUsed&&!player.airSlamNeedsRehold) player.airSlamArmed=true;
     // Air slam: hold 22 frames while armed
     if(launchHoldFrames>=22&&!player.onGround&&!player.airSlamUsed&&player.airSlamArmed&&!player.dead){
       airSlamEnemy();
       launchHoldFrames=0;
     }
   } else {
-    // Button released in air — quick tap re-juggles enemy upward
+    // Button released — quick tap in air re-juggles; clear all follow/rehold state
     if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<22&&!player.dead){
       _airRelaunch();
     }
+    player.pendingAirFollow=false;    // tapped — no follow
     launchHoldFrames=0; player.launchJumpReady=false;
-    player.airSlamArmed=false; // disarm on release — requires fresh hold to slam
+    player.airSlamArmed=false;        // disarm — requires fresh hold to slam
+    player.airSlamNeedsRehold=false;  // cleared — next hold is a fresh hold
   }
   if(player.launchCD>0) player.launchCD--;
 
@@ -5627,10 +6668,15 @@ function _loopUpdate(){
     const frames=ATK_FRAMES[player.curStep||0];
     if(player.atkF>=frames){
       player.atk=false;
-      if(player.comboQueued&&player.comboStep<3&&player.comboTimer>0){
+      if(player.comboQueued&&player.comboStep<getMaxSteps()&&player.comboTimer>0){
         player.comboQueued=false;
         launchAttack(player.comboStep);
-      } else player.comboQueued=false;
+      } else {
+        player.comboQueued=false;
+        // No follow-up queued — reset combo chain immediately
+        player.comboStep=0;
+        player.comboTimer=0;
+      }
     }
   }
   if(player.spAtk){player.spF++;if(player.spF>=24)player.spAtk=false;}
@@ -5670,7 +6716,8 @@ function _loopUpdate(){
         if(e.dead) return;
         const dx = (e.x+EW/2)-(player.x+PW/2);
         if(Math.sign(dx)===player.facing || Math.abs(dx)<40){
-          const dmg = Math.round(calcBaseDmg()*activeWeapon.dmgMult*3.8+(Math.random()*30|0));
+          const _spDmgMult = (activeWeapon.dmgMult ?? 1.0);
+          const dmg = Math.round(calcBaseDmg()*_spDmgMult*3.8+(Math.random()*30|0));
           _spHit(e, dmg, '#FF7010', '💥');
           e.vx = player.facing * 32;  // colossal horizontal knockback
           e.vy = -6;
@@ -5724,16 +6771,20 @@ function _loopUpdate(){
     const angle = swordAngle(prog, st);
     const {px, py} = comboPiv(st);
     const tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
-    const tipY = py + Math.sin(angle) * SWORD_RANGE;
+    const tipY = py + player.facing * Math.sin(angle) * SWORD_RANGE;
     swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false});
     if(swordTrail.length>32) swordTrail.shift();
   } else if(player.spAtk){
     const prog = player.spF/24;
-    const angle = COMBO[2].start+(COMBO[2].end-COMBO[2].start)*Math.pow(prog,0.4);
-    const pivX = player.x+PW/2, pivY = player.y+PH/2;
-    const tipX = pivX+player.facing*Math.cos(angle)*(SWORD_RANGE*1.5);
-    const tipY = pivY+Math.sin(angle)*(SWORD_RANGE*1.5);
-    swordTrail.push({bx:pivX, by:pivY, tx:tipX, ty:tipY, age:0, step:2, sp:true});
+    // Use last step data for the special attack trail sweep
+    const _spStep = getMaxSteps()-1;
+    const _spS = getStep(_spStep);
+    const _spAngle = (_spS.startAngle + (_spS.endAngle-_spS.startAngle)*Math.pow(Math.min(1,prog),0.4)) * Math.PI/180;
+    const pivX = player.x+PW/2 + player.facing*(_spS.pivotX||16);
+    const pivY = player.y + PH*(_spS.pivotY||0.30);
+    const tipX = pivX+player.facing*Math.cos(_spAngle)*(SWORD_RANGE*1.5);
+    const tipY = pivY+player.facing*Math.sin(_spAngle)*(SWORD_RANGE*1.5);
+    swordTrail.push({bx:pivX, by:pivY, tx:tipX, ty:tipY, age:0, step:_spStep, sp:true});
     if(swordTrail.length>32) swordTrail.shift();
   } else {
     swordTrail.forEach(p=>{p.age+=0.11;});
@@ -5758,7 +6809,9 @@ function _loopUpdate(){
   physics(player, true, _pGrav);
   updateGrapple();
   const maxCamX=Math.max(0, STAGE_RIGHT - canvas.width);
-  camX=Math.max(0, Math.min(maxCamX, player.x - canvas.width*0.36));
+  const _targetCamX=Math.max(0, Math.min(maxCamX, player.x - canvas.width*0.36));
+  camX += (_targetCamX - camX) * 0.14; // smooth lerp — responsive but not jarring
+  camX = Math.max(0, Math.min(maxCamX, camX));
 
   // ENEMIES
   enemies.forEach(e=>{
@@ -6098,7 +7151,7 @@ function _loopUpdate(){
     // Slam landing
     if(e.slammed&&e.onGround){
       e.slammed=false;
-      if(!e.boss) e.stunTimer=SLAM_STUN_FRAMES;
+      e.stunTimer=Math.max(e.stunTimer||0, e.boss ? 70 : SLAM_STUN_FRAMES); // boss gets shorter stun
       e.vx=0;
       const _slamDmg=Math.round(calcBaseDmg()*1.2+(Math.random()*10|0));
       const _prev=e.hp;
@@ -6226,7 +7279,7 @@ function _loopUpdate(){
   // BEAMS (katana)
   beams.forEach(b=>{
     b.x+=b.vx;
-    b.life-=0.011;
+    b.life -= b.excalibur ? 0.032 : 0.011;
     if(b.x<STAGE_LEFT-400||b.x>STAGE_RIGHT+400||b.life<=0){b.dead=true;return;}
     const bLeft =b.facing===1?b.startX:b.x;
     const bRight=b.facing===1?b.x:b.startX;
@@ -6254,9 +7307,9 @@ function _loopUpdate(){
     else if(p.type==='text'){p.y+=p.vy;p.vy*=0.88;p.life-=p.decay;p.scale=Math.max(1,p.scale-0.06);}
     else if(p.type==='iaidoLine'){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;}
   });
-  particles=particles.filter(p=>p.life>0);
+  for(let i=particles.length-1;i>=0;i--){if(particles[i].life<=0)particles.splice(i,1);}
   bloodDecals.forEach(d=>{d.alpha=Math.max(0,d.alpha-d.decay);});
-  bloodDecals=bloodDecals.filter(d=>d.alpha>.015);
+  for(let i=bloodDecals.length-1;i>=0;i--){if(bloodDecals[i].alpha<=.015)bloodDecals.splice(i,1);}
 
   // SHAKE
   if(shakeMag>0.3){shakeX=(Math.random()-.5)*shakeMag*2;shakeY=(Math.random()-.5)*shakeMag*2;shakeMag*=0.7;}
@@ -6268,7 +7321,27 @@ function _loopUpdate(){
 } // end _loopUpdate
 
 function _loopDraw(){
+  // ── RENDER INTERPOLATION (120fps mode) ──────────────────────────────────────
+  // Move player, enemies and camera to the sub-tick interpolated position for
+  // this frame, then restore the real simulation state at the end of the draw.
+  let _iSaved = null;
+  if(_sim120 && _renderAlpha < 0.999){
+    const a = _renderAlpha;
+    _iSaved = { px:player.x, py:player.y, cx:camX,
+                en: enemies.map(e=>({x:e.x,y:e.y})) };
+    player.x = _prevPX + (player.x - _prevPX)*a;
+    player.y = _prevPY + (player.y - _prevPY)*a;
+    camX = _prevCamXI + (camX - _prevCamXI)*a;
+    enemies.forEach(e=>{
+      const epx=e._ipx??e.x, epy=e._ipy??e.y;
+      e.x=epx+(e.x-epx)*a; e.y=epy+(e.y-epy)*a;
+    });
+  }
+  // ────────────────────────────────────────────────────────────────────────────
   const W=canvas.width,H=canvas.height;
+  // Safety reset — prevents transform/alpha accumulation if any draw call throws
+  ctx.resetTransform();
+  ctx.globalAlpha=1;
   // RENDER
   ctx.clearRect(0,0,W,H);
   ctx.save();ctx.translate(shakeX,shakeY);
@@ -6305,15 +7378,10 @@ function _loopDraw(){
       ctx.strokeStyle = 'rgba(0,0,0,0.85)';
       ctx.lineJoin = 'round';
       ctx.strokeText(p.text, 0, 0);
-      // outer glow
+      // outer glow — blur kept small; shadowBlur cost scales quadratically
       ctx.shadowColor = p.color;
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 8;
       ctx.fillStyle = p.color;
-      ctx.fillText(p.text, 0, 0);
-      // inner bright highlight
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#fff';
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.fillText(p.text, 0, 0);
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
@@ -6363,32 +7431,67 @@ function _loopDraw(){
   // ENEMY PROJECTILE RENDER
   drawEnemyProjectiles();
 
-  // BEAM RENDER (katana)
+  // BEAM RENDER (katana horizontal + excalibur divine overhead)
   beams.forEach(b=>{
+    const alpha=Math.min(1,b.life*1.4);
+    if(b.excalibur){
+      const bx1 = Math.min(b.startX, b.x) - camX;
+      const bx2 = Math.max(b.startX, b.x) - camX;
+      const by  = b.y;
+      ctx.save();
+      ctx.lineCap='round';
+      // Massive outer glow
+      ctx.globalAlpha=alpha*0.22;
+      ctx.shadowColor='#ffe060'; ctx.shadowBlur=60;
+      ctx.fillStyle='rgba(255,235,100,0.18)';
+      ctx.fillRect(bx1, by-180, bx2-bx1, 360);
+      // Core bright streak
+      ctx.globalAlpha=alpha*0.75;
+      ctx.shadowBlur=30;
+      const grd=ctx.createLinearGradient(bx1,0,bx2,0);
+      grd.addColorStop(0,'rgba(255,255,220,0)');
+      grd.addColorStop(0.1,'rgba(255,240,140,0.9)');
+      grd.addColorStop(0.5,'rgba(255,255,255,1.0)');
+      grd.addColorStop(0.9,'rgba(255,240,140,0.9)');
+      grd.addColorStop(1,'rgba(255,255,220,0)');
+      ctx.strokeStyle=grd; ctx.lineWidth=18;
+      ctx.beginPath(); ctx.moveTo(bx1,by); ctx.lineTo(bx2,by); ctx.stroke();
+      // Sharp white core line
+      ctx.globalAlpha=alpha;
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=3; ctx.shadowBlur=14;
+      ctx.beginPath(); ctx.moveTo(bx1,by); ctx.lineTo(bx2,by); ctx.stroke();
+      // Vertical light shafts raining down
+      ctx.globalAlpha=alpha*0.35;
+      ctx.strokeStyle='rgba(255,250,200,0.7)'; ctx.lineWidth=1.5; ctx.shadowBlur=8;
+      for(let sx=bx1+20;sx<bx2;sx+=40+Math.random()*30){
+        const sh=60+Math.random()*100;
+        ctx.beginPath(); ctx.moveTo(sx,by-sh); ctx.lineTo(sx,by); ctx.stroke();
+      }
+      ctx.globalAlpha=1; ctx.shadowBlur=0;
+      ctx.restore();
+      return;
+    }
+    // Katana beam (original)
     const bx1=(b.facing===1?Math.max(b.startX,b.x-b.len):b.x)-camX;
     const bx2=(b.facing===1?b.x:Math.min(b.startX,b.x+b.len))-camX;
     const by=b.y;
     const midX=(bx1+bx2)/2;
-    const bow=38; // vertical arc bow downward
-    const alpha=Math.min(1,b.life*1.4);
-    const arc=()=>{ctx.beginPath();ctx.moveTo(bx1,by);ctx.quadraticCurveTo(midX,by+bow,bx2,by);};
+    const bow=38;
+    const arc_=()=>{ctx.beginPath();ctx.moveTo(bx1,by);ctx.quadraticCurveTo(midX,by+bow,bx2,by);};
     ctx.save();
     ctx.lineCap='round';
-    // outer soft glow
     ctx.globalAlpha=alpha*0.28;
     ctx.shadowColor='#60cfff';ctx.shadowBlur=30;
-    arc();ctx.strokeStyle='rgba(100,220,255,0.5)';ctx.lineWidth=32;ctx.stroke();
-    // mid gradient stroke — fades from tail, bright at leading edge
+    arc_();ctx.strokeStyle='rgba(100,220,255,0.5)';ctx.lineWidth=32;ctx.stroke();
     ctx.globalAlpha=alpha*0.65;
     ctx.shadowBlur=16;
     const grad=ctx.createLinearGradient(bx1,by,bx2,by);
     if(b.facing===1){grad.addColorStop(0,'rgba(160,232,255,0)');grad.addColorStop(0.55,'rgba(180,235,255,0.75)');grad.addColorStop(1,'rgba(255,255,255,0.95)');}
     else{grad.addColorStop(0,'rgba(255,255,255,0.95)');grad.addColorStop(0.45,'rgba(180,235,255,0.75)');grad.addColorStop(1,'rgba(160,232,255,0)');}
-    arc();ctx.strokeStyle=grad;ctx.lineWidth=11;ctx.stroke();
-    // sharp core
+    arc_();ctx.strokeStyle=grad;ctx.lineWidth=11;ctx.stroke();
     ctx.globalAlpha=alpha;
     ctx.shadowBlur=8;
-    arc();ctx.strokeStyle='#e8f8ff';ctx.lineWidth=3;ctx.stroke();
+    arc_();ctx.strokeStyle='#e8f8ff';ctx.lineWidth=3;ctx.stroke();
     ctx.restore();
   });
 
@@ -6416,12 +7519,35 @@ function _loopDraw(){
     ctx.shadowBlur=0; ctx.globalAlpha=1;
     ctx.restore();
   }
-  // Trail drawn BEHIND player
-  if(!player.dead) drawSwordSprite(player, true);
+  // ── EXCALIBUR WINDUP DRAW ─────────────────────────────────────────────────
+  if(player.excaliburWindup){
+    const EXCALIBUR_WINDUP_FRAMES = 90;
+    const prog = player.excaliburWindupF / EXCALIBUR_WINDUP_FRAMES;
+    const cx = player.x+PW/2-camX, cy = player.y+PH*0.1;
+    const pulse = 0.5+0.5*Math.sin(Date.now()/35);
+    // Expanding golden ring
+    const ringR = 22+prog*60;
+    ctx.save();
+    ctx.globalAlpha=(0.2+prog*0.5)*pulse;
+    ctx.shadowColor='#ffe060'; ctx.shadowBlur=40;
+    ctx.strokeStyle=`rgba(255,230,80,${0.5+prog*0.5})`;
+    ctx.lineWidth=3+prog*5;
+    ctx.beginPath(); ctx.arc(cx,cy,ringR,0,Math.PI*2); ctx.stroke();
+    // Inner gold fill
+    ctx.globalAlpha=(0.07+prog*0.18)*pulse;
+    ctx.fillStyle='rgba(255,220,60,0.7)';
+    ctx.beginPath(); ctx.arc(cx,cy,ringR*0.8,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    ctx.restore();
+  }
+  // Trail pass — drawn BEHIND player (trailOnly=true skips weapon/impact)
+  drawSwordSprite(player, true);
   drawPlayer(player);
 
   // Sword sprite drawn ON TOP of player (handles idle/attack/trail/impact)
   drawSwordSprite(player);
+  // Elemental blade effect — drawn over sword sprite, only when weapon has elemental
+  _drawElementalEffect(player);
   // Special attack sprite overlay (only when spSheet is set on active weapon)
   drawSpecialSprite(player);
   // Parry shield overlay
@@ -6429,6 +7555,13 @@ function _loopDraw(){
   _drawMobileControls();
 
   ctx.restore();
+
+  // ── RESTORE SIMULATION POSITIONS after interpolated draw ──────────────────
+  if(_iSaved){
+    player.x=_iSaved.px; player.y=_iSaved.py; camX=_iSaved.cx;
+    enemies.forEach((e,i)=>{ e.x=_iSaved.en[i].x; e.y=_iSaved.en[i].y; });
+    _iSaved=null;
+  }
 }
 
 // ── PLAYER DEAD ──────────────────────────
@@ -6547,7 +7680,7 @@ function pollGamepad() {
 // Once startRun() fires, pollGamepad() inside the sim loop takes over.
 function updateGamepad() {
   try { _updateGamepadInner(); } catch(e){ console.warn('Gamepad error:',e); }
-  if(gameOver) requestAnimationFrame(updateGamepad);
+  requestAnimationFrame(updateGamepad); // always loop — handles menus, pause, dead, in-game
 }
 function _updateGamepadInner() {
   const gp = navigator.getGamepads()[0];
@@ -6717,36 +7850,44 @@ function _updateGamepadInner() {
       if (ai < 2) switchPrepTab(ai+1);
     }
   } else if (isInMenu) {
-    // Settings screen: left/right = ±10%, LB/RB = ±100% — with hold-repeat
-    const settingsOpen = !(document.getElementById('settingsScreen')?.classList.contains('hidden') ?? true);
-    const diffFocused  = settingsOpen && !!menuFocusedButton?.closest('.diff-row');
+    // Any menu: left/right adjusts the value of whichever diff-row is focused
+    const diffFocused = !!menuFocusedButton?.closest('.diff-row');
     if (diffFocused) {
-      // Determine desired hold direction this frame
-      let wantDir = 0;
-      if      (lbPressed)  wantDir = -100;
-      else if (rbPressed)  wantDir =  100;
-      else if (dpadLeft)   wantDir = -10;
-      else if (dpadRight)  wantDir =  10;
+      const row = menuFocusedButton.closest('.diff-row');
+      const isDiff = !!row.querySelector('[onclick*="changeDifficulty"]');
 
+      // Difficulty row: LB/RB = ±100, dpad = ±10. All others: dpad/LB/RB click −/+
+      let wantDir = 0;
+      if (isDiff) {
+        if      (lbPressed)  wantDir = -100;
+        else if (rbPressed)  wantDir =  100;
+        else if (dpadLeft)   wantDir = -10;
+        else if (dpadRight)  wantDir =  10;
+      } else {
+        if      (dpadLeft  || lbPressed)  wantDir = -1;
+        else if (dpadRight || rbPressed)  wantDir =  1;
+      }
+
+      const fire = () => {
+        if (isDiff) { changeDifficulty(wantDir); }
+        else { (wantDir < 0
+          ? row.querySelector('.diff-btn:first-child')
+          : row.querySelector('.diff-btn:last-child'))?.click(); }
+      };
       const now = Date.now();
       if (wantDir !== 0) {
         if (_diffHoldDir !== wantDir) {
-          // New direction pressed — fire immediately and start hold timer
-          _diffHoldDir   = wantDir;
-          _diffHoldStart = now;
-          _diffHoldLast  = now;
-          changeDifficulty(wantDir);
+          _diffHoldDir = wantDir; _diffHoldStart = now; _diffHoldLast = now;
+          fire();
         } else if (now - _diffHoldStart >= DIFF_HOLD_DELAY &&
                    now - _diffHoldLast  >= DIFF_HOLD_REPEAT) {
-          // Held long enough — rapid fire
-          _diffHoldLast = now;
-          changeDifficulty(wantDir);
+          _diffHoldLast = now; fire();
         }
       } else {
-        _diffHoldDir = 0; // released
+        _diffHoldDir = 0;
       }
     } else {
-      _diffHoldDir = 0; // not focused on diff row — clear hold state
+      _diffHoldDir = 0;
     }
     if (dpadUp && !prevDPadUpState) navigateMenu(-1);
     if (dpadDown && !prevDPadDownState) navigateMenu(1);
@@ -6875,8 +8016,8 @@ function navigateMenu(direction) {
   });
   if (!btns.length) return;
   const cur  = menuFocusedButton ? btns.indexOf(menuFocusedButton) : -1;
-  // Clamp — no wrap-around (prevents accidentally landing on dangerous buttons)
-  const next = Math.max(0, Math.min(btns.length - 1, cur < 0 ? 0 : cur + direction));
+  // Wrap-around navigation
+  const next = cur < 0 ? 0 : (cur + direction + btns.length) % btns.length;
   if (menuFocusedButton) {
     menuFocusedButton.classList.remove('gamepad-focused');
     menuFocusedButton.closest('.stat-row')?.classList.remove('gamepad-focused');
@@ -7120,25 +8261,36 @@ function _stageMusicStop(){
 
 
 function _applyHudScale(){
-  const mob=!!save.mobileControls,r=document.documentElement;
-  // Also toggle body class so cdBar/gpHints can be hidden via CSS
-  document.body.classList.toggle('mc-active',mob);
+  const mob = !!save.mobileControls, r = document.documentElement;
+  document.body.classList.toggle('mc-active', mob);
+  const s = ((mob ? save.hudSizeMobile : save.hudSizeDesktop) || 100) / 100;
+  const px = v => Math.round(v * s) + 'px';
+  const vw = v => (v * s).toFixed(1) + 'vw';
+  const rm = v => (v * s).toFixed(2) + 'rem';
   if(mob){
-    r.style.setProperty('--hud-pad','6px');r.style.setProperty('--hud-w','18vw');
-    r.style.setProperty('--hud-minw','110px');r.style.setProperty('--hud-maxw','170px');
-    r.style.setProperty('--hud-p','4px 8px');r.style.setProperty('--hud-gap','3px');
-    r.style.setProperty('--hud-icon','0.55rem');r.style.setProperty('--hud-icon-w','11px');
-    r.style.setProperty('--hud-bar-h','5px');r.style.setProperty('--hud-val','0.48rem');
-    r.style.setProperty('--hud-val-w','22px');r.style.setProperty('--hud-lv','0.44rem');
-    r.style.setProperty('--hud-score','0.38rem');
+    r.style.setProperty('--hud-pad', px(6));    r.style.setProperty('--hud-w', vw(18));
+    r.style.setProperty('--hud-minw', px(110)); r.style.setProperty('--hud-maxw', px(170));
+    r.style.setProperty('--hud-p', `${px(4)} ${px(8)}`); r.style.setProperty('--hud-gap', px(3));
+    r.style.setProperty('--hud-icon', rm(0.55)); r.style.setProperty('--hud-icon-w', px(11));
+    r.style.setProperty('--hud-bar-h', px(5));  r.style.setProperty('--hud-val', rm(0.48));
+    r.style.setProperty('--hud-val-w', px(22)); r.style.setProperty('--hud-lv', rm(0.44));
+    r.style.setProperty('--hud-score', rm(0.38));
+    r.style.setProperty('--hud-level', rm(0.73)); r.style.setProperty('--hud-wave', rm(0.73));
+    r.style.setProperty('--hud-potion', rm(0.9));
+    r.style.setProperty('--streak-num', rm(1.8));  r.style.setProperty('--streak-lbl', rm(0.58));
+    r.style.setProperty('--streak-x', rm(0.75));   r.style.setProperty('--streak-bar', px(5));
   } else {
-    r.style.setProperty('--hud-pad','10px');r.style.setProperty('--hud-w','22vw');
-    r.style.setProperty('--hud-minw','180px');r.style.setProperty('--hud-maxw','280px');
-    r.style.setProperty('--hud-p','8px 12px');r.style.setProperty('--hud-gap','6px');
-    r.style.setProperty('--hud-icon','0.85rem');r.style.setProperty('--hud-icon-w','16px');
-    r.style.setProperty('--hud-bar-h','9px');r.style.setProperty('--hud-val','0.68rem');
-    r.style.setProperty('--hud-val-w','32px');r.style.setProperty('--hud-lv','0.60rem');
-    r.style.setProperty('--hud-score','0.52rem');
+    r.style.setProperty('--hud-pad', px(15));   r.style.setProperty('--hud-w', vw(33));
+    r.style.setProperty('--hud-minw', px(270)); r.style.setProperty('--hud-maxw', px(420));
+    r.style.setProperty('--hud-p', `${px(13)} ${px(18)}`); r.style.setProperty('--hud-gap', px(9));
+    r.style.setProperty('--hud-icon', rm(1.28)); r.style.setProperty('--hud-icon-w', px(24));
+    r.style.setProperty('--hud-bar-h', px(14)); r.style.setProperty('--hud-val', rm(1.03));
+    r.style.setProperty('--hud-val-w', px(48)); r.style.setProperty('--hud-lv', rm(0.90));
+    r.style.setProperty('--hud-score', rm(0.78));
+    r.style.setProperty('--hud-level', rm(1.10)); r.style.setProperty('--hud-wave', rm(1.10));
+    r.style.setProperty('--hud-potion', rm(1.35));
+    r.style.setProperty('--streak-num', rm(2.81)); r.style.setProperty('--streak-lbl', rm(0.91));
+    r.style.setProperty('--streak-x', rm(1.17));   r.style.setProperty('--streak-bar', px(8));
   }
 }
 let _mcBtns=[];const _mcPressed={};
@@ -7201,8 +8353,30 @@ function _mcOff(id){
   else if(id==='parry')btnS.parry=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
-function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();writeSave();}
-function _syncMobileBtn(){const on=!!save.mobileControls;const l=document.getElementById('mobileCtrlLabel');if(l)l.textContent=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';}
+function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();_syncHudSizeDisplays();writeSave();}
+function _syncMobileBtn(){
+  const on=!!save.mobileControls;
+  const lbl=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
+  const l=document.getElementById('mobileCtrlLabel'); if(l) l.textContent=lbl;
+  const p=document.getElementById('pauseMobileCtrlLabel'); if(p) p.textContent=lbl;
+}
+function changeHudSize(delta,forMobile){
+  const mob=forMobile!==undefined?forMobile:!!save.mobileControls;
+  if(mob){ save.hudSizeMobile=Math.max(50,Math.min(200,(save.hudSizeMobile||100)+delta)); }
+  else   { save.hudSizeDesktop=Math.max(50,Math.min(200,(save.hudSizeDesktop||100)+delta)); }
+  _applyHudScale(); _syncHudSizeDisplays(); writeSave();
+}
+function resetHudSizes(){
+  save.hudSizeDesktop=100; save.hudSizeMobile=100;
+  _applyHudScale(); _syncHudSizeDisplays(); writeSave();
+}
+function _syncHudSizeDisplays(){
+  const dv=save.hudSizeDesktop||100, mv=save.hudSizeMobile||100;
+  const d=document.getElementById('hudSizeDesktopVal');   if(d) d.textContent=dv+'%';
+  const m=document.getElementById('hudSizeMobileVal');    if(m) m.textContent=mv+'%';
+  const pd=document.getElementById('pauseHudDesktopVal'); if(pd) pd.textContent=dv+'%';
+  const pm=document.getElementById('pauseHudMobileVal');  if(pm) pm.textContent=mv+'%';
+}
 function initMobileControls(){
   const tmap={};
   function tc(sx,sy){const r=canvas.getBoundingClientRect();return{x:(sx-r.left)/r.width*canvas.width,y:(sy-r.top)/r.height*canvas.height};}
