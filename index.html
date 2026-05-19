@@ -950,7 +950,7 @@ body.mc-active #streakHud{top:54px;}
       <div class="prep-stats-layout">
         <!-- character portrait -->
         <div class="prep-portrait-col">
-          <img src="GFX/characterportrait.png" class="prep-portrait-img" alt="Character">
+          <img src="GFX/1.png" class="prep-portrait-img" alt="Character">
         </div>
         <!-- stat rows -->
         <div class="prep-stats-col">
@@ -1588,20 +1588,20 @@ function tickHeroAnim(p){
 // Add new frame filenames here to extend the idle animation.
 // PORTRAIT_FRAME_DURATION[i] = how many ms frame i stays visible before advancing.
 const PORTRAIT_FRAMES = [
-  'GFX/cp1.png',    // frame 1 — main idle pose
-  'GFX/cp2.png',
-  'GFX/cp3.png',
-  'GFX/cp4.png',
-  'GFX/cp3.png',
-  'GFX/cp2.png',
+  'GFX/1.png',    // frame 1 — main idle pose
+  'GFX/2.png',
+  'GFX/3.png',
+  'GFX/4.png',
+  'GFX/2.png',
+  'GFX/3.png'
 ];
 const PORTRAIT_FRAME_DURATION = [
-  3000,
-  300,
-  340,
-  300,
-  340,
-  300,
+  180,
+  140,
+  220, // strongest wind pose
+  140,
+  220,
+  140,
 ];
 let _portraitAnimTimer = null;
 let _portraitAnimIdx   = 0;
