@@ -539,9 +539,9 @@ body.mc-active #gpHints{display:none!important;}
 .cdi.dep .cdi-lbl{color:rgba(230,80,65,0.95);}
 /* keyboard key */
 .cdi-key{
-  font-family:'Cinzel Decorative',serif;font-size:1.05rem;font-weight:700;
-  letter-spacing:0.06em;color:#f0c040;
-  width:17px;text-align:center;flex-shrink:0;
+  font-family:'Cinzel Decorative',serif;font-size:0.78rem;font-weight:700;
+  letter-spacing:0.04em;color:#f0c040;
+  min-width:44px;text-align:center;flex-shrink:0;
   text-shadow:0 1px 6px rgba(0,0,0,0.95),0 0 12px rgba(220,160,30,0.55);
 }
 /* controller button */
@@ -568,8 +568,9 @@ body.mc-active #gpHints{display:none!important;}
 /* ability label */
 .cdi-lbl{
   font-family:'Cinzel',serif;font-size:0.82rem;font-weight:700;
-  letter-spacing:0.16em;text-transform:uppercase;
-  color:rgba(235,205,125,0.95);width:72px;flex-shrink:0;
+  letter-spacing:0.10em;text-transform:uppercase;
+  color:rgba(235,205,125,0.95);min-width:76px;flex-shrink:0;
+  white-space:nowrap;
   text-shadow:0 1px 6px rgba(0,0,0,0.95);
 }
 /* cooldown track */
@@ -883,12 +884,6 @@ body.mc-active #streakHud{top:54px;}
       <span id="fsLabel">ENTER FULLSCREEN</span>
     </button>
     <div class="settings-divider"></div>
-    <div class="settings-section-lbl">Motion Smoothing</div>
-    <button class="menu-btn settings-fs-btn" id="fpsToggleBtn" onclick="toggleSim120()">
-      <span id="fpsToggleLabel">◈ MOTION SMOOTHING: OFF</span>
-    </button>
-    <div class="diff-desc">Interpolates frames between ticks — smoother motion on any display</div>
-    <div class="settings-divider"></div>
     <div class="settings-section-lbl">Difficulty Multiplier</div>
     <div class="diff-row">
       <button class="diff-btn" onclick="changeDifficulty(-10)">−</button>
@@ -906,16 +901,10 @@ body.mc-active #streakHud{top:54px;}
     <div class="settings-divider"></div>
     <div class="settings-section-lbl">HUD Size</div>
     <div class="diff-row">
-      <button class="diff-btn" onclick="changeHudSize(-5,false)">−</button>
-      <span class="diff-label">DESKTOP</span>
-      <span class="diff-val" id="hudSizeDesktopVal">100%</span>
-      <button class="diff-btn" onclick="changeHudSize(5,false)">+</button>
-    </div>
-    <div class="diff-row">
-      <button class="diff-btn" onclick="changeHudSize(-5,true)">−</button>
-      <span class="diff-label">MOBILE</span>
-      <span class="diff-val" id="hudSizeMobileVal">100%</span>
-      <button class="diff-btn" onclick="changeHudSize(5,true)">+</button>
+      <button class="diff-btn" onclick="changeHudSize(-5)">−</button>
+      <span class="diff-label">HUD SIZE</span>
+      <span class="diff-val" id="hudSizeVal">100%</span>
+      <button class="diff-btn" onclick="changeHudSize(5)">+</button>
     </div>
     <div class="diff-desc">50% – 200% · affects health, bars &amp; streak HUD</div>
     <button class="menu-btn" onclick="resetHudSizes()" style="font-size:0.72rem;padding:8px 20px;">↺ RESET HUD TO DEFAULT</button>
@@ -1120,11 +1109,11 @@ body.mc-active #streakHud{top:54px;}
 
 <div id="cdBar">
   <div class="cdi" id="cdi-sp">     <span class="cdi-key">Q</span><span class="cdi-btn face y-btn">Y</span>  <span class="cdi-lbl">Special</span> <div class="cdi-track"><div class="cdi-fill" id="cdf-sp"></div></div></div>
-  <div class="cdi" id="cdi-magic">  <span class="cdi-key">E</span><span class="cdi-btn shoulder">LT</span> <span class="cdi-lbl">Magic</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-magic"></div></div></div>
+  <div class="cdi" id="cdi-magic">  <span class="cdi-key">R</span><span class="cdi-btn shoulder">LT</span> <span class="cdi-lbl">Magic</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-magic"></div></div></div>
   <div class="cdi" id="cdi-launch"> <span class="cdi-key">F</span><span class="cdi-btn shoulder">RT</span> <span class="cdi-lbl">Launch</span>  <div class="cdi-track"><div class="cdi-fill" id="cdf-launch"></div></div></div>
-  <div class="cdi" id="cdi-grapple"><span class="cdi-key">G</span><span class="cdi-btn shoulder">RB</span> <span class="cdi-lbl">Grapple</span><div class="cdi-track"><div class="cdi-fill" id="cdf-grapple"></div></div></div>
-  <div class="cdi" id="cdi-evade">  <span class="cdi-key">R</span><span class="cdi-btn face b-btn">B</span>  <span class="cdi-lbl">Evade</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-evade"></div></div></div>
-  <div class="cdi" id="cdi-parry">  <span class="cdi-key">P</span><span class="cdi-btn shoulder">LB</span> <span class="cdi-lbl">Parry</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-parry"></div></div></div>
+  <div class="cdi" id="cdi-grapple"><span class="cdi-key">E</span><span class="cdi-btn shoulder">RB</span> <span class="cdi-lbl">Grapple</span><div class="cdi-track"><div class="cdi-fill" id="cdf-grapple"></div></div></div>
+  <div class="cdi" id="cdi-evade">  <span class="cdi-key">⇧</span><span class="cdi-btn face b-btn">B</span>  <span class="cdi-lbl">Evade</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-evade"></div></div></div>
+  <div class="cdi" id="cdi-deflect">  <span class="cdi-key">RMB</span><span class="cdi-btn shoulder">LB</span> <span class="cdi-lbl">Deflect</span>   <div class="cdi-track"><div class="cdi-fill" id="cdf-deflect"></div></div></div>
 </div>
 
 <!-- ══ PAUSE BUTTON ══ -->
@@ -1221,9 +1210,8 @@ const DEFAULT_SAVE={
   clearedStages:[],
   difficulty:100,
   mobileControls:false,
-  sim120:false,
-  hudSizeDesktop:100,
-  hudSizeMobile:100,
+  smoothRender:true,
+  hudSize:100,
 };
 let save={...DEFAULT_SAVE};
 
@@ -1262,19 +1250,19 @@ function closeSettings(){
 }
 
 // ── 120 FPS INTERPOLATED RENDER ──────────────────
-let _sim120 = false;          // runtime mirror of save.sim120
+let _smoothRender = true;           // always on — interpolation is always better
 let _renderAlpha = 1;         // sub-tick interpolation factor (0→1)
 let _prevPX=0,_prevPY=0;      // player position at start of last tick
 let _prevCamXI = 0;           // camX at start of last tick
-function toggleSim120(){
-  save.sim120 = !save.sim120;
-  _sim120 = save.sim120;
-  _syncFpsBtn();
+function toggleSmoothRender(){
+  save.smoothRender = !save.smoothRender;
+  _smoothRender = save.smoothRender;
+  _syncSmoothRenderBtn();
   writeSave();
 }
-function _syncFpsBtn(){
-  const el = document.getElementById('fpsToggleLabel');
-  if(el) el.textContent = _sim120 ? '◈ MOTION SMOOTHING: ON' : '◈ MOTION SMOOTHING: OFF';
+function _syncSmoothRenderBtn(){
+  const el = document.getElementById('smoothRenderLabel');
+  if(el) el.textContent = _smoothRender ? '◈ MOTION SMOOTHING: ON' : '◈ MOTION SMOOTHING: OFF';
 }
 
 function exitGame(){
@@ -1312,7 +1300,7 @@ document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); update
 function calcMaxHp(){ return 80 + save.stats.vit*20; }
 function calcMaxSt(){ return 60 + save.stats.end*20; }
 function calcBaseDmg(){ return 28 + save.stats.str*5; }
-function calcStRegen(){ return 0.539 + save.stats.agi*0.15; }
+function calcStRegen(){ return 0.32 + save.stats.agi*0.06; }
 function calcMaxMp(){ return 30 + (save.stats.int||1)*15; }
 function calcMpRegen(){ return 0.06 + (save.stats.int||1)*0.01; }
 
@@ -1324,8 +1312,8 @@ async function loadSave(){
     equipWeapon(save.weapon||'sword');
     equipSpell(save.spell||'fireball');
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
-  _sim120 = !!save.sim120;
-  _syncFpsBtn();
+  _smoothRender = !!save.smoothRender;
+  _syncSmoothRenderBtn();
   updateSaveInfo();
 }
 async function writeSave(){ await dbSet('save',{...save}); }
@@ -1614,6 +1602,40 @@ const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
 const PW=30,PH=58, EW=28,EH=52;
+// Helpers that return per-enemy hitbox dimensions, falling back to the shared EW/EH.
+// Bosses with a custom hitW/hitH (from BOSS_ANIM_DEFS) use their own size;
+// regular enemies use the shared constants.
+function eW(e){ return e.hitW||EW; }
+function eH(e){ return e.hitH||EH; }
+
+// Returns the screen-space visual anchor for boss indicators (stun stars,
+// telegraph symbols, target chevron). Respects BOSS_ANIM_DEFS drawH/offsetX/Y
+// so every indicator is always rooted to the actual sprite art, not the raw
+// hitbox boundary. Falls back to the hitbox for procedural bosses.
+//   cx   — horizontal centre of the visual body
+//   vtop — screen Y of the sprite's visual top edge
+//   vcy  — screen Y of the visual body centre
+function _bossVisualAnchor(e, sx){
+  const def = BOSS_ANIM_DEFS[e.bossName];
+  if(def && def.src && (def.drawH||def.frameH)){
+    const dh = def.drawH || def.frameH;
+    const ox = def.offsetX || 0;
+    const oy = def.offsetY || 0;
+    // Sprite anchor = hitbox bottom-centre → (sx+eW/2, e.y+eH)
+    // Sprite top    = anchor.y - dh + oy
+    return {
+      cx  : sx + eW(e)/2 + e.facing * ox,
+      vtop: e.y + eH(e) - dh + oy,
+      vcy : e.y + eH(e) - dh/2 + oy,
+    };
+  }
+  return {
+    cx  : sx + eW(e)/2,
+    vtop: e.y,
+    vcy : e.y + eH(e)/2,
+  };
+}
+
 const SWORD_RANGE = 85; // kept for trail math — actual hit detection uses getSwordTip()
 // Hit range is derived from sword visual size — edit SWORD_H and SWING_* in drawSwordSprite
 function getSwordTip(p){
@@ -1653,7 +1675,7 @@ const _ALL_SFX=[
   'Audio/juggle.wav','Audio/slam_land.wav',
   'Audio/grapple_fire.wav','Audio/grapple_pull.wav',
   'Audio/grapple_zip.wav','Audio/grapple_arrive.wav',
-  'Audio/parry.wav','Audio/parry2.wav',
+  'Audio/deflect.wav','Audio/deflect2.wav',
   'Audio/magic_missile.wav','Audio/magic_missile_hit.wav',
 ];
 function _getAudioCtx(){
@@ -1716,7 +1738,7 @@ const COMBO_WINDOW=42;
 const FREEZE_FRAMES=[4,5,8,9,11,12,13,14,15,16,17];
 const SHAKE_MAGS  =[6,8,18,19,20,21,22,23,24,25,26];
 // Combo: [swingStart, swingEnd, pivotX, pivotY]
-const ST_REGEN_DELAY=42; // frames after attacking before stamina starts recovering
+const ST_REGEN_DELAY=108; // frames after any stamina spend before recovery starts (~1.8 s)
 
 // ── DMC-STYLE COMBO COMMENTS — shown when streak tier increases ───────────────
 // Tier 1 (10 hits) through tier 10 (100 hits), escalating hype
@@ -1803,6 +1825,22 @@ const ELEMENTAL_FLOAT_COLORS = {
 };
 const ELEMENTAL_LABELS = {
   fire: '🔥', ice: '❄', wind: '💨', lightning: '⚡', holy: '✨', dark: '🌑', poison: '☠',
+};
+// ── ELEMENTAL ACCUMULATION ────────────────────────────────────────────────────
+const ELEM_ACCUM_MAX   = 100;   // fill needed to trigger a proc
+const ELEM_WEAPON_FILL = 9;     // per elemental weapon hit
+const ELEM_MAGIC_FILL  = 27;    // per special / spell hit (3× weapon)
+const ELEM_ACCUM_DECAY = 0.008; // per frame once hold expires
+const ELEM_ACCUM_HOLD  = 150;   // frames before decay starts
+
+const ELEM_PROC_DEFS = {
+  fire:      { dur:220, tickEvery:44, dmgPct:0.05, ticks:5 },
+  ice:       { dur:180, stunFrames:55 },
+  lightning: { dur:75,  chain:true },
+  wind:      { burstPct:0.10, burstRadius:180 },
+  holy:      { burstPct:0.20 },
+  dark:      { dur:600, dmgBoost:0.35 },
+  poison:    { dur:240, tickEvery:60, dmgPct:0.015, ticks:4 },
 };
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -2385,7 +2423,7 @@ const WEAPONS = {
   // ── VENOM CLAWS — 5-hit fast poison combo, toxic nova special ────────────
   venomclaws: {
     name: 'Venom Claws', icon: '☠',
-    sprites: { weapon: null, trail: null, hit: null },
+    sprites: { weapon: { src: 'GFX/venomclaw.png', cell: 256, anchorX: 0.420, anchorY: 0.320 }, trail: null, hit: null },
     swingSound: null, hitSound: 'Audio/daggerhit.wav',
     spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/daggerhit.wav',
     special(p){
@@ -2409,7 +2447,7 @@ const WEAPONS = {
           color:`hsl(${100+Math.random()*30|0},${80+Math.random()*18|0}%,${32+Math.random()*20|0}%)`});
       }
     },
-    atkSpeed: 0.62,
+    atkSpeed: 0.9,
     steps:[
       {motion:'strike',     startAngle:-10,endAngle:  8, easing:'linear', pivotX: 9,pivotY:0.38, swingH:20, frameIdx:0, duration: 5, dmgMult:0.80, stamCost: 3, hitMargin:10, sweepSteps:3, hitCD: 5, knockback:[ 2, 3, 5]},
       {motion:'strike',     startAngle:-16,endAngle: 10, easing:'out',    pivotX:12,pivotY:0.34, swingH:24, frameIdx:1, duration: 6, dmgMult:0.95, stamCost: 4, hitMargin:11, sweepSteps:3, hitCD: 6, knockback:[ 3, 4, 7]},
@@ -2441,6 +2479,96 @@ const WEAPONS = {
     desc: 'The legendary sword. Charged special calls down a divine beam across the entire stage.',
     elemental: 'holy',
     unlocked: true, cost: 1,
+  },
+
+  // ── TENRAI — Demon katana. Hold special to grow azure vortex; release for Judgement Cut End ──
+  tenrai: {
+    key: 'tenrai', name: 'Tenrai', icon: '⚡',
+    sprites: { weapon: { src: 'GFX/tenrai.png', cell: 256, anchorX: 0.500, anchorY: 0.850 }, trail: null, hit: null },
+    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/juggle.wav',
+    special(p){
+      // Called by _fireTenraiCut — p.tenraiRadius is set from the charge duration.
+      const cx = p.x + PW/2, cy = p.y + PH * 0.45;
+      const RADIUS = p.tenraiRadius || TENRAI_MIN_RADIUS;
+      let hitAny = false;
+      enemies.forEach(e => {
+        if(e.dead) return;
+        const dx = (e.x + eW(e)/2) - cx;
+        const dy = (e.y + eH(e)/2) - cy;
+        if(Math.sqrt(dx*dx + dy*dy) > RADIUS) return;
+        for(let i = 0; i < 10; i++){
+          _spHit(e, Math.round(calcBaseDmg() * 0.62 + (Math.random()*11|0)));
+        }
+        e.vx += (dx > 0 ? 1 : -1) * 5; e.vy -= 4;
+        hitAny = true;
+      });
+      // ── Four azure vortex rings contracting inward ──────────────────────────
+      for(let ring = 0; ring < 4; ring++){
+        const rFrac = 0.18 + ring * 0.27;
+        for(let i = 0; i < 48; i++){
+          const a = (i/48)*Math.PI*2 + ring * 0.38;
+          const r = RADIUS * rFrac;
+          particles.push({type:'spark',
+            x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r*0.46,
+            vx: Math.cos(a)*(1+ring*1.5), vy: Math.sin(a)*(0.6+ring*0.8)*0.46 - 0.4,
+            life:1, decay:0.016+ring*0.010, r:1.5+Math.random()*2.5,
+            color:`hsl(${194+Math.random()*18|0},100%,${66+Math.random()*24|0}%)`});
+        }
+      }
+      // ── 10 azure lightning slashes — proper canvas lines, visible during freeze ─
+      for(let slash = 0; slash < 10; slash++){
+        const a = Math.random()*Math.PI*2;
+        const len = RADIUS * (0.55 + Math.random()*0.5);
+        const perpX = Math.cos(a+Math.PI/2), perpY = Math.sin(a+Math.PI/2);
+        const offDist = (Math.random()-0.5) * RADIUS * 0.45;
+        const midX = cx + perpX*offDist;
+        const midY = cy + perpY*offDist*0.46;
+        _tenraiSlashes.push({
+          x1: midX - Math.cos(a)*len*0.5,
+          y1: midY - Math.sin(a)*len*0.5*0.46,
+          x2: midX + Math.cos(a)*len*0.5,
+          y2: midY + Math.sin(a)*len*0.5*0.46,
+          life:1, decay:0.017,
+          hue: (194+Math.random()*18)|0,
+        });
+      }
+      // ── Dense white-azure core burst ────────────────────────────────────────
+      for(let i = 0; i < 64; i++){
+        const a = Math.random()*Math.PI*2, sp = 4+Math.random()*15;
+        particles.push({type:'spark',
+          x: cx+(Math.random()-0.5)*26, y: cy+(Math.random()-0.5)*18,
+          vx: Math.cos(a)*sp, vy: Math.sin(a)*sp*0.44-1.8,
+          life:1, decay:0.024+Math.random()*0.022, r:0.8+Math.random()*3,
+          color:`hsl(${196+Math.random()*22|0},100%,${78+Math.random()*20|0}%)`});
+      }
+      // ── Upward azure lightning bolts off each struck enemy ──────────────────
+      enemies.forEach(e => {
+        if(e.dead) return;
+        const dx=(e.x+eW(e)/2)-cx, dy=(e.y+eH(e)/2)-cy;
+        if(Math.sqrt(dx*dx+dy*dy)>RADIUS) return;
+        for(let i=0;i<16;i++){
+          particles.push({type:'spark',
+            x:e.x+eW(e)*Math.random(), y:e.y+eH(e)*(0.9-Math.random()*0.9),
+            vx:(Math.random()-0.5)*4, vy:-4-Math.random()*10,
+            life:1, decay:0.048+Math.random()*0.038, r:1.5+Math.random()*2.5,
+            color:`hsl(${196+Math.random()*20|0},100%,${72+Math.random()*24|0}%)`});
+        }
+      });
+      if(hitAny){ playSfx(activeWeapon.spHitSound); triggerFreeze(54); triggerShake(26); triggerHitFlash(); }
+      else { playSfx(activeWeapon.spSound); }
+    },
+    atkSpeed: 0.86,
+    steps: [
+    { motion:'dash-slash', startAngle:-118, endAngle:95, easing:'out', pivotX:18, pivotY:0.22, swingH:106, frameIdx:0, duration:12, dmgMult:1.00, dashDist:35, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'sweep', startAngle:180, endAngle:12, easing:'out', pivotX:5, pivotY:0.22, swingH:110, frameIdx:0, duration:29, dmgMult:1.00, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'uppercut', startAngle:24, endAngle:-114, easing:'in', pivotX:0, pivotY:0.56, swingH:104, frameIdx:1, duration:21, dmgMult:1.30, launchPower:12, stamCost:22, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] },
+    { motion:'thrust', startAngle:0, endAngle:0, easing:'out', pivotX:14, pivotY:0.30, swingH:104, frameIdx:2, duration:19, dmgMult:2.00, stamCost:35, hitMargin:10, sweepSteps:6, hitCD:20, hitCount:1, knockback:[6,7,18] },
+    { motion:'spin-throw', startAngle:0, endAngle:0, easing:'out', pivotX:18, pivotY:0.22, swingH:108, frameIdx:0, duration:36, dmgMult:1.00, throwSpeed:11, throwRange:360, throwRiseVy:2.0, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, hitCount:1, knockback:[4,5,12] }
+    ],
+    desc: 'Four razor-precise katana cuts. Hold special (costs 90% MP) to grow an azure vortex — release for Judgement Cut End: 10 lightning slashes strike all enemies within the sphere, time frozen.',
+    elemental: 'lightning',
+    unlocked: true, cost: 580,
   },
 };
 activeWeapon = WEAPONS.sword;
@@ -2510,6 +2638,7 @@ let selectedWeaponKey = 'sword';
 function renderWeaponSelect(){
   const list = document.getElementById('prepWeaponList');
   if(!list) return;
+  const _savedScroll = list.scrollTop;
   list.innerHTML = '';
   Object.entries(WEAPONS).forEach(([key, w]) => {
     const isUnlocked = save.unlockedWeapons.includes(key);
@@ -2605,6 +2734,7 @@ function renderWeaponSelect(){
       c.fillText(w.icon || '?', 18, 18);
     }
   });
+  list.scrollTop = _savedScroll;
 }
 
 function unlockWeapon(key){
@@ -2704,6 +2834,9 @@ const SP_MANA_COST=40;
 const RS_WINDUP_FRAMES=180;           // 3s at 60fps — Resolved Steel charge time
 const EXCALIBUR_WINDUP_FRAMES = 90;   // 1.5s charge
 const EXCALIBUR_SLAM_FRAMES   = 22;   // 0.37s overhead arc slam
+const TENRAI_MAX_CHARGE  = 150;       // 2.5s full charge (frames)
+const TENRAI_MIN_RADIUS  = 160;       // px at instant tap
+const TENRAI_MAX_RADIUS  = 380;       // px at full charge
 
 // ══════════════════════════════════════════
 //  SPELLS
@@ -2795,6 +2928,153 @@ const SPELLS={
     juggleMissile:true,
     unlocked:true, cost:130,
   },
+  // ── EXOTIC SPELLS ────────────────────────────────────────────────────────
+  gravitysurge:{
+    key:'gravitysurge', name:'Gravity Surge', icon:'🌀',
+    elemental:'dark', elemental2:'wind',
+    mpCost:40, damage:30, dmgPerInt:3,
+    cooldown:80,
+    castSound:'Audio/arcane_explosion.wav', impactSound:'Audio/arcane_explosion_hit.wav',
+    desc:'Warp gravity — all enemies are yanked to your position and damaged.',
+    stats:['DMG 30+INT×3','Pulls ALL','MP 40'],
+    color:'#9966ff', glowColor:'#5500cc', trailHue:270,
+    unlocked:false, cost:140,
+    instant(){
+      const cx=player.x+PW/2, cy=player.y+PH*0.5;
+      const _dmg=Math.max(1,Math.round(this.damage+(save.stats.int||1)*this.dmgPerInt));
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const dx=cx-(e.x+EW/2), dy=cy-(e.y+EH/2);
+        const dist=Math.hypot(dx,dy)||1;
+        e.vx=(dx/dist)*18; e.vy=(dy/dist)*14;
+        const _dark=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
+        const _total=Math.round(_dmg*_dark);
+        const _h=Math.round(_total/2),_o=_total-_h;
+        const prev=e.hp; e.hp=Math.max(0,e.hp-_total);
+        e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=18;
+        spawnEnemyBarChips(e,prev,e.hp);
+        floatText(e.x+EW/2-8,e.y-20,`${ELEMENTAL_LABELS['dark']||''}${_h}`,ELEMENTAL_FLOAT_COLORS['dark'],true);
+        floatText(e.x+EW/2+8,e.y-30,`${ELEMENTAL_LABELS['wind']||''}${_o}`,ELEMENTAL_FLOAT_COLORS['wind'],false);
+        addElemAccum(e,'dark',true); addElemAccum(e,'wind',true);
+        if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+      });
+      for(let i=0;i<50;i++){
+        const ang=Math.random()*Math.PI*2, r=40+Math.random()*180;
+        particles.push({type:'spark',x:cx+Math.cos(ang)*r,y:cy+Math.sin(ang)*r,
+          vx:-Math.cos(ang)*(5+Math.random()*8),vy:-Math.sin(ang)*(5+Math.random()*8),
+          life:1,decay:.03+Math.random()*.04,r:2+Math.random()*3,
+          color:`hsl(${270+Math.random()*40|0},100%,${55+Math.random()*30|0}%)`});
+      }
+      triggerShake(18); triggerFreeze(14); playSfx(this.impactSound);
+    },
+  },
+  polarityflip:{
+    key:'polarityflip', name:'Polarity Flip', icon:'🔄',
+    elemental:'wind', elemental2:'lightning',
+    mpCost:30, damage:22, dmgPerInt:2,
+    cooldown:65,
+    castSound:'Audio/magic_missile.wav', impactSound:'Audio/magic_missile_hit.wav',
+    desc:'Grounded enemies get flipped into the air. Airborne enemies get slammed down.',
+    stats:['Grounded → Air','Airborne → Slam','MP 30'],
+    color:'#44ddff', glowColor:'#00aadd', trailHue:195,
+    unlocked:false, cost:110,
+    instant(){
+      const _dmg=Math.max(1,Math.round(this.damage+(save.stats.int||1)*this.dmgPerInt));
+      enemies.forEach(e=>{
+        if(e.dead) return;
+        const _dark=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
+        const _total=Math.round(_dmg*_dark);
+        const _h=Math.round(_total/2),_o=_total-_h;
+        const prev=e.hp; e.hp=Math.max(0,e.hp-_total);
+        e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=15;
+        spawnEnemyBarChips(e,prev,e.hp);
+        if(!e.boss){
+          if(!e.onGround){
+            // Airborne → slam down hard
+            e.vy=SLAM_VY; e.vx*=0.3;
+            e.slammed=true; e.slammedFromAir=true;
+            e.juggled=false; e.juggleTimer=0;
+            floatText(e.x+EW/2,e.y-20,'⚡SLAM',ELEMENTAL_FLOAT_COLORS['lightning'],true);
+          } else {
+            // Grounded → nudge into air
+            e.vy-=21; e.onGround=false;
+            floatText(e.x+EW/2-8,e.y-20,`${ELEMENTAL_LABELS['wind']||''}${_h}`,ELEMENTAL_FLOAT_COLORS['wind'],true);
+            floatText(e.x+EW/2+8,e.y-30,`${ELEMENTAL_LABELS['lightning']||''}${_o}`,ELEMENTAL_FLOAT_COLORS['lightning'],false);
+          }
+        } else {
+          floatText(e.x+EW/2-8,e.y-20,`${ELEMENTAL_LABELS['wind']||''}${_h}`,ELEMENTAL_FLOAT_COLORS['wind'],true);
+          floatText(e.x+EW/2+8,e.y-30,`${ELEMENTAL_LABELS['lightning']||''}${_o}`,ELEMENTAL_FLOAT_COLORS['lightning'],false);
+        }
+        addElemAccum(e,'wind',true); addElemAccum(e,'lightning',true);
+        for(let i=0;i<10;i++){
+          particles.push({type:'spark',x:e.x+EW/2,y:e.y+EH*0.4,
+            vx:(Math.random()-.5)*12,vy:-(Math.random()*7+1),
+            life:1,decay:.05,r:2,color:`hsl(${185+Math.random()*35|0},100%,72%)`});
+        }
+        if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+      });
+      triggerShake(15); triggerFreeze(12); playSfx(this.impactSound);
+    },
+  },
+  spectrallance:{
+    key:'spectrallance', name:'Spectral Lance', icon:'🔮',
+    elemental:'dark',
+    mpCost:35, damage:28, dmgPerInt:3,
+    cooldown:80,
+    castSound:'Audio/arcane_explosion.wav', impactSound:'Audio/arcane_explosion_hit.wav',
+    desc:'Calls down five spectral lances from the sky — each strikes an AOE on impact.',
+    stats:['5× Sky Lances','AOE each','MP 35'],
+    color:'#cc66ff', glowColor:'#8800cc', trailHue:280,
+    unlocked:false, cost:95,
+    instant(){
+      const _dmg=Math.max(1,Math.round(this.damage+(save.stats.int||1)*this.dmgPerInt));
+      const stageW=STAGE_RIGHT-STAGE_LEFT;
+      const fy=floorY();
+      playSfx(this.castSound);
+      for(let i=0;i<5;i++){
+        const lx=STAGE_LEFT+stageW*(0.1+i*0.2)+(Math.random()-0.5)*28;
+        setTimeout(()=>{
+          if(!player||player.dead) return;
+          // Falling lance streak VFX
+          for(let j=0;j<16;j++){
+            particles.push({type:'spark',
+              x:lx+(Math.random()-0.5)*8, y:fy-36-j*22,
+              vx:(Math.random()-0.5)*2, vy:Math.random()*7+5,
+              life:1, decay:.045, r:3+j*0.15,
+              color:`hsl(${272+Math.random()*18|0},100%,${62+Math.random()*22|0}%)`});
+          }
+          // AOE damage
+          const _radius=90;
+          enemies.forEach(e=>{
+            if(e.dead) return;
+            const dx=Math.abs((e.x+EW/2)-lx);
+            if(dx>_radius) return;
+            const falloff=1-dx/_radius*0.45;
+            const _dark=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
+            const _fd=Math.round(_dmg*_dark*falloff);
+            const prev=e.hp; e.hp=Math.max(0,e.hp-_fd);
+            e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=15;
+            spawnEnemyBarChips(e,prev,e.hp);
+            const dir=(e.x+EW/2)>lx?1:-1;
+            if(!_groundLocked(e)){e.vx+=dir*8; e.vy-=4;}
+            floatText(e.x+EW/2,e.y-20,`${ELEMENTAL_LABELS['dark']||''}${_fd}`,ELEMENTAL_FLOAT_COLORS['dark'],false);
+            addElemAccum(e,'dark',true);
+            if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+          });
+          // Impact burst
+          for(let j=0;j<22;j++){
+            const ang=Math.random()*Math.PI*2;
+            particles.push({type:'spark',x:lx+(Math.random()-0.5)*14,y:fy,
+              vx:Math.cos(ang)*(4+Math.random()*8),vy:Math.sin(ang)*(4+Math.random()*8)-4,
+              life:1,decay:.04+Math.random()*.03,r:2+Math.random()*4,
+              color:`hsl(${268+Math.random()*28|0},100%,${58+Math.random()*32|0}%)`});
+          }
+          triggerShake(10); playSfx(this.impactSound);
+        }, i*200);
+      }
+      triggerFreeze(6);
+    },
+  },
 };
 let activeSpell=SPELLS.fireball;
 
@@ -2820,7 +3100,7 @@ function updateCdBar(){
   _setCdi('cdi-launch', 'cdf-launch', player.launchCD>0 ? (player.launchCD/LAUNCH_COOLDOWN)*100              : 0, player.stamina<LAUNCH_STAMINA||player.stDepleted);
   _setCdi('cdi-grapple','cdf-grapple',grappleCooldown>0 ? (grappleCooldown/GRAPPLE_COOLDOWN_MAX)*100         : 0, false);
   _setCdi('cdi-evade',  'cdf-evade',  player.evadeCD>0  ? (player.evadeCD/EVADE_COOLDOWN)*100                : 0, player.stamina<EVADE_STAMINA||player.stDepleted);
-  _setCdi('cdi-parry',  'cdf-parry',  player.parryCD>0  ? (player.parryCD/PARRY_COOLDOWN)*100                : 0, false);
+  _setCdi('cdi-deflect',  'cdf-deflect',  player.deflectCD>0  ? (player.deflectCD/DEFLECT_COOLDOWN)*100                : 0, false);
 }
 
 function _triggerArcaneExplosion(sp){
@@ -2832,21 +3112,34 @@ function _triggerArcaneExplosion(sp){
     const dist=Math.hypot((e.x+EW/2)-cx,(e.y+EH/2)-cy);
     if(dist<sp.aoeRadius){
       const falloff=1-dist/sp.aoeRadius*0.45;
+      const _darkM=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
+      const _dmgF=Math.round(dmg*_darkM);
       const prev=e.hp;
-      e.hp=Math.max(0,e.hp-dmg);
+      e.hp=Math.max(0,e.hp-_dmgF);
       e.ghostHp=prev; e.ghostDrainDelay=62;
       e.hitCD=28;
       const dir=(e.x+EW/2)>cx?1:-1;
       if(!_groundLocked(e)) e.vx+=dir*sp.knockback*falloff;
       if(!e.slammed && !e.slamStunned && !e.bossSlamStunned && !e.bossSlamLanded) e.vy-=sp.knockbackUp*falloff;
       spawnEnemyBarChips(e,prev,e.hp);
-      const _se=sp.elemental,_sl=_se?((ELEMENTAL_LABELS[_se]||'')+' '):'',_sc=_se?(ELEMENTAL_FLOAT_COLORS[_se]||'#ffffff'):'#ffffff';
-      floatText(e.x+EW/2,e.y-20,`${_sl}${dmg}`,_sc,true);
+      const _se=sp.elemental,_sc=_se?(ELEMENTAL_FLOAT_COLORS[_se]||'#ffffff'):'#ffffff';
+      if(sp.elemental2){
+        const _h=Math.round(_dmgF/2), _o=_dmgF-_h;
+        const _sc2=ELEMENTAL_FLOAT_COLORS[sp.elemental2]||'#fff';
+        floatText(e.x+EW/2-12,e.y-20,`${ELEMENTAL_LABELS[sp.elemental]||''}${_h}`,_sc,true);
+        floatText(e.x+EW/2+12,e.y-30,`${ELEMENTAL_LABELS[sp.elemental2]||''}${_o}`,_sc2,false);
+      } else {
+        const _sl=_se?((ELEMENTAL_LABELS[_se]||'')+' '):'';
+        floatText(e.x+EW/2,e.y-20,`${_sl}${_dmgF}`,_sc,true);
+      }
       sparkBurst(e.x+EW/2,e.y+EH*0.4,14,true);
+      addElemAccum(e, sp.elemental, true);
+      if(sp.elemental2) addElemAccum(e, sp.elemental2, true);
       if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
     }
   });
-  // Big explosion burst — rings of purple sparks expanding outward
+  // Big explosion burst — color follows spell element
+  const _exHue=sp.trailHue??270;
   for(let i=0;i<80;i++){
     const ang=Math.random()*Math.PI*2;
     const spd=4+Math.random()*14;
@@ -2854,14 +3147,14 @@ function _triggerArcaneExplosion(sp){
       vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-4,
       life:1,decay:0.018+Math.random()*0.022,
       r:3+Math.random()*6,
-      color:`hsl(${270+Math.random()*50|0},100%,${55+Math.random()*35|0}%)`});
+      color:`hsl(${(_exHue+Math.random()*50)|0},100%,${55+Math.random()*35|0}%)`});
   }
-  // Shockwave ring particles at set distance
+  // Shockwave ring
   for(let i=0;i<36;i++){
     const ang=(i/36)*Math.PI*2;
     particles.push({type:'spark',x:cx+Math.cos(ang)*20,y:cy+Math.sin(ang)*20,
       vx:Math.cos(ang)*18,vy:Math.sin(ang)*18-2,
-      life:1,decay:0.03,r:4,color:'#e0a0ff'});
+      life:1,decay:0.03,r:4,color:sp.color||'#e0a0ff'});
   }
   triggerShake(45); triggerFreeze(22); rumble(600,1.0,0.85);
   playSfx(sp.impactSound);
@@ -2936,6 +3229,11 @@ function castSpell(){
   player.mp=Math.max(0,player.mp-sp.mpCost);
   player.mpCD=sp.cooldown;
   setMpBar(player.mp,player.maxMp);
+  if(sp.instant){
+    playSfx(sp.castSound);
+    sp.instant();
+    return;
+  }
   if(sp.arcaneExplosion){
     // Begin windup — explosion fires at end of timer
     player.arcaneWindup=sp.windupFrames;
@@ -3014,12 +3312,12 @@ const EVADE_SPEED         = 10; // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
 const EVADE_COOLDOWN      = 32;  // cooldown frames before next evade is allowed
-const PARRY_WINDOW        = 43;  // -10% from 48
-const PARRY_COOLDOWN      = 0;   // no cooldown after successful parry — Sekiro-style chain deflects
-const PARRY_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
-const PARRY_FREEZE        = 26;  // halved from 52 — snappier parry
-const PARRY_SHAKE         = 28;  // screen-shake magnitude on successful parry
-const PARRY_SOUNDS        = ['Audio/parry.wav','Audio/parry2.wav']; // add/remove files freely; set to [] to disable
+const DEFLECT_WINDOW        = 43;  // -10% from 48
+const DEFLECT_COOLDOWN      = 0;   // no cooldown after successful parry — Sekiro-style chain deflects
+const DEFLECT_STUN_FRAMES   = 120; // 2 seconds of enemy stun at 60 fps
+const DEFLECT_FREEZE        = 26;  // halved from 52 — snappier parry
+const DEFLECT_SHAKE         = 28;  // screen-shake magnitude on successful parry
+const DEFLECT_SOUNDS        = ['Audio/deflect.wav','Audio/deflect2.wav']; // add/remove files freely; set to [] to disable
 const ENEMY_WINDUP_FRAMES = 19;  // 2× then +10% faster
 const ENEMY_SWING_FRAMES  = 32;  // 2× then +10% faster
 const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is within this distance
@@ -3050,14 +3348,23 @@ const DRUNKARD_THROW_CD     = 200;  // cooldown frames between throws
 const DRUNKARD_THROW_ANIM   = 28;   // follow-through frames after bottle releases
 const BOTTLE_SPEED          = 7;    // px/frame launch speed
 const BOTTLE_LIFE           = 320;  // auto-expire frames
+// Shamaz attack-pattern selector.
+// Cannon (pattern 2) fires ~25% of the time and is never chosen twice in a row.
+// Melee is split ~55% single hook (0) vs ~45% 3-hit combo (1) when cannon is skipped.
+function _shamazNextPattern(prev){
+  const r=Math.random();
+  if(prev!==2 && r<0.25) return 2;          // cannon — only if previous wasn't also cannon
+  return Math.random()<0.55 ? 0 : 1;        // single hook vs 3-hit combo
+}
+
 // Captain Shamaz constants
 const SHAMAZ_WINDUP         = 25;
 const SHAMAZ_SWING          = 41;
 const SHAMAZ_ATK_RANGE      = 110;
 const SHAMAZ_ATK_COOLDOWN   = 90;
-const SHAMAZ_HOOK_REACH     = 52;
-const SHAMAZ_HOOK_PIVOT_X   = 32;
-const SHAMAZ_HOOK_PIVOT_Y   = -16;
+const SHAMAZ_HOOK_REACH     = 72;   // wider sweep (was 52)
+const SHAMAZ_HOOK_PIVOT_X   = 36;
+const SHAMAZ_HOOK_PIVOT_Y   = 20;   // positive = below body centre; places arm at player-body height (was -16 which was wrong: used EH/2 not eH(e)/2)
 const SHAMAZ_COMBO_WINDUP1  = 19;
 const SHAMAZ_COMBO_SWING1   = 21;
 const SHAMAZ_COMBO_GAP1     = 22;
@@ -3102,8 +3409,8 @@ const GARTU_ORB_RADIUS          = 14;
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
-let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,parry:false,grapple:false};
-let jumpEdge=false, atkEdge=false, evadeEdge=false, parryEdge=false, prevLaunchHeld=false, launchHoldFrames=0;
+let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,deflect:false,grapple:false};
+let jumpEdge=false, atkEdge=false, evadeEdge=false, deflectEdge=false, prevLaunchHeld=false, launchHoldFrames=0, prevSpHeld=false;
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
 let gameOver=false,frameId=null,paused=false;
 let frozen=0,shakeMag=0,shakeX=0,shakeY=0;
@@ -3111,6 +3418,7 @@ let _bgCanvas=null,_bgDirty=true; // offscreen cache for static background
 let camX=0;
 let player={},enemies=[],particles=[],bloodDecals=[],swordTrail=[],projectiles=[],beams=[],enemyProjectiles=[],throws=[];
 let _dashTrail=[];                            // evade afterimage entries
+let _tenraiSlashes=[];                        // Tenrai Judgement Cut End slash lines
 let _dashGhostCanvas=null,_dashGhostCtx=null; // offscreen canvas for purple tint blit
 let ghostTimerHp=null;
 let runKills=0,runGold=0,runExp=0;
@@ -3352,7 +3660,7 @@ function startRun(){
   document.getElementById('streakHud').style.display='none';
   lastHitEnemy=null; lockedTarget=null; grappleTarget=null; grappleState='none'; grappleTimer=0; grappleCooldown=0; grappleHoldFrames=0;
   grappleRopeNodes=[]; grappleRopeProgress=0;
-  gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[]; _dashTrail=[];
+  gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[]; _dashTrail=[]; _tenraiSlashes=[];
   jumpBuffer=0; coyoteFrames=0;
   heroAnim.name='idle'; heroAnim.frame=0; heroAnim.tick=0;
 
@@ -3364,11 +3672,12 @@ function startRun(){
     stamina:maxSt,maxStamina:maxSt,
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:2,
-    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,parryTimer:0,parryCD:0,
+    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,deflectTimer:0,deflectCD:0,
     comboStep:0,comboTimer:0,comboQueued:false,curStep:0,swingHitMap:new Map(),
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,
     excaliburWindup:false,excaliburWindupF:0,
+    tenraiWindup:false,tenraiWindupF:0,tenraiRadius:180,
     potions:1,
   };
   enemies=[]; particles=[]; bloodDecals=[]; projectiles=[]; beams=[]; throws=[]; enemyProjectiles=[];
@@ -3462,7 +3771,7 @@ function spawnNextEnemy(){
     exp:st.exp, gold:st.gold,
     facing:-1, dead:false,
     hitCD:0, atkCD:0, atkF:0, atk:false, windupTimer:0, juggled:false, juggleTimer:0, airFreezeTimer:0,
-    legF:0, legT:0, state:'patrol', comboPhase:0, comboFirstParried:false, comboParriedCount:0, slammed:false,
+    legF:0, legT:0, state:'patrol', comboPhase:0, comboFirstDeflected:false, comboParriedCount:0, slammed:false,
     pDir:Math.random()<.5?1:-1, pTimer:80+Math.random()*100|0,
     type, slowTimer:0, stunTimer:0, throwAnim:0,
     guardThrowPending:false,
@@ -3710,7 +4019,9 @@ function physics(e,isP,gravMult=1){
   if(!isP && !e.slammed && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
   else if(isP && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
   e.x+=e.vx*GAME_SPEED; e.y+=e.vy*GAME_SPEED;
-  const fh=floorY()-(isP?PH:EH);
+  const _eh=isP?PH:(e.hitH||EH);
+  const _ew=isP?PW:(e.hitW||EW);
+  const fh=floorY()-_eh;
   if(e.y>=fh){
     const wasAirborne=!e.onGround;
     e.y=fh;e.vy=0;e.onGround=true;
@@ -3719,7 +4030,7 @@ function physics(e,isP,gravMult=1){
   if(e.onGround) e.vx*=.74;
   // Stage walls
   const leftWall=STAGE_LEFT;
-  const rightWall=STAGE_RIGHT-(isP?PW:EW);
+  const rightWall=STAGE_RIGHT-_ew;
   if(e.x<leftWall){e.x=leftWall;e.vx=Math.abs(e.vx)*0.3;}
   if(e.x>rightWall){e.x=rightWall;e.vx=-Math.abs(e.vx)*0.3;}
 }
@@ -3919,25 +4230,30 @@ function _tickMultiHitQueue(){
     const e = h.e;
     if(e.dead) continue;
     // Apply this individual hit
+    const _hDark = e.elemProcs?.dark ? (1 + e.elemProcs.dark.dmgBoost) : 1;
     const prev = e.hp;
-    e.hp -= h.roll + h.elemDmg;
+    e.hp -= Math.round((h.roll + h.elemDmg) * _hDark);
     e.ghostHp = prev; e.ghostDrainDelay = 62;
     // Bar chips only on first hit — later burst hits just update hp, bar already reflects it
     if(h.hitIdx === 0) spawnEnemyBarChips(e, prev, e.hp);
     // Tiny spark only on first hit — avoid spawning particles on every burst impact
-    if(h.hitIdx === 0 && particles.length < 300) sparkBurst(e.x+EW/2, e.y+EH*.25, 2);
+    if(h.hitIdx === 0 && particles.length < 300) sparkBurst(e.x+eW(e)/2, e.y+eH(e)*.25, 2);
     // Float numbers stagger vertically so they don't pile up
     const yOff = h.hitIdx * 10;
+    const _dispRoll = _hDark > 1 ? Math.round(h.roll * _hDark) : h.roll;
+    const _dispElem = _hDark > 1 ? Math.round(h.elemDmg * _hDark) : h.elemDmg;
+    const _rollCol  = _hDark > 1 ? '#dba8ff' : '#ffffff';
     floatText(
       e.x+EW/2-14 + (Math.random()-0.5)*8,
       e.y - (h.isFinisher ? 32 : 16) - yOff,
-      `${h.roll}`,
-      '#ffffff'
+      `${_dispRoll}`,
+      _rollCol
     );
-    if(h.elemDmg > 0){
-      floatText(e.x+EW/2+10, e.y-(h.isFinisher?50:32)-yOff, `${h.el}${h.elemDmg}`, h.ec, false);
+    if(_dispElem > 0){
+      floatText(e.x+EW/2+10, e.y-(h.isFinisher?50:32)-yOff, `${h.el}${_dispElem}`, h.ec, false);
     }
     if(e.hp<=0 && !e.dead){ e.dead=true; onEnemyKilled(e); }
+    addElemAccum(e, h.elem, false);
   }
 }
 
@@ -3976,14 +4292,14 @@ function tickThrows(){
         const elemDmg = t.elemental ? Math.max(1, Math.round(roll*0.10)) : 0;
         _multiHitQueue.push({
           e, roll, elemDmg, isFinisher:true, delay:0, hitIdx:0,
-          kb:12, step:0,
+          kb:12, step:0, elem: t.elemental||null,
           ec: t.elemental ? (ELEMENTAL_FLOAT_COLORS[t.elemental]||'#fff') : null,
           el: t.elemental ? (ELEMENTAL_LABELS[t.elemental]||'')           : null,
         });
         e.hitCD=22;
         if(!_groundLocked(e)){ e.vx+=t.facing*10; if(!e.slammed && !e.bossSlamLanded) e.vy-=5; }
-        goreBurst(e.x+EW/2,e.y+EH*.35,t.facing,true);
-        triggerImpact(e.x+EW/2,e.y+EH*0.35);
+        goreBurst(e.x+eW(e)/2,e.y+eH(e)*.35,t.facing,true);
+        triggerImpact(e.x+eW(e)/2,e.y+eH(e)*0.35);
         triggerFreeze(8); triggerShake(9);
         player.mp=Math.min(player.maxMp,player.mp+10); setMpBar(player.mp,player.maxMp);
         playSfx(activeWeapon.hitSound,0.9);
@@ -4129,7 +4445,7 @@ function tickAttackHits(){
     if(e.dead || e.hitCD>0) return;
     if(player.swingHitMap.has(e.id)) return;
     // Expand enemy box by margin — weapon needs to graze the expanded box to register
-    const ex0=e.x-margin, ey0=e.y-margin, ex1=e.x+EW+margin, ey1=e.y+EH+margin;
+    const ex0=e.x-margin, ey0=e.y-margin, ex1=e.x+eW(e)+margin, ey1=e.y+eH(e)+margin;
     let touched = false;
     let prevSeg = null;
     // Sample SWEEP_STEPS+1 blade positions; between each pair test the swept QUAD
@@ -4158,24 +4474,30 @@ function tickAttackHits(){
           e, roll, elemDmg, isFinisher,
           delay: h * 3,   // 0, 3, 6, 9 … frames — very fast burst
           hitIdx: h,
-          kb, step,
+          kb, step, elem: activeWeapon.elemental||null,
           ec: activeWeapon.elemental ? (ELEMENTAL_FLOAT_COLORS[activeWeapon.elemental]||'#fff') : null,
           el: activeWeapon.elemental ? (ELEMENTAL_LABELS[activeWeapon.elemental]||'')           : null,
         });
       }
       // Immediate feedback on first contact (sound, freeze, shake, knockback, impact)
       e.hitCD = weaponHitCD + (hitCount - 1) * 3; // cover the full burst window
-      if(particles.length < 350) goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
+      // Contact point = blade tip at moment of touch, clamped inside the enemy hitbox.
+      // Uses eW(e)/eH(e) so hits land at the right spot on large bosses.
+      const _cix = Math.max(e.x, Math.min(prevSeg?prevSeg.tx:e.x+eW(e)/2, e.x+eW(e)));
+      const _ciy = Math.max(e.y, Math.min(prevSeg?prevSeg.ty:e.y+eH(e)*0.35, e.y+eH(e)));
+      if(particles.length < 350) goreBurst(_cix,_ciy,player.facing,isFinisher);
       if(!_groundLocked(e)) e.vx += player.facing * kb;
       // SLAM: crush enemies DOWN toward the floor; all other motions launch them upward.
       // Use Math.max so we never *slow down* an enemy that is already falling faster than the threshold.
+      // Bosses can only be launched or slammed while stunned — otherwise they stay grounded.
+      const _vertOk = !e.boss || (e.stunTimer > 0);
       if(motion === 'slam'){
-        e.vy = Math.max(e.vy, isFinisher ? 18 : 12);
+        if(_vertOk) e.vy = Math.max(e.vy, isFinisher ? 18 : 12);
       } else {
-        if(!e.slammed && !e.slamStunned && !e.bossSlamStunned && !e.bossSlamLanded && !e.stunTimer) e.vy -= isFinisher ? 5 : 3;
+        if(_vertOk && !e.slammed && !e.slamStunned && !e.bossSlamStunned && !e.bossSlamLanded) e.vy -= isFinisher ? 5 : 3;
       }
-      // UPPERCUT: extra upward launch + golden upward sparks — skip if slammed
-      if(motion === 'uppercut' && !e.slammed){
+      // UPPERCUT: extra upward launch + golden upward sparks — skip if slammed or boss not stunned
+      if(motion === 'uppercut' && !e.slammed && _vertOk){
         e.vy -= (stepData.launchPower ?? 10);
         if(particles.length < 320){
           for(let _ui=0;_ui<8;_ui++){
@@ -4188,7 +4510,7 @@ function tickAttackHits(){
         }
       }
       hitAny=true;
-      triggerImpact(e.x+EW/2, e.y+EH*0.35);
+      triggerImpact(_cix, _ciy);
     }
   });
 
@@ -4221,13 +4543,13 @@ function tickAttackHits(){
       if(!_groundLocked(_se)) _se.vx += player.facing*(_skb+_svx);
       if(!_groundLocked(_se)) _se.vy = Math.max(_se.vy, 4);  // shockwave: push DOWN — floor-level spread
       _se.hitCD = weaponHitCD;
-      if(particles.length<350) goreBurst(_se.x+EW/2,_se.y+EH*.35,player.facing,false);
+      if(particles.length<350) goreBurst(_se.x+eW(_se)/2,_se.y+eH(_se)*.35,player.facing,false);
       _multiHitQueue.push({
         e:_se, roll:Math.round(dmg*0.55+(Math.random()*8|0)), elemDmg:0,
         isFinisher:false, delay:5, hitIdx:0, kb:_skb, step,
         ec:null, el:null,
       });
-      triggerImpact(_se.x+EW/2,_se.y+EH*0.35);
+      triggerImpact(_se.x+eW(_se)/2,_se.y+eH(_se)*0.35);
     });
   }
 
@@ -4254,6 +4576,153 @@ function tickAttackHits(){
   }
 }
 
+// ── ELEMENTAL ACCUMULATION FUNCTIONS ─────────────────────────────────────────
+function addElemAccum(e, elem, isMagic){
+  if(!elem || !e || e.dead) return;
+  if(!e.elemAccum)     e.elemAccum     = {};
+  if(!e.elemAccumHold) e.elemAccumHold = {};
+  const fill = (isMagic ? ELEM_MAGIC_FILL : ELEM_WEAPON_FILL) * (e.boss ? 0.5 : 1);
+  e.elemAccum[elem] = Math.min(ELEM_ACCUM_MAX, (e.elemAccum[elem] || 0) + fill);
+  e.elemAccumHold[elem] = ELEM_ACCUM_HOLD;
+  if(e.elemAccum[elem] >= ELEM_ACCUM_MAX){
+    e.elemAccum[elem] = 0;
+    _triggerElemProc(e, elem);
+  }
+}
+
+function _triggerElemProc(e, elem){
+  const def = ELEM_PROC_DEFS[elem]; if(!def) return;
+  if(!e.elemProcs) e.elemProcs = {};
+  const col = ELEMENTAL_FLOAT_COLORS[elem] || '#fff';
+  const lbl = ELEMENTAL_LABELS[elem] || '';
+  sparkBurst(e.x+EW/2, e.y+EH*0.35, 22, true);
+  triggerShake(8);
+  switch(elem){
+    case 'fire':
+      e.elemProcs.fire = { timer:ELEM_PROC_DEFS.fire.dur, tickTimer:ELEM_PROC_DEFS.fire.tickEvery, ticks:ELEM_PROC_DEFS.fire.ticks };
+      floatText(e.x+EW/2, e.y-52, `${lbl} IGNITE`, col, true);
+      break;
+    case 'ice':
+      e.stunTimer = Math.max(e.stunTimer||0, ELEM_PROC_DEFS.ice.stunFrames);
+      e.elemProcs.ice = { timer:ELEM_PROC_DEFS.ice.dur };
+      e.vx = 0;
+      floatText(e.x+EW/2, e.y-52, `${lbl} FROZEN`, col, true);
+      break;
+    case 'lightning':{
+      e.stunTimer = Math.max(e.stunTimer||0, ELEM_PROC_DEFS.lightning.dur);
+      floatText(e.x+EW/2, e.y-52, `${lbl} STUNNED`, col, true);
+      const _chain = enemies.filter(en=>!en.dead&&en!==e)
+        .sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y))[0];
+      if(_chain && Math.hypot(_chain.x-e.x,_chain.y-e.y)<320){
+        _chain.stunTimer = Math.max(_chain.stunTimer||0, Math.floor(ELEM_PROC_DEFS.lightning.dur*0.5));
+        floatText(_chain.x+EW/2, _chain.y-36, `${lbl} CHAIN`, col, false);
+        sparkBurst(_chain.x+EW/2, _chain.y+EH*0.35, 10, true);
+      }
+      break;
+    }
+    case 'wind':{
+      const _wCx=e.x+EW/2, _wCy=e.y+EH/2;
+      const _wBurst=Math.round(e.maxHp*ELEM_PROC_DEFS.wind.burstPct);
+      enemies.filter(en=>!en.dead).forEach(en=>{
+        const _wd=Math.hypot((en.x+EW/2)-_wCx,(en.y+EH/2)-_wCy);
+        if(_wd>ELEM_PROC_DEFS.wind.burstRadius) return;
+        const _wDir=(en.x+EW/2)>_wCx?1:-1;
+        const _wFall=1-_wd/ELEM_PROC_DEFS.wind.burstRadius*0.5;
+        if(!_groundLocked(en)){en.vx+=_wDir*15*_wFall; en.vy-=5*_wFall;}
+        const _wDmg=Math.round(_wBurst*_wFall);
+        const _wPrev=en.hp; en.hp=Math.max(0,en.hp-_wDmg);
+        en.ghostHp=_wPrev; en.ghostDrainDelay=62; en.hitCD=15;
+        floatText(en.x+EW/2,en.y-36,`${lbl}${_wDmg}`,col,false);
+        if(en.hp<=0&&!en.dead){en.dead=true;onEnemyKilled(en);}
+      });
+      for(let _wi=0;_wi<28;_wi++){
+        const _wa=(_wi/28)*Math.PI*2;
+        particles.push({type:'spark',x:_wCx,y:_wCy,
+          vx:Math.cos(_wa)*(9+Math.random()*7),vy:Math.sin(_wa)*(9+Math.random()*7)-3,
+          life:1,decay:.038,r:2+Math.random()*3,
+          color:`hsl(${155+Math.random()*35|0},90%,${65+Math.random()*22|0}%)`});
+      }
+      floatText(e.x+EW/2, e.y-52, `${lbl} BURST`, col, true);
+      break;
+    }
+    case 'holy':{
+      const _smiteDmg = Math.round(e.maxHp * ELEM_PROC_DEFS.holy.burstPct);
+      const _prev = e.hp;
+      e.hp = Math.max(0, e.hp - _smiteDmg);
+      e.ghostHp = _prev; e.ghostDrainDelay = 62;
+      spawnEnemyBarChips(e, _prev, e.hp);
+      bloodBurst(e.x+EW/2, e.y+EH*0.35, 16);
+      floatText(e.x+EW/2, e.y-52, `${lbl} SMITE ${_smiteDmg}`, col, true);
+      if(e.hp<=0 && !e.dead){ e.dead=true; onEnemyKilled(e); }
+      break;
+    }
+    case 'dark':
+      e.elemProcs.dark = { timer:ELEM_PROC_DEFS.dark.dur, dmgBoost:ELEM_PROC_DEFS.dark.dmgBoost };
+      floatText(e.x+EW/2, e.y-52, `${lbl} CURSED`, col, true);
+      break;
+    case 'poison':
+      e.elemProcs.poison = { timer:ELEM_PROC_DEFS.poison.dur, tickTimer:ELEM_PROC_DEFS.poison.tickEvery, ticks:ELEM_PROC_DEFS.poison.ticks };
+      floatText(e.x+EW/2, e.y-52, `${lbl} POISONED`, col, true);
+      break;
+  }
+}
+
+function _updateElemProcs(e){
+  if(!e.elemProcs || e.dead) return;
+  const P = e.elemProcs;
+  // Fire DoT
+  if(P.fire){
+    P.fire.timer--; P.fire.tickTimer--;
+    if(P.fire.tickTimer <= 0 && P.fire.ticks > 0){
+      P.fire.tickTimer = ELEM_PROC_DEFS.fire.tickEvery; P.fire.ticks--;
+      const _d = Math.max(1, Math.round(e.maxHp * ELEM_PROC_DEFS.fire.dmgPct));
+      const _p = e.hp; e.hp = Math.max(0, e.hp - _d);
+      e.ghostHp = _p; e.ghostDrainDelay = 62;
+      spawnEnemyBarChips(e, _p, e.hp);
+      floatText(e.x+EW/2+(Math.random()-.5)*18, e.y-20, `🔥${_d}`, '#ff7030', false);
+      if(e.hp<=0 && !e.dead){ e.dead=true; onEnemyKilled(e); }
+    }
+    if(P.fire.timer <= 0 || P.fire.ticks <= 0) delete P.fire;
+  }
+  // Ice slow (after initial stun expires, heavy vx drag)
+  if(P.ice){
+    P.ice.timer--;
+    if(!e.stunTimer) e.vx *= 0.72;
+    if(P.ice.timer <= 0) delete P.ice;
+  }
+  // Dark curse — timer only, boost applied at damage sites
+  if(P.dark){
+    P.dark.timer--;
+    if(P.dark.timer <= 0) delete P.dark;
+  }
+  // Poison DoT
+  if(P.poison){
+    P.poison.timer--; P.poison.tickTimer--;
+    if(P.poison.tickTimer <= 0 && P.poison.ticks > 0){
+      P.poison.tickTimer = ELEM_PROC_DEFS.poison.tickEvery; P.poison.ticks--;
+      const _d = Math.max(1, Math.round(e.maxHp * ELEM_PROC_DEFS.poison.dmgPct));
+      const _p = e.hp; e.hp = Math.max(0, e.hp - _d);
+      e.ghostHp = _p; e.ghostDrainDelay = 62;
+      spawnEnemyBarChips(e, _p, e.hp);
+      floatText(e.x+EW/2+(Math.random()-.5)*18, e.y-20, `☠${_d}`, '#80ff40', false);
+      if(e.hp<=0 && !e.dead){ e.dead=true; onEnemyKilled(e); }
+    }
+    if(P.poison.timer <= 0 || P.poison.ticks <= 0) delete P.poison;
+  }
+}
+
+function _decayElemAccum(e){
+  if(!e.elemAccum) return;
+  if(!e.elemAccumHold) e.elemAccumHold = {};
+  for(const _k of Object.keys(e.elemAccum)){
+    if((e.elemAccumHold[_k]||0) > 0){ e.elemAccumHold[_k]--; }
+    else{
+      e.elemAccum[_k] -= ELEM_ACCUM_DECAY * 60;
+      if(e.elemAccum[_k] <= 0) delete e.elemAccum[_k];
+    }
+  }
+}
+
 // Shared helper used by all weapon specials — apply damage + effects to one enemy.
 // Label and colour are derived from activeWeapon.elemental via the central maps.
 function _spHit(e, dmg){
@@ -4262,14 +4731,16 @@ function _spHit(e, dmg){
   const _col  = _elem ? (ELEMENTAL_FLOAT_COLORS[_elem]  || '#ffffff') : '#ffffff';
   lastHitEnemy=e;
   rumble(132, 0.63, 0.88);
+  const _darkMult = e.elemProcs?.dark ? (1 + e.elemProcs.dark.dmgBoost) : 1;
+  const _dmgFinal = _darkMult > 1 ? Math.round(dmg * _darkMult) : dmg;
   const prev=e.hp;
-  e.hp-=dmg; e.hitCD=30;
+  e.hp-=_dmgFinal; e.hitCD=30;
   e.ghostHp=prev; e.ghostDrainDelay=62;
   spawnEnemyBarChips(e,prev,e.hp);
   bloodBurst(e.x+EW/2,e.y+EH*.35,20);
   sparkBurst(e.x+EW/2,e.y+EH*.25,16,true);
   goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,true);
-  floatText(e.x+EW/2-16,e.y-36,`${_lbl}${dmg}`,_col,true);
+  floatText(e.x+EW/2-16,e.y-36,`${_lbl}${_dmgFinal}`,_col,true);
   triggerImpact(e.x+EW/2,e.y+EH*0.35);
   if(!player.spStreakCounted){
     player.spStreakCounted=true;
@@ -4279,6 +4750,15 @@ function _spHit(e, dmg){
     updateStreakHud();
   }
   if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+  addElemAccum(e, _elem, true);
+}
+
+// Fires the Tenrai special with the radius earned from the charge duration.
+function _fireTenraiCut(p){
+  const raw = Math.min(p.tenraiWindupF, TENRAI_MAX_CHARGE) / TENRAI_MAX_CHARGE;
+  p.tenraiRadius = TENRAI_MIN_RADIUS + raw * (TENRAI_MAX_RADIUS - TENRAI_MIN_RADIUS);
+  p.tenraiWindup = false; p.tenraiWindupF = 0;
+  activeWeapon.special(p);
 }
 
 function launchSpecial(){
@@ -4369,30 +4849,43 @@ function airSlamEnemy(){
   let target=null,bestDist=Infinity;
   enemies.forEach(e=>{
     if(e.dead) return;
-    const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
-    const dy=(e.y+EH/2)-(player.y+PH/2);
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=(e.y+eH(e)/2)-(player.y+PH/2);
     if(dx<LAUNCH_RANGE+60&&Math.abs(dy)<340){const d=dx+Math.abs(dy);if(d<bestDist){bestDist=d;target=e;}}
   });
   if(!target) return;
-  const _spikeDmg=Math.round(calcBaseDmg()*0.7+(Math.random()*10|0));
+  // Stamina gate — costs 25% of max stamina per slam
+  const _slamStamCost = Math.floor(player.maxStamina * 0.25);
+  if(player.stamina < _slamStamCost || player.stDepleted) return;
+  player.stamina = Math.max(0, player.stamina - _slamStamCost);
+  if(player.stamina < 8) player.stDepleted = true;
+  player.stRegenDelay = ST_REGEN_DELAY;
+  setStBar(player.stamina, player.maxStamina);
+  const _spikeDmgBase=Math.round(calcBaseDmg()*0.7+(Math.random()*10|0));
+  const _spikeDmg=Math.round(_spikeDmgBase*(target.elemProcs?.dark?(1+target.elemProcs.dark.dmgBoost):1));
   const _spikePrev=target.hp;
   target.hp=Math.max(0,target.hp-_spikeDmg);
   target.ghostHp=_spikePrev; target.ghostDrainDelay=62;
   spawnEnemyBarChips(target,_spikePrev,target.hp);
   floatText(target.x+EW/2-12,target.y-24,`${_spikeDmg}`,'#ff4400',true);
+  // Bosses can only be sent to the ground when they are stunned — consistent with launchEnemy gate.
+  // Damage always applies; only the downward slam physics is blocked on non-stunned bosses.
+  const _canSlamDown = !target.boss || (target.stunTimer > 0);
   target.vx=0;
-  target.slammed=true;
-  target.slammedFromAir=!target.onGround; // only grant stun if enemy was actually in the air
+  target.slammed=_canSlamDown;
+  target.slammedFromAir=_canSlamDown && !target.onGround; // only grant stun if enemy was actually in the air
   target.juggled=false;   // must use full gravity — not the slow juggle arc
   target.juggleTimer=0;
   target.airFreezeTimer=0;
   target.hitCD=20;
-  if(target.onGround){
-    // Already grounded — trigger landing immediately without physics bounce
-    target.vy=0;
-  } else {
-    target.vy=SLAM_VY*1.3;
-    target.onGround=false;
+  if(_canSlamDown){
+    if(target.onGround){
+      // Already grounded — trigger landing immediately without physics bounce
+      target.vy=0;
+    } else {
+      target.vy=SLAM_VY*1.3;
+      target.onGround=false;
+    }
   }
   if(target.hp<=0&&!target.dead){target.dead=true;onEnemyKilled(target);}
   // Player: short hang then drop fast — must release button before next slam
@@ -4498,15 +4991,18 @@ function grapplePull(target){
   grappleState='pull'; grappleTarget=target; grappleTimer=90;
   grappleCooldown=GRAPPLE_COOLDOWN_MAX;
   lastHitEnemy=target;
-  _initRopeNodes(player.x+PW/2,player.y+PH*.3,target.x+EW/2,target.y+EH*.4);
+  _initRopeNodes(player.x+PW/2,player.y+PH*.3,target.x+eW(target)/2,target.y+eH(target)*0.5);
   playSfx(GRAPPLE_FIRE_SOUND);
   playSfx(GRAPPLE_PULL_SOUND);
   triggerShake(8); rumble(110,0.65,0.32);
-  sparkBurst(target.x+EW/2,target.y+EH*0.4,10,false);
+  sparkBurst(target.x+eW(target)/2,target.y+eH(target)*0.5,10,false);
 }
 
 function grappleZip(target){
   if(!target) return;
+  // Slammed enemies are falling fast — zipping to them sends the player to the floor.
+  // Pull them toward the player instead, which is always the better play anyway.
+  if(target.slammed){ grapplePull(target); return; }
   grappleState='zip'; grappleTarget=target; grappleTimer=140;
   grappleCooldown=GRAPPLE_COOLDOWN_MAX;
   player.onGround=false; player.jumpsLeft=Math.max(0, player.jumpsLeft-1); // consume one jump slot, leave remainder (e.g. double-jump still usable)
@@ -4516,7 +5012,7 @@ function grappleZip(target){
   const dist=Math.hypot(dx,dy)||1;
   player.vx=(dx/dist)*GRAPPLE_ZIP_SPEED;
   player.vy=(dy/dist)*GRAPPLE_ZIP_SPEED;
-  _initRopeNodes(player.x+PW/2,player.y+PH*.3,target.x+EW/2,target.y+EH*.4);
+  _initRopeNodes(player.x+PW/2,player.y+PH*.3,target.x+eW(target)/2,target.y+eH(target)*0.5);
   playSfx(GRAPPLE_FIRE_SOUND);
   playSfx(GRAPPLE_ZIP_SOUND);
   triggerShake(5); rumble(80,0.5,0.8);
@@ -4528,7 +5024,7 @@ function _grappleArriveZip(){
   player.vx*=0.12; player.vy*=0.12;
   playSfx(GRAPPLE_ARRIVE_SOUND);
   triggerFreeze(10); triggerShake(18);
-  sparkBurst(grappleTarget.x+EW/2,grappleTarget.y+EH*0.4,18,true);
+  sparkBurst(grappleTarget.x+eW(grappleTarget)/2,grappleTarget.y+eH(grappleTarget)*0.5,18,true);
   rumble(200,0.85,0.55);
   const dir=player.x<grappleTarget.x?1:-1;
   player.facing=dir;
@@ -4544,9 +5040,11 @@ function _grappleArriveZip(){
     grappleTarget.vx*=0.2;
     player.vx=0; player.vy=0;
     player.airGrappleSuspendTimer=GRAPPLE_AIR_FREEZE_FRAMES;
-  } else if(!grappleTarget.slammed){
+  } else if(!grappleTarget.slammed && !grappleTarget.slamStunned && !grappleTarget.bossSlamLanded){
+    // On ground, not stunned — give a small pop-up so the player can juggle
     grappleTarget.vx=dir*3; grappleTarget.vy=-2;
   }
+  // else: grounded + slam-stunned — grapple just ends without relaunching them
   grappleTarget.hitCD=28; grappleTarget.juggled=true; grappleTarget.juggleTimer=70;
   lastHitEnemy=grappleTarget;
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
@@ -4560,7 +5058,7 @@ function _grappleArriveZip(){
 function _grappleArrivePull(){
   playSfx(GRAPPLE_ARRIVE_SOUND);
   triggerFreeze(7); triggerShake(12);
-  sparkBurst(grappleTarget.x+EW/2,grappleTarget.y+EH*0.4,12,true);
+  sparkBurst(grappleTarget.x+eW(grappleTarget)/2,grappleTarget.y+eH(grappleTarget)*0.5,12,true);
   rumble(150,0.7,0.4);
   // If player is airborne, freeze both so player can juggle
   // Exception: slammed enemies must not be interrupted — let them continue falling
@@ -4589,7 +5087,7 @@ function _updateRopeVerlet(){
   if(n<2||!grappleTarget) return;
   // Re-pin anchors
   nn[0].x=player.x+PW/2; nn[0].y=player.y+PH*.3;
-  nn[n-1].x=grappleTarget.x+EW/2; nn[n-1].y=grappleTarget.y+EH*.4;
+  nn[n-1].x=grappleTarget.x+eW(grappleTarget)/2; nn[n-1].y=grappleTarget.y+eH(grappleTarget)*0.5;
   // Verlet integrate free nodes (everything between anchors)
   for(let i=1;i<n-1;i++){
     const nd=nn[i];
@@ -4610,7 +5108,7 @@ function _updateRopeVerlet(){
     }
     // Re-pin after each iteration
     nn[0].x=player.x+PW/2; nn[0].y=player.y+PH*.3;
-    nn[n-1].x=grappleTarget.x+EW/2; nn[n-1].y=grappleTarget.y+EH*.4;
+    nn[n-1].x=grappleTarget.x+eW(grappleTarget)/2; nn[n-1].y=grappleTarget.y+eH(grappleTarget)*0.5;
   }
 }
 
@@ -4628,8 +5126,8 @@ function updateGrapple(){
 
   if(grappleState==='zip'){
     // Homing: re-aim each frame so the player always reaches the target
-    const dx=(grappleTarget.x+EW/2)-(player.x+PW/2);
-    const dy=(grappleTarget.y+EH/2)-(player.y+PH/2);
+    const dx=(grappleTarget.x+eW(grappleTarget)/2)-(player.x+PW/2);
+    const dy=(grappleTarget.y+eH(grappleTarget)/2)-(player.y+PH/2);
     const dist=Math.hypot(dx,dy)||1;
     player.vx=(dx/dist)*GRAPPLE_ZIP_SPEED;
     player.vy=(dy/dist)*GRAPPLE_ZIP_SPEED;
@@ -4644,13 +5142,19 @@ function updateGrapple(){
     if(dist<58||grappleTimer<=0) _grappleArriveZip();
   } else if(grappleState==='pull'){
     // Re-apply velocity each frame to resist friction / gravity on the enemy
-    const dx=(player.x+PW/2)-(grappleTarget.x+EW/2);
-    const dy=(player.y+PH/2)-(grappleTarget.y+EH/2);
+    const dx=(player.x+PW/2)-(grappleTarget.x+eW(grappleTarget)/2);
+    const dy=(player.y+PH/2)-(grappleTarget.y+eH(grappleTarget)/2);
     const dist=Math.hypot(dx,dy)||1;
     grappleTarget.vx=(dx/dist)*GRAPPLE_PULL_SPEED;
-    // Slammed enemies must fall — only pull horizontally, never apply upward vy
-    if(!grappleTarget.slammed) grappleTarget.vy=(dy/dist)*GRAPPLE_PULL_SPEED;
-    grappleTarget.onGround=false;
+    // Slammed enemies must fall — only pull horizontally, never apply upward vy.
+    // Also do NOT force onGround=false while slammed: physics runs after this and
+    // would set onGround=true when the enemy hits the floor; if we clear it first
+    // the slam-landing check (enemy tick, also after this) never sees onGround=true,
+    // so slammed stays true forever and physics plays SLAM_LAND_SOUND every frame.
+    if(!grappleTarget.slammed){
+      grappleTarget.vy=(dy/dist)*GRAPPLE_PULL_SPEED;
+      grappleTarget.onGround=false;
+    }
     if(dist<68||grappleTimer<=0) _grappleArrivePull();
   }
 }
@@ -4660,7 +5164,7 @@ function drawGrappleIndicator(){
   if(grappleState!=='none'||grappleCooldown>0||player.dead||gameOver) return;
   const t=findGrappleTarget();
   if(!t) return;
-  const tx=t.x+EW/2-camX, ty=t.y+EH*.15;
+  const tx=t.x+eW(t)/2-camX, ty=t.y+eH(t)*0.5;
   const pulse=0.5+0.5*Math.sin(Date.now()/130);
   const r=20+pulse*5;
   ctx.save();
@@ -4766,8 +5270,8 @@ function drawGrappleLine(){
 
   // 8 — Pulsing targeting ring on enemy during pull
   if(grappleState==='pull'&&grappleRopeProgress>=1){
-    const ex=cx_(grappleTarget.x+EW/2);
-    const ey=cy_(grappleTarget.y+EH*.3);
+    const ex=cx_(grappleTarget.x+eW(grappleTarget)/2);
+    const ey=cy_(grappleTarget.y+eH(grappleTarget)*0.5);
     const pulse=0.55+0.45*Math.sin(Date.now()/75);
     ctx.strokeStyle=`rgba(255,200,50,${pulse*0.85})`;
     ctx.lineWidth=2.2;
@@ -4787,16 +5291,17 @@ function _airRelaunch(){
   let anyHit=false;
   enemies.forEach(e=>{
     if(e.dead) return;
-    const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
-    const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=Math.abs((e.y+eH(e)/2)-(player.y+PH/2));
     if(dx<LAUNCH_RANGE+30&&dy<280){
-      const dmg=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
+      const _dmgBase=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
+      const dmg=Math.round(_dmgBase*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=14;
       e.ghostHp=prev; e.ghostDrainDelay=62;
       if(e.slammed || e.slamStunned) return; // never relaunch a grounded slam victim
-      if(e.boss && (!(e.stunTimer>0) || e.bossSlamLanded>0)) return; // bosses only relaunchable when parry-stunned and not freshly slammed
+      if(e.boss && (!(e.stunTimer>0) || e.bossSlamLanded>0)) return; // bosses only relaunchable when deflect-stunned and not freshly slammed
       e.vy=JUGGLE_VY; // full relaunch — same height each time
       e.vx=player.facing*14;
       e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0;
@@ -4811,6 +5316,7 @@ function _airRelaunch(){
   if(anyHit){
     player.stamina=Math.max(0,player.stamina-LAUNCH_STAMINA);
     if(player.stamina<8) player.stDepleted=true;
+    player.stRegenDelay=ST_REGEN_DELAY;
     setStBar(player.stamina,player.maxStamina);
     player.launchCD=Math.round(LAUNCH_COOLDOWN*0.5);
     player.onGround=false;
@@ -4833,23 +5339,28 @@ function launchEnemy(held=false){
   if(player.stamina<LAUNCH_STAMINA||player.stDepleted) return;
   player.stamina=Math.max(0,player.stamina-LAUNCH_STAMINA);
   if(player.stamina<8) player.stDepleted=true;
+  player.stRegenDelay=ST_REGEN_DELAY;
   setStBar(player.stamina,player.maxStamina);
   player.launchCD=LAUNCH_COOLDOWN;
   player.launchUntil=Date.now()+600;
   let hit=false, anyJuggled=false;
   enemies.forEach(e=>{
     if(e.dead) return;
-    // No hitCD gate — launch is its own move gated by player.launchCD, not e.hitCD
-    const dx=Math.abs((e.x+EW/2)-(player.x+PW/2));
-    const dy=Math.abs((e.y+EH/2)-(player.y+PH/2));
+    // Use eW/eH so large-hitbox bosses are measured from their actual centre, not EW/EH constants.
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=Math.abs((e.y+eH(e)/2)-(player.y+PH/2));
     // Post-grapple: widen vertical window — player/enemy fall at different rates after freeze expires
     const launchDyMax = player.postZipTimer>0 ? 200 : 90;
-    if(dx<LAUNCH_RANGE&&dy<launchDyMax&&e.hitCD<=0){
-      const dmg=Math.round(calcBaseDmg()*0.5+(Math.random()*8|0));
+    // Bosses: always register damage regardless of hitCD — player.launchCD (38f) is the
+    // binding cooldown, e.hitCD would only silently eat the hit without feedback.
+    // Regular enemies: respect hitCD as normal.
+    if(dx<LAUNCH_RANGE&&dy<launchDyMax&&(e.boss||e.hitCD<=0)){
+      const dmg=Math.round((calcBaseDmg()*0.5+(Math.random()*8|0))*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=18;
       e.ghostHp=prev; e.ghostDrainDelay=62;
+      // Launch physics only when stunned — damage above always applies regardless.
       const canLaunch = !e.slammed && !e.slamStunned && (!e.boss || e.stunTimer>0);
       if(canLaunch){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0; anyJuggled=true; }
       spawnEnemyBarChips(e,prev,e.hp);
@@ -4892,7 +5403,7 @@ function updateBossBar(e){
 }
 
 // Feed the boss stun bar by one pip — used by any hit source that should count
-// (reflected projectile landing, spell hits, etc.) without going through onParrySuccess
+// (reflected projectile landing, spell hits, etc.) without going through onDeflectSuccess
 function feedBossStunBar(e){
   if(!e||!e.boss||e.dead) return;
   e.bossStunProgress=(e.bossStunProgress||0)+1;
@@ -4955,8 +5466,9 @@ function spawnBoss(isBossRush=false){
     legF:0,legT:0,state:'chase',
     pDir:-1,pTimer:100,
     type:'boss',tier:3,boss:true,bossName:'GRONK',
+    hitW:BOSS_ANIM_DEFS.GRONK?.hitW||EW, hitH:BOSS_ANIM_DEFS.GRONK?.hitH||EH,
     slowTimer:0,stunTimer:0,
-    atkPattern:0,atkPhase:0,spinning:false,spinTimer:0,spinDir:1,comboFirstParried:false,
+    atkPattern:0,atkPhase:0,spinning:false,spinTimer:0,spinDir:1,comboFirstDeflected:false,
     bossStunMax:4,bossStunProgress:0,
   });
   document.body.classList.add('boss-fighting');
@@ -4983,6 +5495,7 @@ function spawnShamaz(isBossRush=false){
     legF:0,legT:0,state:'chase',
     pDir:-1,pTimer:100,
     type:'boss',tier:3,boss:true,bossName:'SHAMAZ',
+    hitW:BOSS_ANIM_DEFS.SHAMAZ?.hitW||EW, hitH:BOSS_ANIM_DEFS.SHAMAZ?.hitH||EH,
     slowTimer:0,stunTimer:0,
     atkPattern:0,atkPhase:0,
     comboParriedCount:0,
@@ -5013,9 +5526,10 @@ function spawnGartu(isBossRush=false){
     legF:0,legT:0,state:'chase',
     pDir:-1,pTimer:100,
     type:'boss',tier:3,boss:true,bossName:'GARTU',
+    hitW:BOSS_ANIM_DEFS.GARTU?.hitW||EW, hitH:BOSS_ANIM_DEFS.GARTU?.hitH||EH,
     slowTimer:0,stunTimer:0,
     atkPattern:0,atkPhase:0,
-    comboFirstParried:false,comboParriedCount:0,
+    comboFirstDeflected:false,comboParriedCount:0,
     bossStunMax:6,bossStunProgress:0,
   });
   document.body.classList.add('boss-fighting');
@@ -5150,7 +5664,7 @@ function updateEnemyProjectiles(){
     p.life--;
     if(p.life<=0){p.dead=true;return;}
     // Gartu homing orb steering (before movement)
-    if(p.homingOnPlayer && !p.parried && !player.dead){
+    if(p.homingOnPlayer && !p.deflected && !player.dead){
       const tx=player.x+PW/2, ty=player.y+PH*0.4;
       const hdx=tx-p.x, hdy=ty-p.y;
       const dist=Math.hypot(hdx,hdy)||1;
@@ -5163,12 +5677,12 @@ function updateEnemyProjectiles(){
     p.x+=p.vx; p.y+=p.vy;
     if(p.x<STAGE_LEFT-120||p.x>STAGE_RIGHT+120||p.y>floorY()+80){p.dead=true;return;}
 
-    if(!p.parried){
-      // parry check
+    if(!p.deflected){
+      // deflect check
       const pdx=Math.abs(p.x-(player.x+PW/2));
       const pdy=Math.abs(p.y-(player.y+PH*0.4));
-      if(pdx<36&&pdy<48&&player.parryTimer>0&&!player.dead){
-        p.parried=true;
+      if(pdx<36&&pdy<48&&player.deflectTimer>0&&!player.dead){
+        p.deflected=true;
         const spd=Math.max(Math.hypot(p.vx,p.vy)*1.35, 10);
         p.vx=-p.vx; p.vy=Math.min(p.vy,-0.5);
         const ns=Math.hypot(p.vx,p.vy)||1;
@@ -5176,7 +5690,7 @@ function updateEnemyProjectiles(){
         p.gravity=0; // no gravity on reflected projectile
         p.homingTarget=p.fromEnemy||p.fromBoss;
         const attacker=p.fromEnemy||p.fromBoss;
-        if(attacker) onParrySuccess(attacker,{reflectParried:true});
+        if(attacker) onDeflectSuccess(attacker,{reflectParried:true});
         return;
       }
       // player hit
@@ -5245,7 +5759,7 @@ function updateEnemyProjectiles(){
               feedBossStunBar(e);
             }
           } else {
-            e.stunTimer=Math.max(e.stunTimer||0,PARRY_STUN_FRAMES+40);
+            e.stunTimer=Math.max(e.stunTimer||0,DEFLECT_STUN_FRAMES+40);
             floatText(e.x+EW/2-18,e.y-38,'STUNNED!','#ffe060',true);
           }
           floatText(e.x+EW/2-10,e.y-18,`${dmg}`,'#ffffff',false);
@@ -6817,8 +7331,11 @@ function drawSwordSprite(p, trailOnly=false){
       const isSingleFrameTrail = tImg.naturalWidth === tImg.naturalHeight;
       const tAncX = _WM.trail.anchorX, tAncY = _WM.trail.anchorY;
       if(isSingleFrameTrail){
-        // Single-frame square PNG — draw at current swing angle using anchor metadata
-        const TRAIL_H = stepData.swingH * 1.1;
+        // Single-frame square PNG — draw at current swing angle using anchor metadata.
+        // Strike weapons: use displayH (or 104) so the trail sprite matches the weapon render
+        // size rather than the tiny swingH that controls hitbox range.
+        const _trailRenderH = (motion === 'strike') ? (stepData.displayH || 104) : stepData.swingH;
+        const TRAIL_H = _trailRenderH * 1.1;
         const ts = TRAIL_H / tImg.naturalHeight, tw = tImg.naturalWidth*ts, th = tImg.naturalHeight*ts;
         if(motion === 'strike'){
           if(t < 0.05 || t > 0.75) return;
@@ -6851,7 +7368,8 @@ function drawSwordSprite(p, trailOnly=false){
           const prevAp = Math.max(0, t-0.12);
           const pt2 = prevAp<outF?prevAp/outF:1-(prevAp-outF)/(1-outF);
           const ppE = pt2<0.5?2*pt2*pt2:-1+(4-2*pt2)*pt2;
-          const sprH = stepData.swingH;
+          // Use displayH (or 104) for visual scale — swingH is the hitbox range, not the render size
+          const sprH = stepData.displayH || 104;
           const ts = sprH/tf.sh, tw = tf.sw*ts, th = tf.sh*ts;
           ctx.save();
           ctx.translate(pivX + p.facing*(ppE*fwd), pivY + ppE*vert);
@@ -6897,7 +7415,10 @@ function drawSwordSprite(p, trailOnly=false){
       const srcY = isSingleFrame ? 0                    : af.sy;
       const srcW = isSingleFrame ? wImg.naturalWidth    : af.sw;
       const srcH = isSingleFrame ? wImg.naturalHeight   : af.sh;
-      const as_ = sH/srcH, aw = srcW*as_, ah = srcH*as_;
+      // Strike weapons use a separate render height so swingH (which controls hitbox range
+      // and is intentionally small for punches/claws) doesn't also shrink the sprite.
+      const renderH = (motion === 'strike') ? (stepData.displayH || 104) : sH;
+      const as_ = renderH/srcH, aw = srcW*as_, ah = srcH*as_;
       // Anchor: where in the PNG the guard sits.  Read from weapon definition metadata.
       // For single-frame exports this is set by the editor; for legacy spritesheets uses (0.5,0.1).
       const ancX = isSingleFrame ? _WM.weapon.anchorX : 0.5;
@@ -7118,6 +7639,299 @@ function drawPlayerFallback(p){
   ctx.restore();
 }
 
+// ── BOSS SPRITE ANIMATION SYSTEM ──────────────────────────────────────────
+// To enable sprites for a boss set its 'src' to a sprite sheet path.
+// Sheet layout (rows top→down):  0=idle | 1=move | 2=charge | 3=attack
+// Frames run left-to-right in each row. drawW/drawH control on-screen size.
+// offsetX/offsetY nudge the sprite relative to the hitbox centre.
+const BOSS_ANIM_DEFS = {
+  GRONK: {
+    src: 'GFX/gronk.png',  // ← update path if needed
+    frameW:220, frameH:220,
+    drawW:220,  drawH:220,
+    offsetX:0, offsetY:40,
+    hitW:220, hitH:220,
+    anims:{
+      idle  : { row:0, frames:4, fps:5  },  // subtle idle sway
+      move  : { row:1, frames:4, fps:8  },  // stomp walk
+      charge: { row:2, frames:4, fps:8  },  // windup raise
+      attack: { row:3, frames:4, fps:10 },  // 4-frame swing
+    },
+  },
+  SHAMAZ: {
+    src: 'GFX/shamaz.png',
+    frameW:180, frameH:160,
+    drawW:160,  drawH:160,
+    offsetX:0, offsetY:30,
+    hitW:100, hitH:125,
+    anims:{
+      // Row 0: idle (4 frames)
+      idle         : { row:0, frames:4, fps:6 },
+      // Row 1: walk (4 frames)
+      move         : { row:1, frames:4, fps:10 },
+      // Row 2 frames 0-3: melee attack windup (progress-driven across windupTimer)
+      charge       : { row:2, frames:4, fps:8 },
+      // Row 2 frames 4-5: cannon charge windup (progress-driven across SHAMAZ_CANNON_WINDUP)
+      cannon_charge: { row:2, frames:2, fps:6, frameOffset:4 },
+      // Row 3 frames 0-3: melee attack — one full loop per combo hit (progress-driven per atkF)
+      attack       : { row:3, frames:4, fps:8 },
+      // Row 3 frame 4: cannon fire pose — held briefly after the cannon fires
+      cannon_fire  : { row:3, frames:1, fps:4, frameOffset:4 },
+    },
+  },
+  GARTU: {
+    src: 'GFX/gartu.png',  // ← update path if needed
+    frameW:220, frameH:240,
+    drawW:220,  drawH:240,
+    offsetX:0, offsetY:0,
+    hitW:220, hitH:220,
+    anims:{
+      idle  : { row:0, frames:4, fps:2 },
+      move  : { row:1, frames:2, fps:12 },
+      charge: { row:2, frames:2, fps:6 },
+      attack: { row:3, frames:2, fps:2 },
+    },
+  },
+};
+const _bossAnimImages={};
+(function _loadBossImgs(){
+  Object.entries(BOSS_ANIM_DEFS).forEach(([name,def])=>{
+    if(!def.src) return;
+    const img=new Image();
+    img.onload=()=>{ _bossAnimImages[name]=stripMagenta(img); };
+    img.src=def.src;
+  });
+})();
+
+function _getBossAnimState(e){
+  if(e.windupTimer>0||(e.bossName==='GRONK'&&e.spinning)){
+    // Shamaz cannon charge uses its own sub-animation (row 2 frames 4-5)
+    if(e.bossName==='SHAMAZ'&&e.atkPattern===2) return 'cannon_charge';
+    return 'charge';
+  }
+  if(e.atk) return 'attack';
+  // Shamaz cannon fire pose — hold row 3 frame 4 for the first half of the post-fire cooldown
+  if(e.bossName==='SHAMAZ'&&e.cannonFired&&e.atkCD>SHAMAZ_ATK_COOLDOWN){
+    return 'cannon_fire';
+  }
+  // GARTU hovers (never onGround), so check vx regardless of ground state
+  const moving = e.bossName==='GARTU' ? Math.abs(e.vx)>0.5 : (e.onGround&&Math.abs(e.vx)>0.5);
+  if(moving) return 'move';
+  return 'idle';
+}
+
+// Returns the game-frame duration of the current boss windup / charge phase.
+// Used to drive the charge animation exactly once across the real phase window.
+function _getBossWindupTotal(e){
+  if(e.bossName==='GRONK'){
+    const isCombo=e.atkPattern===1, isSpin=e.atkPattern===2;
+    return isCombo ? (e.atkPhase===0 ? BOSS_COMBO_WINDUP1 : BOSS_COMBO_GAP)
+         : isSpin  ? BOSS_SPIN_WINDUP
+         : BOSS_WINDUP;
+  }
+  if(e.bossName==='GARTU'){
+    switch(e.atkPattern){
+      case 0: return GARTU_WINDUP_BOLT;
+      case 1: return GARTU_WINDUP_TRIPLE;
+      case 2: return GARTU_WINDUP_NOVA;
+      default: return GARTU_WINDUP_HOMING;
+    }
+  }
+  if(e.bossName==='SHAMAZ'){
+    if(e.atkPattern===2) return SHAMAZ_CANNON_WINDUP;
+    const hp=e.atkPattern===1;
+    return hp ? (e.atkPhase===0?SHAMAZ_COMBO_WINDUP1:e.atkPhase===1?SHAMAZ_COMBO_GAP1:SHAMAZ_COMBO_GAP2)
+              : SHAMAZ_WINDUP;
+  }
+  return 30;
+}
+
+// Returns the game-frame duration of the current boss swing / attack phase.
+// Used to drive the attack animation exactly once per swing — once per hit in
+// a combo chain, resetting cleanly at each phase boundary.
+function _getBossSwingTotal(e){
+  if(e.bossName==='GRONK'){
+    return e.atkPattern===1&&e.atkPhase===0 ? BOSS_COMBO_SWING1
+         : e.atkPattern===1&&e.atkPhase===1 ? BOSS_COMBO_SWING2
+         : BOSS_SWING;
+  }
+  if(e.bossName==='SHAMAZ'){
+    return e.atkPattern===1
+      ? (e.atkPhase===0?SHAMAZ_COMBO_SWING1:e.atkPhase===1?SHAMAZ_COMBO_SWING2:SHAMAZ_COMBO_SWING3)
+      : SHAMAZ_SWING;
+  }
+  return 30;
+}
+
+function _tickBossAnim(e){
+  if(!e.boss) return;
+  const def=BOSS_ANIM_DEFS[e.bossName]; if(!def) return;
+  const ns=_getBossAnimState(e);
+  // State change → reset frame so each phase starts from frame 0
+  if(e.bossAnimState!==ns){e.bossAnimState=ns;e.bossAnimFrame=0;e.bossAnimTick=0;}
+  const anim=def.anims[ns]||def.anims.idle;
+
+  if(ns==='charge' && e.windupTimer>0){
+    // Progress-driven: the charge animation plays exactly once across the
+    // windup window regardless of fps setting in BOSS_ANIM_DEFS.
+    const total=_getBossWindupTotal(e);
+    const prog=Math.max(0, 1-e.windupTimer/total);
+    e.bossAnimFrame=Math.min(anim.frames-1, Math.floor(prog*anim.frames));
+
+  } else if(ns==='charge'){
+    // GRONK spin attack — windup is over but charge state persists.
+    // Loop the charge anim naturally for the duration of the spin.
+    const tpf=Math.max(1,Math.round(60/anim.fps));
+    e.bossAnimTick=(e.bossAnimTick||0)+1;
+    if(e.bossAnimTick>=tpf){e.bossAnimTick=0;e.bossAnimFrame=(e.bossAnimFrame+1)%anim.frames;}
+
+  } else if(ns==='cannon_charge' && e.windupTimer>0){
+    // Shamaz cannon charge: progress-driven across SHAMAZ_CANNON_WINDUP,
+    // advancing through row 2 frames 4-5 (frameOffset handled in _drawBossSprite).
+    const total=_getBossWindupTotal(e); // returns SHAMAZ_CANNON_WINDUP
+    const prog=Math.max(0, 1-e.windupTimer/total);
+    e.bossAnimFrame=Math.min(anim.frames-1, Math.floor(prog*anim.frames));
+
+  } else if(ns==='cannon_fire'){
+    // Single-frame cannon fire pose — always frame 0 of this sub-animation (row 3 frame 4).
+    e.bossAnimFrame=0;
+
+  } else if(ns==='attack'){
+    // Progress-driven: plays exactly once per swing phase.
+    // For Shamaz's 3-hit combo: atkF resets to 0 at each phase boundary so each
+    // hit independently maps its atkF progress to frames 0-3 — one full loop per hit.
+    const total=_getBossSwingTotal(e);
+    const prog=Math.min(1,(e.atkF||0)/total);
+    e.bossAnimFrame=Math.min(anim.frames-1, Math.floor(prog*anim.frames));
+
+  } else {
+    // idle / move — free-running loop at natural fps
+    const tpf=Math.max(1,Math.round(60/anim.fps));
+    e.bossAnimTick=(e.bossAnimTick||0)+1;
+    if(e.bossAnimTick>=tpf){e.bossAnimTick=0;e.bossAnimFrame=(e.bossAnimFrame+1)%anim.frames;}
+  }
+}
+
+// ── BOSS MELEE SWING TRAIL ──────────────────────────────────────────────────
+// Draws a layered glow trail along the weapon arc so players can read swing
+// speed and direction for deflect timing. Replaces the raw hitbox debug box.
+// Called after the sprite/procedural body is drawn so the trail sits on top.
+function _drawBossSwingTrail(e, sx, sy){
+  if(!e.atk) return;
+
+  // ── Per-boss: compute current weapon angle and arc config ──────────────────
+  let waCurrent, trailColor, glowColor;
+  let tipFn; // function(a) → {x, y} in screen coords
+
+  if(e.bossName==='SHAMAZ' && e.atkPattern!==2){
+    const _hookPat = e.atkPattern===1;
+    const _swF = _hookPat
+      ? (e.atkPhase===0?SHAMAZ_COMBO_SWING1:e.atkPhase===1?SHAMAZ_COMBO_SWING2:SHAMAZ_COMBO_SWING3)
+      : SHAMAZ_SWING;
+    const _t = Math.min(e.atkF/_swF, 1);
+    waCurrent = _hookPat
+      ? (e.atkPhase===0?-1.0+3.0*_t:e.atkPhase===1?-1.2+3.0*_t:-1.4+3.2*_t)
+      : -1.5+3.4*_t;
+    if(waCurrent <= -0.2) return; // not yet active
+    trailColor = '#ff8844';
+    glowColor  = 'rgba(255,130,50,0.95)';
+    tipFn = a => ({
+      x: sx + eW(e)/2 + e.facing*(SHAMAZ_HOOK_PIVOT_X + SHAMAZ_HOOK_REACH*Math.sin(a)),
+      y: sy + eH(e)/2 + SHAMAZ_HOOK_PIVOT_Y - SHAMAZ_HOOK_REACH*Math.cos(a),
+    });
+
+  } else if(e.bossName==='GRONK'){
+    const _swF = e.atkPattern===1&&e.atkPhase===0?BOSS_COMBO_SWING1
+               : e.atkPattern===1&&e.atkPhase===1?BOSS_COMBO_SWING2
+               : BOSS_SWING;
+    const _t = Math.min(e.atkF/_swF, 1);
+    waCurrent = e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*_t
+              : e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*_t
+              : -1.5+3.4*_t;
+    if(waCurrent <= -0.2) return;
+    trailColor = '#ff4400';
+    glowColor  = 'rgba(255,80,10,0.95)';
+    tipFn = a => ({
+      x: sx + eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_REACH*Math.sin(a)),
+      y: sy + eH(e)/2 + BOSS_PIVOT_Y - BOSS_REACH*Math.cos(a),
+    });
+
+  } else { return; }
+
+  // ── Sample arc: show last 1.6 rad of the sweep (or however far it's gone) ──
+  const STEPS   = 16;
+  const arcSpan = Math.min(waCurrent - (-0.2), 1.6); // cap trail length
+  const aStart  = waCurrent - arcSpan;
+  const pts = [];
+  for(let i=0; i<=STEPS; i++) pts.push(tipFn(aStart + arcSpan*(i/STEPS)));
+
+  if(pts.length < 2) return;
+
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  // Three glow passes: wide dim outer → narrow bright core
+  const passes = [
+    {lw:28, am:0.10, blur:26},
+    {lw:14, am:0.30, blur:12},
+    {lw:6,  am:0.72, blur:4 },
+  ];
+  for(const p of passes){
+    ctx.shadowColor = glowColor; ctx.shadowBlur = p.blur;
+    ctx.lineWidth   = p.lw;     ctx.strokeStyle = trailColor;
+    for(let i=1; i<pts.length; i++){
+      const frac = i/(pts.length-1);
+      ctx.globalAlpha = p.am * frac * frac; // quadratic: fades smoothly toward back
+      ctx.beginPath(); ctx.moveTo(pts[i-1].x, pts[i-1].y);
+      ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+    }
+  }
+
+  // Bright tip flash — small white core with coloured halo
+  const tip = pts[pts.length-1];
+  ctx.shadowColor = glowColor; ctx.shadowBlur = 22;
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = trailColor;
+  ctx.beginPath(); ctx.arc(tip.x, tip.y, 10, 0, Math.PI*2); ctx.fill();
+  ctx.globalAlpha = 1.0;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(tip.x, tip.y, 4, 0, Math.PI*2); ctx.fill();
+
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+// Returns true and draws the sprite if an image is loaded for this boss.
+// Each draw function calls this; if true it skips the procedural fallback.
+function _drawBossSprite(e,sx,sy){
+  const def=BOSS_ANIM_DEFS[e.bossName]; if(!def||!def.src) return false;
+  const img=_bossAnimImages[e.bossName];
+  if(!img||!img.width) return false;
+  const state=e.bossAnimState||'idle';
+  const anim=def.anims[state]||def.anims.idle;
+  const frame=Math.min(e.bossAnimFrame||0,anim.frames-1);
+  // frameOffset lets sub-animations share a row (e.g. cannon_charge shares row 2 with charge)
+  const srcX=((anim.frameOffset||0)+frame)*def.frameW, srcY=anim.row*def.frameH;
+  const dw=def.drawW||def.frameW, dh=def.drawH||def.frameH;
+  const ox=def.offsetX||0, oy=def.offsetY||0;
+  // glow during windup / spin
+  const isWinding=e.windupTimer>0, isSpinning=e.bossName==='GRONK'&&e.spinning;
+  ctx.save();
+  // Anchor = hitbox bottom-centre. Uses the boss's actual hitW/hitH so WYSIWYG with
+  // the boss editor: sprite feet land exactly at the hitbox bottom regardless of size.
+  ctx.translate(sx+eW(e)/2, sy+eH(e));
+  ctx.scale(e.facing,1);
+  ctx.shadowColor=isSpinning?'rgba(255,140,0,0.9)':isWinding?'rgba(255,100,0,0.85)':'rgba(120,0,200,0.18)';
+  ctx.shadowBlur=isSpinning?32:isWinding?24:8;
+  if(e.hitCD>10) ctx.filter='brightness(2.5) saturate(0)';
+  // Draw with bottom of sprite at y=0 (anchor), offset by ox/oy
+  ctx.drawImage(img,srcX,srcY,def.frameW,def.frameH,-dw/2+ox,-dh+oy,dw,dh);
+  ctx.filter='none';
+  ctx.restore();
+  return true;
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 // ── DRAW BOSS ──────────────────────────────────────────────
 function drawBoss(e){
   if(e.bossName==='SHAMAZ'){ drawShamaz(e); return; }
@@ -7128,8 +7942,9 @@ function drawBoss(e){
   const windingUp=e.windupTimer>0;
   const windPulse=(windingUp&&Math.floor(e.windupTimer/4)%2===0)||(e.spinning&&Math.floor(e.spinTimer/3)%2===0);
 
+  if(!_drawBossSprite(e,sx,sy)){
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+eH(e)/2);
   ctx.scale(e.facing,1);
   const _bGlow=e.spinning?'rgba(255,140,0,0.95)':windingUp?'rgba(255,100,0,0.95)':'rgba(180,0,20,0.25)';
   ctx.shadowColor=_bGlow;
@@ -7210,6 +8025,7 @@ function drawBoss(e){
   }
   ctx.restore();
   ctx.restore();
+  } // end procedural fallback
 
   // ── TELEGRAPH ── pattern-aware warnings
   if(e.windupTimer>0 || e.spinning){
@@ -7221,7 +8037,7 @@ function drawBoss(e){
       ctx.globalAlpha = 0.38 + 0.18*Math.sin(t*22);
       ctx.strokeStyle = '#ff8800'; ctx.lineWidth = 3; ctx.lineCap = 'round';
       for(let i=0;i<5;i++){
-        const lx1 = sx+EW/2 + (-e.spinDir)*((i+1)*16);
+        const lx1 = sx+eW(e)/2 + (-e.spinDir)*((i+1)*16);
         const lx2 = lx1     + (-e.spinDir)*26;
         const ly  = sy+EH/2 + (-14+i*7);
         ctx.beginPath(); ctx.moveTo(lx1,ly); ctx.lineTo(lx2,ly); ctx.stroke();
@@ -7236,52 +8052,199 @@ function drawBoss(e){
         : isSpin ? BOSS_SPIN_WINDUP : BOSS_WINDUP;
       const windProg = 1 - e.windupTimer/windupTotal;
 
-      // Ground danger ellipse
+      // ── Ground danger shadow ──────────────────────────────────────────────
       const gPulse = 0.10 + 0.08*Math.sin(t*10);
       ctx.save();
       ctx.globalAlpha = gPulse * (0.28 + 0.72*windProg);
       ctx.fillStyle = isSpin ? '#ffaa00' : '#ff2200';
       ctx.beginPath();
       if(isSpin)
-        ctx.ellipse(sx+EW/2+e.facing*200, floorY()-3, 280, 10, 0, 0, Math.PI*2);
+        ctx.ellipse(sx+eW(e)/2+e.facing*200, floorY()-3, 280, 10, 0, 0, Math.PI*2);
       else
-        ctx.ellipse(sx+EW/2+e.facing*70,  floorY()-3, 108, 13, 0, 0, Math.PI*2);
+        ctx.ellipse(sx+eW(e)/2+e.facing*70,  floorY()-3, 108, 13, 0, 0, Math.PI*2);
       ctx.fill();
       ctx.restore();
 
-      // Symbol above head
-      const exPulse = 0.78 + 0.26*Math.sin(t*14);
-      const exSize  = Math.round(28 + 8*windProg);
-      ctx.save();
-      ctx.globalAlpha = exPulse*(0.55+0.45*windProg);
-      ctx.font = `bold ${exSize}px Cinzel,serif`;
-      ctx.textAlign = 'center';
-      let sym, symCol, symShadow;
-      if(isSpin){
-        sym='⚡'; symCol='#ffcc00'; symShadow='#ff8800';
-      } else if(isCombo){
-        sym = e.atkPhase===0 ? '◆◆' : '◆';
-        symCol = `hsl(${Math.round(22-22*windProg)},100%,55%)`; symShadow='#ff3300';
+      if(!isSpin){
+        // Current club angle during windup
+        const cwa = isCombo
+          ? (e.atkPhase===0
+              ? 0.2 - 1.5*(1 - e.windupTimer/BOSS_COMBO_WINDUP1)
+              : 0.1 - 1.0*(1 - e.windupTimer/BOSS_COMBO_GAP))
+          : 0.3 - 1.6*(1 - e.windupTimer/BOSS_WINDUP);
+
+        // Club head screen position
+        const _cpx = sx + eW(e)/2 + e.facing*BOSS_PIVOT_X;
+        const _cpy = sy + eH(e)/2 + BOSS_PIVOT_Y;
+        const _hx  = _cpx + e.facing*BOSS_REACH*Math.sin(cwa);
+        const _hy  = _cpy - BOSS_REACH*Math.cos(cwa);
+
+        // ── Slash preview arc: faint line showing the full planned swing path ──
+        // Drawn first so it sits under the charging ring
+        const swingEndA  = isCombo ? (e.atkPhase===0 ? 2.2 : 2.0) : 1.9;
+        const ARC_STEPS  = 18;
+        ctx.save();
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.globalAlpha = windProg * 0.22;
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth   = 5;
+        ctx.shadowColor = 'rgba(255,80,0,0.5)'; ctx.shadowBlur = 8;
+        ctx.beginPath();
+        for(let _i=0; _i<=ARC_STEPS; _i++){
+          const _a  = cwa + (swingEndA - cwa)*(_i/ARC_STEPS);
+          const _ax = _cpx + e.facing*BOSS_REACH*Math.sin(_a);
+          const _ay = _cpy - BOSS_REACH*Math.cos(_a);
+          _i===0 ? ctx.moveTo(_ax,_ay) : ctx.lineTo(_ax,_ay);
+        }
+        ctx.stroke();
+        // Arrowhead at the end of the arc
+        const _arrA = swingEndA;
+        const _arrX = _cpx + e.facing*BOSS_REACH*Math.sin(_arrA);
+        const _arrY = _cpy - BOSS_REACH*Math.cos(_arrA);
+        const _tanX = e.facing*Math.cos(_arrA), _tanY = Math.sin(_arrA);
+        ctx.globalAlpha = windProg * 0.35;
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.moveTo(_arrX+_tanX*10, _arrY+_tanY*10);
+        ctx.lineTo(_arrX-_tanY*6,  _arrY+_tanX*6);
+        ctx.lineTo(_arrX+_tanY*6,  _arrY-_tanX*6);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+
+        // ── Charging ring on club head ────────────────────────────────────────
+        // Fills clockwise as windup progresses — peaks = commit = deflect NOW
+        ctx.save();
+        ctx.translate(_hx, _hy);
+        const _ringR = BOSS_REACH + 8;
+
+        // Dim base ring
+        ctx.globalAlpha = 0.18 + 0.12*windProg;
+        ctx.strokeStyle = '#ff2200'; ctx.lineWidth = 3;
+        ctx.shadowColor = 'rgba(255,50,0,0.4)'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.arc(0, 0, _ringR, 0, Math.PI*2); ctx.stroke();
+
+        // Filled arc (progress clock)
+        const _arcCol = `hsl(${Math.round(18 - 18*windProg)},100%,55%)`;
+        ctx.globalAlpha = 0.6 + 0.3*windProg;
+        ctx.strokeStyle = _arcCol; ctx.lineWidth = 4;
+        ctx.shadowColor = _arcCol; ctx.shadowBlur = 14 + 10*windProg;
+        ctx.beginPath();
+        ctx.arc(0, 0, _ringR, -Math.PI/2, -Math.PI/2 + Math.PI*2*windProg);
+        ctx.stroke();
+
+        // Final-burst white flash when windup ≥ 85 %
+        if(windProg >= 0.85){
+          const _fp = (windProg - 0.85) / 0.15;
+          const _pulse = 0.5 + 0.4*Math.sin(t*28);
+          ctx.globalAlpha = _fp * _pulse * 0.85;
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+          ctx.shadowColor = 'rgba(255,220,100,0.9)'; ctx.shadowBlur = 28;
+          ctx.beginPath(); ctx.arc(0, 0, _ringR + 5*_fp, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.restore();
+
+        // ── Combo / single indicator above head ──────────────────────────────
+        const { cx:_tcx, vtop:_tvtop } = _bossVisualAnchor(e, sx);
+        const _sym    = isCombo ? (e.atkPhase===0 ? '◆◆' : '◆') : '◆';
+        const _symCol = `hsl(${Math.round(22-22*windProg)},100%,55%)`;
+        ctx.save();
+        ctx.globalAlpha = (0.72+0.28*Math.sin(t*12)) * (0.45+0.55*windProg);
+        ctx.font = `bold ${Math.round(24+6*windProg)}px Cinzel,serif`;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#ff3300'; ctx.shadowBlur = 20+12*windProg;
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineWidth = 4; ctx.lineJoin = 'round';
+        ctx.strokeText(_sym, _tcx, _tvtop - 38);
+        ctx.fillStyle = _symCol;
+        ctx.fillText(_sym, _tcx, _tvtop - 38);
+        ctx.restore();
+
       } else {
-        sym='◆'; symCol=`hsl(${Math.round(22-22*windProg)},100%,55%)`; symShadow='#ff3300';
+        // Spin: keep the original ⚡ symbol
+        const { cx:_tcx, vtop:_tvtop } = _bossVisualAnchor(e, sx);
+        ctx.save();
+        ctx.globalAlpha = (0.78+0.26*Math.sin(t*14))*(0.55+0.45*windProg);
+        ctx.font = `bold ${Math.round(28+8*windProg)}px Cinzel,serif`;
+        ctx.textAlign = 'center';
+        ctx.shadowColor='#ff8800'; ctx.shadowBlur=24+14*windProg;
+        ctx.strokeStyle='rgba(0,0,0,0.88)'; ctx.lineWidth=5; ctx.lineJoin='round';
+        ctx.strokeText('⚡',_tcx,_tvtop-10);
+        ctx.fillStyle='#ffcc00'; ctx.fillText('⚡',_tcx,_tvtop-10);
+        ctx.restore();
       }
-      ctx.shadowColor=symShadow; ctx.shadowBlur=24+14*windProg;
-      ctx.strokeStyle='rgba(0,0,0,0.88)'; ctx.lineWidth=5; ctx.lineJoin='round';
-      ctx.strokeText(sym, sx+EW/2, sy-58);
-      ctx.fillStyle=symCol;
-      ctx.fillText(sym, sx+EW/2, sy-58);
-      ctx.restore();
     }
   }
 
+  // ── SWING ACTIVE: burst ring + tangent speed lines ────────────────────────
+  if(e.atk && e.bossName==='GRONK'){
+    const _swF = e.atkPattern===1&&e.atkPhase===0?BOSS_COMBO_SWING1
+               : e.atkPattern===1&&e.atkPhase===1?BOSS_COMBO_SWING2
+               : BOSS_SWING;
+    const _t   = Math.min(e.atkF/_swF, 1);
+    const _cwa = e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*_t
+               : e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*_t
+               : -1.5+3.4*_t;
+    if(_cwa > -0.2){
+      const _cpx = sx + eW(e)/2 + e.facing*BOSS_PIVOT_X;
+      const _cpy = sy + eH(e)/2 + BOSS_PIVOT_Y;
+      const _hx  = _cpx + e.facing*BOSS_REACH*Math.sin(_cwa);
+      const _hy  = _cpy - BOSS_REACH*Math.cos(_cwa);
+
+      // Tangent direction (direction of swing velocity)
+      const _tanX = e.facing*Math.cos(_cwa);
+      const _tanY = Math.sin(_cwa);
+
+      // Speed lines — 5 streaks along the swing tangent behind the tip
+      ctx.save();
+      ctx.lineCap = 'round';
+      for(let _i=0;_i<5;_i++){
+        const _backA  = _cwa - (_i+1)*0.20;
+        const _lx     = _cpx + e.facing*BOSS_REACH*Math.sin(_backA);
+        const _ly     = _cpy - BOSS_REACH*Math.cos(_backA);
+        const _len    = 20 - _i*3;
+        const _alpha  = (0.55 - _i*0.09) * _t;
+        ctx.globalAlpha  = _alpha;
+        ctx.strokeStyle  = `hsl(${22+_i*6},100%,58%)`;
+        ctx.lineWidth    = 3.5 - _i*0.5;
+        ctx.shadowColor  = 'rgba(255,100,20,0.55)'; ctx.shadowBlur = 7;
+        ctx.beginPath();
+        ctx.moveTo(_lx - _tanX*_len*0.25, _ly - _tanY*_len*0.25);
+        ctx.lineTo(_lx + _tanX*_len*0.75, _ly + _tanY*_len*0.75);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Burst ring — expands from club head the instant the active zone opens.
+      // activeAtFrac is when _wa first crosses -0.2.
+      const _actFrac = e.atkPattern===1&&e.atkPhase===0 ? 0.8/3.2
+                     : e.atkPattern===1&&e.atkPhase===1 ? 1.2/3.0
+                     : 1.3/3.4;
+      const _burstF  = Math.max(0, e.atkF - _actFrac*_swF);
+      if(_burstF < 14){
+        const _bp = _burstF / 14;
+        ctx.save();
+        ctx.translate(_hx, _hy);
+        ctx.globalAlpha = (1-_bp) * 0.75;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth   = 4*(1-_bp);
+        ctx.shadowColor = 'rgba(255,180,60,1.0)'; ctx.shadowBlur = 24*(1-_bp);
+        ctx.beginPath(); ctx.arc(0, 0, BOSS_REACH*(0.4 + 1.8*_bp), 0, Math.PI*2); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  // ── SWING TRAIL ── weapon arc trail for deflect timing (replaces debug rect)
+  _drawBossSwingTrail(e, sx, sy);
+
   // ── STUN STARS ── spinning golden stars above boss when parried/stunned
   if(e.stunTimer>0){
+    const { cx:_scx, vtop:_svtop } = _bossVisualAnchor(e, sx);
     const t = Date.now()/1000;
     const numStars = 5;
     for(let i=0;i<numStars;i++){
       const a = (i/numStars)*Math.PI*2 + t*4.5;
-      const ox = sx+EW/2 + Math.cos(a)*22;
-      const oy = sy-62    + Math.sin(a)*9;
+      const ox = _scx + Math.cos(a)*22;
+      const oy = _svtop - 14 + Math.sin(a)*9;
       const pulse = 0.6+Math.sin(t*8+i)*0.3;
       ctx.save();
       ctx.globalAlpha = pulse;
@@ -7293,13 +8256,14 @@ function drawBoss(e){
     ctx.save();
     ctx.font = 'bold 9px Cinzel,serif'; ctx.textAlign = 'center';
     ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
-    ctx.strokeText('STUNNED', sx+EW/2, sy-76);
+    ctx.strokeText('STUNNED', _scx, _svtop - 28);
     ctx.fillStyle = 'rgba(255,230,80,0.92)';
-    ctx.fillText('STUNNED', sx+EW/2, sy-76);
+    ctx.fillText('STUNNED', _scx, _svtop - 28);
     ctx.restore();
   }
 
   updateBossBar(e);
+  { const _bw=82,_bh=9; const {cx:_ebcx,vtop:_ebvt}=_bossVisualAnchor(e,sx); _drawElemBarsCanvas(e,_ebcx-_bw/2,_ebvt-_bh-4,_bw,_bh); }
 }
 
 // ── SLAM-STUN "STUCK IN GROUND" OVERLAY ──────────────────────────────────
@@ -7308,13 +8272,13 @@ function drawBoss(e){
 function _drawSlamStunIndicator(e){
   const sx  = e.x - camX;
   const sy  = e.y;
-  const ecx = sx + EW/2;
+  const ecx = sx + eW(e)/2;   // use per-entity width so large bosses centre correctly
   const gy  = floorY();
 
   // Fade out during the last 20 % of the stun window.
   // Bosses use their snapshotted stun duration as the reference so the fade
-  // tracks correctly regardless of parry-stun length.
-  const _refFrames = e.boss ? (e.bossSlamStunMax || PARRY_STUN_FRAMES) : SLAM_STUN_FRAMES;
+  // tracks correctly regardless of deflect-stun length.
+  const _refFrames = e.boss ? (e.bossSlamStunMax || DEFLECT_STUN_FRAMES) : SLAM_STUN_FRAMES;
   const stunProg   = Math.min(1, (e.stunTimer || 0) / _refFrames);
   const fade       = Math.min(1, stunProg * 5);
   const t        = Date.now() / 1000;
@@ -7397,7 +8361,7 @@ function drawEnemy(e){
   // Type-based body colours (no tiers)
   const bc1base=e.type==='knight'?'#2e1010':'#2a1e08';
   const bc2base=e.type==='knight'?'#6a1a1a':'#5a3a10';
-  ctx.save();ctx.translate(sx+EW/2,sy+EH/2);ctx.scale(e.facing,1);
+  ctx.save();ctx.translate(sx+eW(e)/2,sy+EH/2);ctx.scale(e.facing,1);
   ctx.shadowColor=windingUp?'rgba(255,120,0,0.9)':'rgba(200,0,30,0.15)';
   ctx.shadowBlur=windingUp?22:10;
   // legs
@@ -7452,7 +8416,7 @@ function drawEnemy(e){
     ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
     ctx.fillStyle='#ff2200';
     ctx.beginPath();
-    ctx.ellipse(sx+EW/2+e.facing*44, floorY()-3, 72, 9, 0, 0, Math.PI*2);
+    ctx.ellipse(sx+eW(e)/2+e.facing*44, floorY()-3, 72, 9, 0, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
     // Symbol — ◆◆ for knight first hit, ◆ otherwise
@@ -7465,15 +8429,15 @@ function drawEnemy(e){
     ctx.textAlign='center';
     ctx.shadowColor='#ff3300'; ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText(sym,sx+EW/2,sy-50);
+    ctx.strokeText(sym,sx+eW(e)/2,sy-50);
     ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText(sym,sx+EW/2,sy-50);
+    ctx.fillText(sym,sx+eW(e)/2,sy-50);
     ctx.restore();
   }
 
   // ── ENEMY HP BAR ──
   const bw=82,bh=9;
-  const bx=sx+EW/2-bw/2,by=sy-30;
+  const bx=sx+eW(e)/2-bw/2,by=sy-30;
   const R=1; // near-rectangle corners
   // enemy name above bar
   const _eName={knight:'Knight',grunt:'Marauder'}[e.type]||(e.type||'Enemy');
@@ -7522,13 +8486,15 @@ function drawEnemy(e){
   }
   ctx.restore();
 
+  _drawElemBarsCanvas(e, bx, by, bw, bh);
+
   // ── STUN INDICATOR ── spinning golden stars above the enemy
   if(e.stunTimer>0){
     const t=Date.now()/1000;
     const numStars=4;
     for(let i=0;i<numStars;i++){
       const a=(i/numStars)*Math.PI*2+t*4.5;
-      const ox=sx+EW/2+Math.cos(a)*16;
+      const ox=sx+eW(e)/2+Math.cos(a)*16;
       const oy=sy-44+Math.sin(a)*7;
       const pulse=0.6+Math.sin(t*8+i)*0.3;
       ctx.save();
@@ -7542,8 +8508,8 @@ function drawEnemy(e){
     ctx.save();
     ctx.font='bold 8px Cinzel,serif'; ctx.textAlign='center';
     ctx.strokeStyle='rgba(0,0,0,0.9)'; ctx.lineWidth=2.5; ctx.lineJoin='round';
-    ctx.strokeText('STUNNED',sx+EW/2,sy-54);
-    ctx.fillStyle='rgba(255,230,80,0.9)'; ctx.fillText('STUNNED',sx+EW/2,sy-54);
+    ctx.strokeText('STUNNED',sx+eW(e)/2,sy-54);
+    ctx.fillStyle='rgba(255,230,80,0.9)'; ctx.fillText('STUNNED',sx+eW(e)/2,sy-54);
     ctx.restore();
   }
 
@@ -7552,7 +8518,7 @@ function drawEnemy(e){
     const t=Date.now()/1000;
     const pulse=0.6+0.4*Math.sin(t*6);
     const bounce=4*Math.sin(t*4);
-    const ix=sx+EW/2;
+    const ix=sx+eW(e)/2;
     const iy=sy-72+bounce;
     // Large chevron
     ctx.save();
@@ -7599,7 +8565,7 @@ function drawPirate(e){
   const windingUp=e.windupTimer>0;
   const windPulse=windingUp&&Math.floor(e.windupTimer/5)%2===0;
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+EH/2);
   ctx.scale(e.facing,1);
   ctx.shadowColor=windingUp?'rgba(255,120,0,0.9)':'rgba(180,50,0,0.2)';
   ctx.shadowBlur=windingUp?20:8;
@@ -7666,20 +8632,20 @@ function drawPirate(e){
     const gPulse=0.10+0.08*Math.sin(t*10);
     ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
     ctx.fillStyle='#ff2200';
-    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
     const exSize=Math.round(18+5*windProg);
     ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor='#ff3300';ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText('◆',sx+EW/2,sy-50);
+    ctx.strokeText('◆',sx+eW(e)/2,sy-50);
     ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText('◆',sx+EW/2,sy-50);
+    ctx.fillText('◆',sx+eW(e)/2,sy-50);
     ctx.restore();
   }
   // HP bar + name
-  const bw=82,bh=9,bx=sx+EW/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=9,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
   _drawEnemyHpBar(e,bx,by_,bw,bh,R,'Pirate');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -7692,7 +8658,7 @@ function drawDrunkard(e){
   const sy=e.y, flash=e.hitCD>10;
   const windingUp=e.windupTimer>0; // raise-arm throw windup
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+EH/2);
   ctx.scale(e.facing,1);
   // legs (shorter, wider)
   const ls=e.onGround&&Math.abs(e.vx)>.3?Math.sin(e.legF*.35)*9:0;
@@ -7756,20 +8722,20 @@ function drawDrunkard(e){
     const gPulse=0.10+0.08*Math.sin(t*10);
     ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
     ctx.fillStyle='#ff6600';
-    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*70,floorY()-3,90,9,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*70,floorY()-3,90,9,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
     const exSize=Math.round(18+5*windProg);
     ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor='#ff6600';ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText('◈',sx+EW/2,sy-50);
+    ctx.strokeText('◈',sx+eW(e)/2,sy-50);
     ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText('◈',sx+EW/2,sy-50);
+    ctx.fillText('◈',sx+eW(e)/2,sy-50);
     ctx.restore();
   }
   // HP bar
-  const bw=82,bh=9,bx=sx+EW/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=9,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
   _drawEnemyHpBar(e,bx,by_,bw,bh,R,'Drunkard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -7784,7 +8750,7 @@ function drawGuard(e){
   const windPulse=windingUp&&Math.floor(e.windupTimer/5)%2===0;
   const isThrow=e.guardThrowPending&&windingUp;
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+EH/2);
   ctx.scale(e.facing,1);
   ctx.shadowColor=windingUp?'rgba(60,140,255,0.9)':'rgba(30,60,180,0.15)';
   ctx.shadowBlur=windingUp?22:8;
@@ -7849,7 +8815,7 @@ function drawGuard(e){
     const gPulse=0.10+0.08*Math.sin(t*10);
     ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
     ctx.fillStyle=isThrow?'#0055ff':'#ff2200';
-    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
     const sym=isThrow?'◈':(e.comboPhase===0?'◆◆':'◆');
     const exSize=Math.round(18+5*windProg);
@@ -7857,12 +8823,12 @@ function drawGuard(e){
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor=isThrow?'#2244ff':'#ff3300';ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText(sym,sx+EW/2,sy-50);
+    ctx.strokeText(sym,sx+eW(e)/2,sy-50);
     ctx.fillStyle=isThrow?`hsl(220,100%,${55+Math.round(20*windProg)}%)`:`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText(sym,sx+EW/2,sy-50);
+    ctx.fillText(sym,sx+eW(e)/2,sy-50);
     ctx.restore();
   }
-  const bw=82,bh=9,bx_=sx+EW/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=9,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
   _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Guard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -7876,7 +8842,7 @@ function drawRoyalGuard(e){
   const windingUp=e.windupTimer>0;
   const windPulse=windingUp&&Math.floor(e.windupTimer/4)%2===0;
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+EH/2);
   ctx.scale(e.facing,1);
   ctx.shadowColor=windingUp?'rgba(255,200,0,0.95)':'rgba(180,140,0,0.2)';
   ctx.shadowBlur=windingUp?28:10;
@@ -7943,7 +8909,7 @@ function drawRoyalGuard(e){
     const gPulse=0.10+0.08*Math.sin(t*10);
     ctx.save();ctx.globalAlpha=gPulse*(0.25+0.65*windProg);
     ctx.fillStyle='#ff8800';
-    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*50,floorY()-3,90,11,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*50,floorY()-3,90,11,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
     const sym=e.comboPhase===0?'◆◆◆':(e.comboPhase===1?'◆◆':'◆');
     const exSize=Math.round(20+6*windProg);
@@ -7951,12 +8917,12 @@ function drawRoyalGuard(e){
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor='#ff8800';ctx.shadowBlur=20+12*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText(sym,sx+EW/2,sy-54);
+    ctx.strokeText(sym,sx+eW(e)/2,sy-54);
     ctx.fillStyle=`hsl(${Math.round(38-18*windProg)},100%,55%)`;
-    ctx.fillText(sym,sx+EW/2,sy-54);
+    ctx.fillText(sym,sx+eW(e)/2,sy-54);
     ctx.restore();
   }
-  const bw=88,bh=9,bx_=sx+EW/2-bw/2,by_=sy-30,R=1;
+  const bw=88,bh=9,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
   _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Royal Guard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -7971,8 +8937,9 @@ function drawShamaz(e){
   const isCannon=e.atkPattern===2&&windingUp;
   const windPulse=windingUp&&Math.floor(e.windupTimer/4)%2===0;
 
+  if(!_drawBossSprite(e,sx,sy)){
   ctx.save();
-  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.translate(sx+eW(e)/2,sy+eH(e)/2);
   ctx.scale(e.facing,1);
 
   const _glow=isCannon?'rgba(255,160,0,0.95)':windingUp?'rgba(255,100,0,0.9)':'rgba(180,120,0,0.3)';
@@ -8083,6 +9050,7 @@ function drawShamaz(e){
   }
   ctx.restore();
   ctx.restore();
+  } // end procedural fallback
 
   // telegraph
   if(windingUp){
@@ -8091,19 +9059,19 @@ function drawShamaz(e){
     const wProg=1-e.windupTimer/wRef;
     if(isCannon){
       // Cannon windup bar above boss
-      const bw=100,bh=8,bx_=sx+EW/2-bw/2,by__=sy-EH*0.55;
+      const bw=100,bh=8,bx_=sx+eW(e)/2-bw/2,by__=sy-eH(e)*0.55;
       ctx.fillStyle='rgba(0,0,0,0.55)';ctx.beginPath();ctx.roundRect(bx_,by__,bw,bh,4);ctx.fill();
       const grd=ctx.createLinearGradient(bx_,0,bx_+bw*wProg,0);
       grd.addColorStop(0,'#ff8800');grd.addColorStop(1,'#ffcc00');
       ctx.fillStyle=grd;ctx.beginPath();ctx.roundRect(bx_,by__,bw*wProg,bh,4);ctx.fill();
       ctx.strokeStyle='rgba(255,180,0,0.4)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx_,by__,bw,bh,4);ctx.stroke();
       // label
-      _drawBossLabel('CHARGING CANNON',sx+EW/2,sy-EH*0.7,'#ffaa00');
+      _drawBossLabel('CHARGING CANNON',sx+eW(e)/2,sy-eH(e)*0.7,'#ffaa00');
     } else {
       const gPulse=0.10+0.08*Math.sin(t*10);
       ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*wProg);
       ctx.fillStyle='#ff6600';
-      ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
       ctx.restore();
       const sym=e.atkPattern===2?'◈':e.atkPattern===1?(['◆◆◆','◆◆','◆'][e.atkPhase]||'◆'):'◆';
       const exSize=Math.round(18+5*wProg);
@@ -8111,14 +9079,18 @@ function drawShamaz(e){
       ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
       ctx.shadowColor='#ff6600';ctx.shadowBlur=18+10*wProg;
       ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-      ctx.strokeText(sym,sx+EW/2,sy-60);
+      ctx.strokeText(sym,sx+eW(e)/2,sy-60);
       ctx.fillStyle=`hsl(${Math.round(30-30*wProg)},100%,55%)`;
-      ctx.fillText(sym,sx+EW/2,sy-60);
+      ctx.fillText(sym,sx+eW(e)/2,sy-60);
       ctx.restore();
     }
   }
 
+  // ── SWING TRAIL ── weapon arc trail for deflect timing (replaces debug ellipse)
+  _drawBossSwingTrail(e, sx, sy);
+
   updateBossBar(e);
+  { const _bw=82,_bh=9; const {cx:_ebcx,vtop:_ebvt}=_bossVisualAnchor(e,sx); _drawElemBarsCanvas(e,_ebcx-_bw/2,_ebvt-_bh-4,_bw,_bh); }
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
@@ -8128,9 +9100,10 @@ function drawGartu(e){
   const sy=e.y, flash=e.hitCD>10;
   const windingUp=e.windupTimer>0;
   const t=Date.now()/1000;
-  const ecx=sx+EW/2, ecy=sy+EH/2;
+  const ecx=sx+eW(e)/2, ecy=sy+eH(e)/2;
   const bob=e.bossSlamStunned ? 0 : Math.sin(t*1.9)*3;
 
+  if(!_drawBossSprite(e,sx,sy)){
   ctx.save(); ctx.translate(ecx,ecy+bob); ctx.scale(e.facing,1);
 
   // ── Lower robe (wide flowing) ──────────────────────────────────
@@ -8185,6 +9158,7 @@ function drawGartu(e){
   ctx.beginPath(); ctx.arc(20,-EH*0.40,11,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur=0;
   ctx.restore();
+  } // end procedural fallback
 
   // ── Orbiting runes ────────────────────────────────────────────
   const RUNE_SYMS=['✦','◈','⬡'];
@@ -8221,25 +9195,64 @@ function drawGartu(e){
     ctx.lineWidth=1;
     ctx.beginPath(); ctx.arc(ecx,ecy+bob,14+28*wProg,0,Math.PI*2); ctx.stroke();
     ctx.restore();
-    // symbol
+    // symbol — anchored to visual sprite top so it's always just above the art
+    const { cx:_gcx, vtop:_gvtop } = _bossVisualAnchor(e, sx);
     const exSize=Math.round(18+6*wProg);
     const pulse=0.55+0.4*Math.sin(tSym*14);
     ctx.save(); ctx.globalAlpha=pulse;
     ctx.font=`bold ${exSize}px Cinzel,serif`; ctx.textAlign='center';
     ctx.shadowColor='#cc44ff'; ctx.shadowBlur=18+10*wProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText(sym,ecx,sy-4);
+    ctx.strokeText(sym,_gcx,_gvtop-10);
     ctx.fillStyle=`hsl(${280+Math.round(20*wProg)},100%,${Math.round(60+15*wProg)}%)`;
-    ctx.fillText(sym,ecx,sy-4);
+    ctx.fillText(sym,_gcx,_gvtop-10);
     ctx.restore();
   }
 
   updateBossBar(e);
+  { const _bw=82,_bh=9; const {cx:_ebcx,vtop:_ebvt}=_bossVisualAnchor(e,sx); _drawElemBarsCanvas(e,_ebcx-_bw/2,_ebvt-_bh-4,_bw,_bh); }
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
 
 // Shared sub-draw helpers used by enemy draw functions
+function _drawElemBarsCanvas(e, bx, by, bw, bh){
+  if(!e.elemAccum && !e.elemProcs) return;
+  const _ebh=3, _egap=2;
+  if(e.elemAccum){
+    const _eKeys=Object.keys(e.elemAccum).filter(k=>(e.elemAccum[k]||0)>0);
+    _eKeys.forEach((_ek,_ei)=>{
+      const _pct=e.elemAccum[_ek]/ELEM_ACCUM_MAX;
+      const _eby=by+bh+3+_ei*(_ebh+_egap);
+      const _ecol=ELEMENTAL_FLOAT_COLORS[_ek]||'#fff';
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.beginPath();ctx.roundRect(bx,_eby,bw,_ebh,1);ctx.fill();
+      ctx.globalAlpha=0.88;ctx.fillStyle=_ecol;
+      ctx.beginPath();ctx.roundRect(bx,_eby,bw*_pct,_ebh,1);ctx.fill();
+      ctx.globalAlpha=0.9;ctx.font='9px serif';
+      ctx.textAlign='right';ctx.textBaseline='middle';
+      ctx.fillText(ELEMENTAL_LABELS[_ek]||'',bx-2,_eby+_ebh/2);
+      ctx.restore();
+    });
+  }
+  if(e.elemProcs){
+    const _pKeys=Object.keys(e.elemProcs);
+    if(_pKeys.length){
+      ctx.save();
+      const _pt=Date.now()/220;
+      _pKeys.forEach((_pk,_pi)=>{
+        const _pcol=ELEMENTAL_FLOAT_COLORS[_pk]||'#fff';
+        const _pulse=0.55+0.45*Math.sin(_pt+_pi*1.4);
+        ctx.globalAlpha=_pulse;ctx.fillStyle=_pcol;
+        ctx.shadowColor=_pcol;ctx.shadowBlur=6;
+        ctx.beginPath();ctx.arc(bx+bw-5-_pi*11,by+bh/2,4,0,Math.PI*2);ctx.fill();
+      });
+      ctx.globalAlpha=1;ctx.shadowBlur=0;
+      ctx.restore();
+    }
+  }
+}
 function _drawEnemyHpBar(e,bx,by_,bw,bh,R,name){
   // name
   ctx.save();
@@ -8271,13 +9284,15 @@ function _drawEnemyHpBar(e,bx,by_,bw,bh,R,name){
   ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by_,bw,bh,R);ctx.stroke();
   if(e.hitCD>10){ctx.fillStyle='rgba(255,80,80,0.28)';ctx.beginPath();ctx.roundRect(bx,by_,bw*hpf,bh,R);ctx.fill();}
   ctx.restore();
+  _drawElemBarsCanvas(e, bx, by_, bw, bh);
 }
 function _drawStunStars(e,sx,sy){
   if(!e.stunTimer) return;
+  const { cx, vtop } = _bossVisualAnchor(e, sx);
   const t=Date.now()/1000,n=4;
   for(let i=0;i<n;i++){
     const a=(i/n)*Math.PI*2+t*4.5;
-    const ox=sx+EW/2+Math.cos(a)*18,oy=sy-50+Math.sin(a)*8;
+    const ox=cx+Math.cos(a)*18, oy=vtop-14+Math.sin(a)*8;
     const pulse=0.6+Math.sin(t*8+i)*0.3;
     ctx.save();ctx.globalAlpha=pulse;ctx.shadowColor='#ffe050';ctx.shadowBlur=10;
     ctx.fillStyle='#ffe050';ctx.beginPath();ctx.arc(ox,oy,3.5,0,Math.PI*2);ctx.fill();
@@ -8285,15 +9300,16 @@ function _drawStunStars(e,sx,sy){
   }
   ctx.save();ctx.font='bold 8px Cinzel,serif';ctx.textAlign='center';
   ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=2.5;ctx.lineJoin='round';
-  ctx.strokeText('STUNNED',sx+EW/2,sy-60);
-  ctx.fillStyle='rgba(255,230,80,0.9)';ctx.fillText('STUNNED',sx+EW/2,sy-60);
+  ctx.strokeText('STUNNED',cx,vtop-26);
+  ctx.fillStyle='rgba(255,230,80,0.9)';ctx.fillText('STUNNED',cx,vtop-26);
   ctx.restore();
 }
 function _drawTargetIndicator(e,sx,sy){
   if(lockedTarget!==e) return;
+  const { cx, vtop } = _bossVisualAnchor(e, sx);
   const t=Date.now()/1000;
   const pulse=0.6+0.4*Math.sin(t*6),bounce=4*Math.sin(t*4);
-  const ix=sx+EW/2,iy=sy-72+bounce;
+  const ix=cx, iy=vtop-24+bounce;
   ctx.save();ctx.globalAlpha=pulse;ctx.shadowColor='rgba(255,255,255,0.5)';ctx.shadowBlur=10;
   ctx.strokeStyle='rgba(0,0,0,0.95)';ctx.lineWidth=3.5;ctx.lineJoin='round';
   ctx.fillStyle='#ffffff';
@@ -8327,42 +9343,42 @@ function drawEnemyProjectiles(){
     if(p.type==='bottle'){
       ctx.save();
       ctx.translate(sx,sy);
-      ctx.rotate(t*6+(p.parried?-t*12:0));
+      ctx.rotate(t*6+(p.deflected?-t*12:0));
       // bottle glass
-      ctx.fillStyle=p.parried?'rgba(120,220,120,0.85)':'rgba(80,160,80,0.85)';
-      ctx.shadowColor=p.parried?'rgba(80,255,80,0.6)':'rgba(0,0,0,0)';
-      ctx.shadowBlur=p.parried?12:0;
+      ctx.fillStyle=p.deflected?'rgba(120,220,120,0.85)':'rgba(80,160,80,0.85)';
+      ctx.shadowColor=p.deflected?'rgba(80,255,80,0.6)':'rgba(0,0,0,0)';
+      ctx.shadowBlur=p.deflected?12:0;
       ctx.beginPath();ctx.roundRect(-5,-14,10,26,3);ctx.fill();
       ctx.fillStyle='rgba(180,240,180,0.3)';ctx.fillRect(-2,-12,3,8);
       ctx.fillStyle='#5a3010';ctx.fillRect(-4,-18,8,6);
       ctx.restore();
     } else if(p.type==='cannonball'){
       ctx.save();ctx.translate(sx,sy);
-      ctx.shadowColor=p.parried?'rgba(100,255,100,0.8)':'rgba(255,120,0,0.8)';
-      ctx.shadowBlur=p.parried?18:14;
-      ctx.fillStyle=p.parried?'#88ff88':'#3a3a3a';
+      ctx.shadowColor=p.deflected?'rgba(100,255,100,0.8)':'rgba(255,120,0,0.8)';
+      ctx.shadowBlur=p.deflected?18:14;
+      ctx.fillStyle=p.deflected?'#88ff88':'#3a3a3a';
       ctx.beginPath();ctx.arc(0,0,SHAMAZ_CANNON_RADIUS,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=p.parried?'rgba(0,200,0,0.4)':'rgba(80,80,80,0.5)';
+      ctx.strokeStyle=p.deflected?'rgba(0,200,0,0.4)':'rgba(80,80,80,0.5)';
       ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,SHAMAZ_CANNON_RADIUS*0.65,0,Math.PI*2);ctx.stroke();
       ctx.restore();
     } else if(p.type==='shield'){
       // spinning metallic disc
       ctx.save(); ctx.translate(sx,sy);
-      ctx.rotate(t*8*(p.vx>0?1:-1)+(p.parried?-t*16:0));
-      ctx.shadowColor=p.parried?'rgba(80,255,80,0.7)':'rgba(160,180,220,0.6)';
-      ctx.shadowBlur=p.parried?14:6;
-      ctx.fillStyle=p.parried?'#66ee88':'#2858a0';
+      ctx.rotate(t*8*(p.vx>0?1:-1)+(p.deflected?-t*16:0));
+      ctx.shadowColor=p.deflected?'rgba(80,255,80,0.7)':'rgba(160,180,220,0.6)';
+      ctx.shadowBlur=p.deflected?14:6;
+      ctx.fillStyle=p.deflected?'#66ee88':'#2858a0';
       ctx.beginPath(); ctx.arc(0,0,GUARD_SHIELD_RADIUS,0,Math.PI*2); ctx.fill();
       // cross-bar detail
-      ctx.strokeStyle=p.parried?'rgba(100,255,140,0.6)':'rgba(100,140,200,0.55)';
+      ctx.strokeStyle=p.deflected?'rgba(100,255,140,0.6)':'rgba(100,140,200,0.55)';
       ctx.lineWidth=2.5;
       ctx.beginPath(); ctx.moveTo(-GUARD_SHIELD_RADIUS*0.55,0); ctx.lineTo(GUARD_SHIELD_RADIUS*0.55,0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0,-GUARD_SHIELD_RADIUS*0.55); ctx.lineTo(0,GUARD_SHIELD_RADIUS*0.55); ctx.stroke();
       // center boss stud
-      ctx.fillStyle=p.parried?'#aaffcc':'#b0bcd0';
+      ctx.fillStyle=p.deflected?'#aaffcc':'#b0bcd0';
       ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill();
       // rim
-      ctx.strokeStyle=p.parried?'rgba(0,220,100,0.55)':'rgba(130,155,195,0.7)';
+      ctx.strokeStyle=p.deflected?'rgba(0,220,100,0.55)':'rgba(130,155,195,0.7)';
       ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.arc(0,0,GUARD_SHIELD_RADIUS,0,Math.PI*2); ctx.stroke();
       ctx.restore();
@@ -8372,30 +9388,30 @@ function drawEnemyProjectiles(){
       const bAngle=Math.atan2(p.vy,p.vx);
       ctx.rotate(bAngle);
       const bPulse=0.7+0.3*Math.sin(t*12+p.x*0.02);
-      ctx.shadowColor=p.parried?'rgba(80,255,80,0.9)':'rgba(180,0,255,0.9)';
-      ctx.shadowBlur=p.parried?18:14;
-      ctx.fillStyle=p.parried?'rgba(100,255,110,0.9)'
+      ctx.shadowColor=p.deflected?'rgba(80,255,80,0.9)':'rgba(180,0,255,0.9)';
+      ctx.shadowBlur=p.deflected?18:14;
+      ctx.fillStyle=p.deflected?'rgba(100,255,110,0.9)'
         :`rgba(${Math.round(180+60*bPulse)},50,255,0.92)`;
       ctx.beginPath(); ctx.ellipse(0,0,GARTU_BOLT_RADIUS*1.5,GARTU_BOLT_RADIUS*0.55,0,0,Math.PI*2); ctx.fill();
       // bright core streak
-      ctx.fillStyle=p.parried?'rgba(210,255,215,0.8)':'rgba(240,190,255,0.8)';
+      ctx.fillStyle=p.deflected?'rgba(210,255,215,0.8)':'rgba(240,190,255,0.8)';
       ctx.beginPath(); ctx.ellipse(0,0,GARTU_BOLT_RADIUS*0.75,GARTU_BOLT_RADIUS*0.28,0,0,Math.PI*2); ctx.fill();
       ctx.restore();
     } else if(p.type==='gartu_orb'){
       // pulsing homing orb with swirling ring
       ctx.save(); ctx.translate(sx,sy);
       const oPulse=0.65+0.35*Math.sin(t*6);
-      ctx.shadowColor=p.parried?'rgba(80,255,80,0.8)':'rgba(200,0,255,0.9)';
-      ctx.shadowBlur=Math.round((p.parried?16:22)*oPulse);
+      ctx.shadowColor=p.deflected?'rgba(80,255,80,0.8)':'rgba(200,0,255,0.9)';
+      ctx.shadowBlur=Math.round((p.deflected?16:22)*oPulse);
       const og2=ctx.createRadialGradient(0,0,0,0,0,GARTU_ORB_RADIUS);
-      og2.addColorStop(0,p.parried?'rgba(200,255,210,0.95)':'rgba(255,180,255,0.95)');
-      og2.addColorStop(0.5,p.parried?'rgba(50,210,60,0.7)'
+      og2.addColorStop(0,p.deflected?'rgba(200,255,210,0.95)':'rgba(255,180,255,0.95)');
+      og2.addColorStop(0.5,p.deflected?'rgba(50,210,60,0.7)'
         :`rgba(${Math.round(160+70*oPulse)},0,255,0.75)`);
       og2.addColorStop(1,'rgba(80,0,160,0)');
       ctx.fillStyle=og2;
       ctx.beginPath(); ctx.arc(0,0,GARTU_ORB_RADIUS,0,Math.PI*2); ctx.fill();
       // swirling outer ring
-      ctx.strokeStyle=p.parried?'rgba(100,255,120,0.5)':'rgba(220,80,255,0.55)';
+      ctx.strokeStyle=p.deflected?'rgba(100,255,120,0.5)':'rgba(220,80,255,0.55)';
       ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.arc(0,0,GARTU_ORB_RADIUS+2+2*oPulse,0,Math.PI*2); ctx.stroke();
       ctx.restore();
@@ -8422,16 +9438,16 @@ function _bossHitPlayer(e, dmg, knockVx, knockVy){
   if(player.hp<=0&&!player.dead){player.dead=true;setTimeout(onPlayerDead,900);}
 }
 
-function onParrySuccess(attacker, {skipStun=false, fastReady=false, reflectParried=false}={}){
-  player.parryTimer=0;
-  player.parryCD=fastReady ? 16 : PARRY_COOLDOWN; // fast re-ready for combo parry window (must be < smallest boss combo gap: 22)
+function onDeflectSuccess(attacker, {skipStun=false, fastReady=false, reflectParried=false}={}){
+  player.deflectTimer=0;
+  player.deflectCD=fastReady ? 16 : DEFLECT_COOLDOWN; // fast re-ready for combo parry window (must be < smallest boss combo gap: 22)
   player.invuln=true;
   setTimeout(()=>{ player.invuln=false; },800);
 
   // Stun the attacker + any enemy extremely close to the player
   // skipStun=true is used for intermediate hits of a boss combo
   if(!skipStun){
-    const PARRY_STUN_RADIUS = 80;
+    const DEFLECT_STUN_RADIUS = 80;
     enemies.forEach(e=>{
       if(e.dead) return;
       if(e===attacker && e.boss){
@@ -8451,42 +9467,49 @@ function onParrySuccess(attacker, {skipStun=false, fastReady=false, reflectParri
         updateBossStunBar(e);
       } else if(!e.boss){
         // Non-boss enemy — direct stun (attacker or nearby splash)
-        const close = Math.abs(e.x+EW/2-(player.x+PW/2))<PARRY_STUN_RADIUS &&
-                      Math.abs(e.y+EH/2-(player.y+PH/2))<PARRY_STUN_RADIUS;
-        if(e===attacker || close) e.stunTimer=PARRY_STUN_FRAMES;
+        const close = Math.abs(e.x+EW/2-(player.x+PW/2))<DEFLECT_STUN_RADIUS &&
+                      Math.abs(e.y+EH/2-(player.y+PH/2))<DEFLECT_STUN_RADIUS;
+        if(e===attacker || close) e.stunTimer=DEFLECT_STUN_FRAMES;
       }
       // Bosses that aren't the attacker are never caught by proximity stun
     });
   }
 
-  // Parry heals 5% of max HP
-  const _parryHeal=Math.round(player.maxHp*0.05);
-  player.hp=Math.min(player.maxHp,player.hp+_parryHeal);
+  // Deflect heals 5% of max HP
+  const _deflectHeal=Math.round(player.maxHp*0.05);
+  player.hp=Math.min(player.maxHp,player.hp+_deflectHeal);
   setHpBar(player.hp,player.maxHp);
 
-  triggerFreeze(PARRY_FREEZE);
-  triggerShake(PARRY_SHAKE);
+  // Deflect recovers 30% of max stamina instantly and clears the regen delay
+  const _deflectStamRegen = Math.floor(player.maxStamina * 0.30);
+  player.stamina = Math.min(player.maxStamina, player.stamina + _deflectStamRegen);
+  player.stDepleted = player.stamina < 8;
+  player.stRegenDelay = 0;
+  setStBar(player.stamina, player.maxStamina);
+
+  triggerFreeze(DEFLECT_FREEZE);
+  triggerShake(DEFLECT_SHAKE);
 
   // White flash — stronger than a normal hit flash
   fflEl.style.background='rgba(255,240,180,0.55)';
   setTimeout(()=>fflEl.style.background='rgba(255,255,255,0)',160);
 
-  if(PARRY_SOUNDS.length) playSfx(PARRY_SOUNDS[Math.random()*PARRY_SOUNDS.length|0]);
+  if(DEFLECT_SOUNDS.length) playSfx(DEFLECT_SOUNDS[Math.random()*DEFLECT_SOUNDS.length|0]);
   rumble(100, 1.0, 1.0);                         // sharp crack — both motors full
   setTimeout(() => rumble(240, 1.0, 0.5), 110);  // heavy sustained thud
   setTimeout(() => rumble(160, 0.55, 0.2), 360); // tail-off resonance
 
-  parryBurst(player.x+PW/2, player.y+PH*0.45);
-  floatText(player.x+PW/2-28, player.y-28, 'PARRY!', '#ff8030', true);
+  deflectBurst(player.x+PW/2, player.y+PH*0.45);
+  floatText(player.x+PW/2-28, player.y-28, 'DEFLECT!', '#ff8030', true);
 
-  // Parry counts as a hit in the combo streak
+  // Deflect counts as a hit in the combo streak
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
   const newTier=Math.floor(hitStreak/10);
   if(newTier>hitStreakTier){ hitStreakTier=newTier; onStreakMilestone(newTier,lastHitEnemyExp); }
   updateStreakHud();
 }
 
-function parryBurst(cx, cy){
+function deflectBurst(cx, cy){
   // Outer ember ring
   for(let i=0;i<32;i++){
     const a=(i/32)*Math.PI*2;
@@ -8514,12 +9537,12 @@ function parryBurst(cx, cy){
   }
 }
 
-// Drawn while player.parryTimer > 0 — orbiting shield shards + glow ring
-function drawParryShield(p){
-  if(p.parryTimer<=0) return;
+// Drawn while player.deflectTimer > 0 — orbiting shield shards + glow ring
+function drawDeflectShield(p){
+  if(p.deflectTimer<=0) return;
   const cx=p.x+PW/2-camX;
   const cy=p.y+PH*0.45;
-  const life=p.parryTimer/PARRY_WINDOW; // 1→0
+  const life=p.deflectTimer/DEFLECT_WINDOW; // 1→0
   const t=Date.now()/1000;
 
   // Soft radial glow
@@ -8567,7 +9590,7 @@ function loop(now=0){
   while(_accumulator >= FIXED_DT){
     // Save positions at the start of each tick — after the loop, these hold the
     // "previous tick" state so the renderer can interpolate between them and current
-    if(_sim120){
+    if(_smoothRender){
       _prevPX=player.x; _prevPY=player.y; _prevCamXI=camX;
       enemies.forEach(e=>{ e._ipx=e.x; e._ipy=e.y; });
     }
@@ -8577,7 +9600,7 @@ function loop(now=0){
     _accumulator -= FIXED_DT;
   }
   // How far into the next (not-yet-run) tick are we? Use this to interpolate renders.
-  _renderAlpha = _sim120 ? Math.min(1, _accumulator / FIXED_DT) : 1;
+  _renderAlpha = _smoothRender ? Math.min(1, _accumulator / FIXED_DT) : 1;
   _loopDraw();
 }
 function _loopUpdate(){
@@ -8587,21 +9610,24 @@ function _loopUpdate(){
   const jump=keys['ArrowUp']||keys['w']||keys['W']||keys[' ']||btnS.jump;
   const doAtk=atkEdge; atkEdge=false;
   const doSp=keys['q']||keys['Q']||btnS.sp;
-  const doMagic=keys['e']||keys['E']||btnS.magic;
-  const launchHeld=keys['f']||keys['F']||btnS.launch;
+  const spEdge    = doSp && !prevSpHeld;   // first frame sp is pressed
+  const spRelease = !doSp && prevSpHeld;   // first frame sp is released
+  prevSpHeld = doSp;
+  const doMagic=keys['r']||keys['R']||btnS.magic;
+  const launchHeld=keys['f']||keys['F']||btnS.launch; // F key (held)
   const launchEdge=launchHeld&&!prevLaunchHeld; prevLaunchHeld=launchHeld;
   const doEvade=evadeEdge; evadeEdge=false;
-  const doParry=parryEdge; parryEdge=false;
+  const doDeflect=deflectEdge; deflectEdge=false;
 
   // GRAPPLE INPUT
-  const grappleHeld=keys['g']||keys['G']||btnS.grapple;
+  const grappleHeld=keys['e']||keys['E']||btnS.grapple;
   if(grappleHeld){
     grappleHoldFrames++;
-    if(grappleHoldFrames===GRAPPLE_HOLD_FRAMES&&!player.dead&&grappleCooldown<=0){
+    if(grappleHoldFrames===GRAPPLE_HOLD_FRAMES&&!player.dead&&grappleCooldown<=0&&grappleState==='none'){
       const t=findGrappleTarget(); if(t) grappleZip(t);
     }
   } else {
-    if(grappleHoldFrames>0&&grappleHoldFrames<GRAPPLE_HOLD_FRAMES&&!player.dead&&grappleCooldown<=0){
+    if(grappleHoldFrames>0&&grappleHoldFrames<GRAPPLE_HOLD_FRAMES&&!player.dead&&grappleCooldown<=0&&grappleState==='none'){
       const t=findGrappleTarget(); if(t) grapplePull(t);
     }
     grappleHoldFrames=0;
@@ -8668,8 +9694,24 @@ function _loopUpdate(){
   }
 
   // SPECIAL
-  if(doSp&&!player.dead&&!player.spAtk&&!player.rsWindup&&player.spCD<=0&&!player.atk){
-    launchSpecial();
+  if(spEdge&&!player.dead&&!player.spAtk&&!player.rsWindup&&!player.tenraiWindup&&player.spCD<=0&&!player.atk){
+    if(activeWeapon.key==='tenrai'){
+      // Begin Tenrai charge — costs 90% of current mana up-front
+      if(player.mp>=1){
+        const _tCost = Math.max(1, Math.floor(player.mp * 0.9));
+        player.mp = Math.max(0, player.mp - _tCost);
+        setMpBar(player.mp,player.maxMp);
+        player.tenraiWindup=true; player.tenraiWindupF=0;
+        player.spCD=80;
+        playSfx(activeWeapon.spSound);
+      }
+    } else {
+      launchSpecial();
+    }
+  }
+  // Tenrai: fire on sp release
+  if(spRelease&&player.tenraiWindup&&!player.dead){
+    _fireTenraiCut(player);
   }
 
   // MAGIC
@@ -8692,7 +9734,7 @@ function _loopUpdate(){
         vy:(cy-(cy+Math.sin(ang)*orbitR*0.55))*0.12,
         life:0.7+prog*0.3,decay:0.06+prog*0.04,
         r:2+prog*4,
-        color:`hsl(${270+Math.random()*40|0},100%,${65+prog*25|0}%)`});
+        color:`hsl(${((player.arcaneWindupSpell?.trailHue??270)+Math.random()*40)|0},100%,${65+prog*25|0}%)`});
     }
     if(player.arcaneWindup===0){
       _triggerArcaneExplosion(player.arcaneWindupSpell);
@@ -8721,10 +9763,45 @@ function _loopUpdate(){
       _fireExcaliburBeam();
     }
   }
+  // ── TENRAI WINDUP ─────────────────────────────────────────────────────────
+  if(player.tenraiWindup&&!player.dead){
+    player.tenraiWindupF = Math.min(player.tenraiWindupF+1, TENRAI_MAX_CHARGE);
+    const prog   = player.tenraiWindupF / TENRAI_MAX_CHARGE;
+    const radius = TENRAI_MIN_RADIUS + prog*(TENRAI_MAX_RADIUS-TENRAI_MIN_RADIUS);
+    const cx = player.x+PW/2, cy = player.y+PH*0.45;
+    // Azure particles orbiting the sphere boundary — outer ring
+    if(Math.random()<0.5+prog*0.4){
+      const a = Math.random()*Math.PI*2;
+      const r = radius*(0.88+Math.random()*0.2);
+      particles.push({type:'spark',
+        x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r*0.46,
+        vx:-Math.sin(a)*(1.5+prog*3.5)+(Math.random()-0.5)*1.2,
+        vy: Math.cos(a)*(1+prog*1.8)*0.46-0.4,
+        life:1, decay:0.045+Math.random()*0.04, r:1.5+Math.random()*2.5,
+        color:`hsl(${194+Math.random()*20|0},100%,${64+Math.random()*26|0}%)`});
+    }
+    // Inner sparks drawn toward center — implosion feel
+    if(Math.random()<0.35+prog*0.3){
+      const a=Math.random()*Math.PI*2, r2=radius*(0.28+Math.random()*0.65);
+      const px=cx+Math.cos(a)*r2, py=cy+Math.sin(a)*r2*0.46;
+      particles.push({type:'spark',
+        x:px, y:py,
+        vx:(cx-px)*0.07+(Math.random()-0.5)*1.8,
+        vy:(cy-py)*0.07+(Math.random()-0.5)*1.5,
+        life:0.8, decay:0.042+Math.random()*0.03, r:1+Math.random()*2,
+        color:`hsl(${200+Math.random()*15|0},100%,88%)`});
+    }
+    // If player releases sp before cap, fire is handled by spRelease check above.
+    // Auto-fire at max charge
+    if(player.tenraiWindupF>=TENRAI_MAX_CHARGE){
+      _fireTenraiCut(player);
+    }
+  }
   // EVADE — action cancel: fires even mid-attack, clears all ongoing actions
   if(doEvade&&!player.dead&&!player.evadeTimer&&!player.evadeCD&&!player.stDepleted&&player.stamina>=EVADE_STAMINA){
     player.stamina=Math.max(0,player.stamina-EVADE_STAMINA);
     if(player.stamina<8) player.stDepleted=true;
+    player.stRegenDelay=ST_REGEN_DELAY;
     setStBar(player.stamina,player.maxStamina);
     player.evadeTimer=EVADE_DURATION; player.evadeDir=player.facing; player.evadeCD=EVADE_COOLDOWN;
     // Air-dash: kill downward momentum so the dash is horizontal, not a falling arc
@@ -8734,6 +9811,7 @@ function _loopUpdate(){
     player.spAtk=false; player.spF=0;
     player.rsWindup=false; player.rsF=0;
     player.excaliburWindup=false; player.excaliburWindupF=0;
+    player.tenraiWindup=false; player.tenraiWindupF=0;
     player.arcaneWindup=0; player.arcaneWindupSpell=null;
     player.airAtkFreezeTimer=0; player.airSmashTimer=0;
     // ── Reset combo chain to first step ─────────────────────────────────────
@@ -8766,11 +9844,11 @@ function _loopUpdate(){
   if(player.evadeCD>0) player.evadeCD--;
 
   // PARRY
-  if(doParry&&!player.dead&&!player.parryTimer&&player.parryCD<=0){
-    player.parryTimer=PARRY_WINDOW;
+  if(doDeflect&&!player.dead&&!player.deflectTimer&&player.deflectCD<=0){
+    player.deflectTimer=DEFLECT_WINDOW;
   }
-  if(player.parryTimer>0) player.parryTimer--;
-  if(player.parryCD>0) player.parryCD--;
+  if(player.deflectTimer>0) player.deflectTimer--;
+  if(player.deflectCD>0) player.deflectCD--;
 
   // Ground launch — always launch enemy immediately; follow only after sustained hold
   if(launchEdge&&!player.dead&&player.onGround){
@@ -9034,7 +10112,7 @@ function _loopUpdate(){
         }
       }
       e.vx=0;
-      const _slamDmg=Math.round(calcBaseDmg()*1.2+(Math.random()*10|0));
+      const _slamDmg=Math.round((calcBaseDmg()*1.2+(Math.random()*10|0))*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
       const _prev=e.hp;
       e.hp=Math.max(0,e.hp-_slamDmg);
       e.hitCD=18;
@@ -9046,7 +10124,7 @@ function _loopUpdate(){
         const _odx=Math.abs((other.x+EW/2)-_slamCX);
         const _ody=Math.abs((other.y+EH/2)-_slamCY);
         if(_odx<140&&_ody<80){
-          const _aoeDmg=Math.round(_slamDmg*0.35+(Math.random()*6|0));
+          const _aoeDmg=Math.round((_slamDmg*0.35+(Math.random()*6|0))*(other.elemProcs?.dark?(1+other.elemProcs.dark.dmgBoost):1));
           const _oprev=other.hp;
           other.hp=Math.max(0,other.hp-_aoeDmg);
           other.hitCD=14;
@@ -9070,22 +10148,26 @@ function _loopUpdate(){
       // Hover target drifts vertically with a slow sine so Gartu moves across the full screen
       const _t=Date.now()/1000;
       const _vertDrift=Math.sin(_t*0.55)*80; // ±80 px vertical range
-      const _gtY=floorY()-EH-GARTU_HOVER_OFFSET+_vertDrift;
-      e.vy+=(_gtY-(e.y+EH*0.5))*0.07;
+      const _geh=eH(e);
+      const _gtY=floorY()-_geh-GARTU_HOVER_OFFSET+_vertDrift;
+      e.vy+=(_gtY-(e.y+_geh*0.5))*0.07;
       e.vy*=0.82;
       e.vy=Math.max(-10,Math.min(10,e.vy));
       // Soft position boundaries — only clamp the extreme edges
-      const _yMin=30, _yMax=floorY()-EH*0.15;
+      const _yMin=30, _yMax=floorY()-_geh*0.15;
       if(e.y<_yMin){ e.y=_yMin; if(e.vy<0) e.vy=0; }
       if(e.y>_yMax){ e.y=_yMax; if(e.vy>0) e.vy=0; }
     }
+    _decayElemAccum(e);
+    _updateElemProcs(e);
     if(e.stunTimer>0){
       e.stunTimer--;
       if(e.stunTimer===0){ e.slamStunned=false; e.bossSlamStunned=false; } // slam ground-lock expires with stun
       e.vx*=0.82; e.atk=false; e.windupTimer=0; e.spinning=false; e.atkCD=Math.max(e.atkCD,1);
-      if(e.boss) e.comboFirstParried=false;
-      else { e.comboPhase=0; e.comboFirstParried=false; }
+      if(e.boss) e.comboFirstDeflected=false;
+      else { e.comboPhase=0; e.comboFirstDeflected=false; }
       if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
+      if(e.boss) _tickBossAnim(e);
       // GARTU: juggled during stun uses juggle gravity; bossSlamStunned uses normal
       // gravity so it falls/stays on the floor; otherwise 0 so spring stays in control
       const _gm = (e.boss&&e.bossName==='GARTU')
@@ -9110,10 +10192,11 @@ function _loopUpdate(){
           if(e.windupTimer===0){
             e.reflectParriedThisAtk=false; // new attack — reset once-per-attack reflect gate
             if(e.atkPattern===2){
-              // Cannon fires
+              // Cannon fires — advance pattern now (cannon never enters the atk/atkF path)
               fireCannonball(e);
               e.cannonFired=true;
               e.atkCD=SHAMAZ_ATK_COOLDOWN*2;
+              e.atkPattern=_shamazNextPattern(e.atkPattern); e.atkPhase=0;
             } else {
               e.atk=true;e.atkF=0;e.atkHit=false;
               if(e.atkPattern===1&&e.atkPhase===0)
@@ -9191,7 +10274,7 @@ function _loopUpdate(){
 
       } else {
       // ── GRONK AI ───────────────────────────
-      if(!e.spinning) e.facing=dx>0?1:-1;
+      if(!e.spinning && !e.atk && e.windupTimer===0) e.facing=dx>0?1:-1;
       // Boss always chases — no patrol state, no range cap
 
       if(e.spinning){
@@ -9206,9 +10289,11 @@ function _loopUpdate(){
             life:1,decay:.045,r:5+Math.random()*5,color:'#ff7700'});
         }
         if(!e.atkHit){
-          const dist=Math.hypot((e.x+EW/2)-(player.x+PW/2),(e.y+EH/2)-(player.y+PH/2));
-          if(dist<68){
-            if(player.parryTimer>0){e.atkHit=true;onParrySuccess(e);}
+          // Hitbox overlap — spin hurts if the player touches GRONK's body
+          const _sox=player.x+PW>e.x && player.x<e.x+eW(e);
+          const _soy=player.y+PH>e.y && player.y<e.y+eH(e);
+          if(_sox&&_soy){
+            if(player.deflectTimer>0){e.atkHit=true;onDeflectSuccess(e);}
             else if(!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
               e.atkHit=true;
               _bossHitPlayer(e,Math.round(e.dmg*1.2)+(Math.random()*10|0),e.spinDir*14,-4);
@@ -9361,22 +10446,25 @@ function _loopUpdate(){
            :e.atkPhase===1?-1.2+3.0*Math.min(e.atkF/SHAMAZ_COMBO_SWING2,1)
            :-1.4+3.2*Math.min(e.atkF/SHAMAZ_COMBO_SWING3,1))
           :-1.5+3.4*Math.min(e.atkF/SHAMAZ_SWING,1);
-        const _tipX=e.x+EW/2+e.facing*(SHAMAZ_HOOK_PIVOT_X+SHAMAZ_HOOK_REACH*Math.sin(_wa));
-        const _tipY=e.y+EH/2+SHAMAZ_HOOK_PIVOT_Y-SHAMAZ_HOOK_REACH*Math.cos(_wa);
-        const _hitX=Math.abs(_tipX-(player.x+PW/2))<62;
-        const _hitY=_tipY>player.y-15&&_tipY<player.y+PH+15;
+        // Use eW/eH (actual Shamaz hitbox) not EW/EH (generic enemy constant).
+        // EH=52 but Shamaz hitH=125 — using EH/2 put the pivot in the top quarter of the
+        // sprite, making the entire arc swing over the player's head.
+        const _tipX=e.x+eW(e)/2+e.facing*(SHAMAZ_HOOK_PIVOT_X+SHAMAZ_HOOK_REACH*Math.sin(_wa));
+        const _tipY=e.y+eH(e)/2+SHAMAZ_HOOK_PIVOT_Y-SHAMAZ_HOOK_REACH*Math.cos(_wa);
+        const _hitX=Math.abs(_tipX-(player.x+PW/2))<80;
+        const _hitY=_tipY>player.y-20&&_tipY<player.y+PH+20;
         if(!e.atkHit){
-          if(_hitX&&_hitY&&player.parryTimer>0){
+          if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
             if(e.atkPattern===1){
               // Each hit in the 3-hit chain counts toward the stun bar individually
               if(e.atkPhase===0 || e.atkPhase===1){
-                onParrySuccess(e,{fastReady:true});
+                onDeflectSuccess(e,{fastReady:true});
               } else { // phase 2 — last hit, normal cooldown
-                onParrySuccess(e);
+                onDeflectSuccess(e);
               }
             } else {
-              onParrySuccess(e); // single hook swing — normal stun
+              onDeflectSuccess(e); // single hook swing — normal stun
             }
           } else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
             e.atkHit=true;
@@ -9390,7 +10478,7 @@ function _loopUpdate(){
             e.atkPhase++;e.atkF=0;e.atkHit=false;e.windupTimer=_gap;
           } else {
             e.comboParriedCount=0;
-            e.atkPattern=(e.atkPattern+1)%3;e.atkPhase=0;
+            e.atkPattern=_shamazNextPattern(e.atkPattern); e.atkPhase=0;
             e.atkCD=SHAMAZ_ATK_COOLDOWN;
           }
         }
@@ -9405,19 +10493,22 @@ function _loopUpdate(){
         const _wa=e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*Math.min(e.atkF/BOSS_COMBO_SWING1,1)
                  :e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*Math.min(e.atkF/BOSS_COMBO_SWING2,1)
                  :-1.5+3.4*Math.min(e.atkF/BOSS_SWING,1);
-        const _tipX=e.x+EW/2+e.facing*(BOSS_PIVOT_X+BOSS_REACH*Math.sin(_wa));
-        const _tipY=e.y+EH/2+BOSS_PIVOT_Y-BOSS_REACH*Math.cos(_wa);
-        const _hitX=Math.abs(_tipX-(player.x+PW/2))<66;
-        const _hitY=_tipY>player.y-15&&_tipY<player.y+PH+15;
+        // Arc-based hitbox: tracks the club ball tip through the swing.
+        // Matches exactly what the trail/telegraph draw — no more wide AABB rectangle.
+        const _swingActive = _wa > -0.2;
+        const _tipX = e.x+eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_REACH*Math.sin(_wa));
+        const _tipY = e.y+eH(e)/2 + BOSS_PIVOT_Y - BOSS_REACH*Math.cos(_wa);
+        const _hitX = _swingActive && Math.abs(_tipX-(player.x+PW/2)) < BOSS_REACH+PW/2;
+        const _hitY = _tipY > player.y-BOSS_REACH && _tipY < player.y+PH+BOSS_REACH;
         if(!e.atkHit){
-          if(_hitX&&_hitY&&player.parryTimer>0){
+          if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
             if(e.atkPattern===1&&e.atkPhase===0){
               // First hit of 2-hit combo — counts toward bar, fast re-ready for second
-              onParrySuccess(e,{fastReady:true});
+              onDeflectSuccess(e,{fastReady:true});
             } else {
               // Second hit or any single swing — counts toward bar normally
-              onParrySuccess(e);
+              onDeflectSuccess(e);
             }
           } else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
             e.atkHit=true;
@@ -9429,7 +10520,7 @@ function _loopUpdate(){
           if(e.atkPattern===1&&e.atkPhase===0){
             e.atkPhase=1;e.atkF=0;e.atkHit=false;e.windupTimer=BOSS_COMBO_GAP;
           } else {
-            e.comboFirstParried=false;
+            e.comboFirstDeflected=false;
             e.atkPattern=(e.atkPattern+1)%3;e.atkPhase=0;
             e.atkCD=BOSS_ATK_COOLDOWN;
           }
@@ -9450,39 +10541,39 @@ function _loopUpdate(){
           const _hxTol=_isGuard?28:40;
           const _hitX=Math.abs(_tipX-(player.x+PW/2))<_hxTol;
           const _hitY=_tipY>player.y-15&&_tipY<player.y+PH+15;
-          if(_hitX&&_hitY&&player.parryTimer>0){
+          if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
             if(_isGuard){
               if(e.comboPhase===0){
-                e.comboFirstParried=true;
-                onParrySuccess(e,{skipStun:true,fastReady:true});
+                e.comboFirstDeflected=true;
+                onDeflectSuccess(e,{skipStun:true,fastReady:true});
               } else {
-                if(e.comboFirstParried) onParrySuccess(e);
-                else onParrySuccess(e,{skipStun:true,fastReady:false});
-                e.comboFirstParried=false;
+                if(e.comboFirstDeflected) onDeflectSuccess(e);
+                else onDeflectSuccess(e,{skipStun:true,fastReady:false});
+                e.comboFirstDeflected=false;
               }
             } else if(_isRG){
               if(e.comboPhase===0){
                 e.comboParriedCount=1;
-                onParrySuccess(e,{skipStun:true,fastReady:true});
+                onDeflectSuccess(e,{skipStun:true,fastReady:true});
               } else if(e.comboPhase===1){
                 if(e.comboParriedCount>=1) e.comboParriedCount=2;
                 else e.comboParriedCount=0;
-                onParrySuccess(e,{skipStun:true,fastReady:true});
+                onDeflectSuccess(e,{skipStun:true,fastReady:true});
               } else {
-                if(e.comboParriedCount>=2) onParrySuccess(e);
-                else onParrySuccess(e,{skipStun:true,fastReady:false});
+                if(e.comboParriedCount>=2) onDeflectSuccess(e);
+                else onDeflectSuccess(e,{skipStun:true,fastReady:false});
                 e.comboParriedCount=0;
               }
             } else if(e.type==='knight'&&e.comboPhase===0){
-              e.comboFirstParried=true;
-              onParrySuccess(e,{skipStun:true,fastReady:true});
+              e.comboFirstDeflected=true;
+              onDeflectSuccess(e,{skipStun:true,fastReady:true});
             } else if(e.type==='knight'&&e.comboPhase===1){
-              if(e.comboFirstParried) onParrySuccess(e);
-              else onParrySuccess(e,{skipStun:true,fastReady:false});
-              e.comboFirstParried=false;
+              if(e.comboFirstDeflected) onDeflectSuccess(e);
+              else onDeflectSuccess(e,{skipStun:true,fastReady:false});
+              e.comboFirstDeflected=false;
             } else {
-              onParrySuccess(e); // grunt/pirate single hit
+              onDeflectSuccess(e); // grunt/pirate single hit
             }
           } else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
             e.atkHit=true;
@@ -9514,12 +10605,13 @@ function _loopUpdate(){
           } else if(e.type==='knight'&&e.comboPhase===0){
             e.comboPhase=1; e.windupTimer=KNIGHT_COMBO_GAP;
           } else {
-            e.comboPhase=0; e.comboFirstParried=false; e.comboParriedCount=0;
+            e.comboPhase=0; e.comboFirstDeflected=false; e.comboParriedCount=0;
           }
         }
       }
     }
     if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
+    if(e.boss) _tickBossAnim(e);
     // Slam landing is now handled before the stun block above — no duplicate needed here.
     if(e.juggled&&e.onGround) e.juggled=false;
     // Air-freeze: hold enemy in place after aerial grapple arrival
@@ -9569,12 +10661,13 @@ function _loopUpdate(){
     proj.y+=proj.vy;
     if(proj.x<STAGE_LEFT-120||proj.x>STAGE_RIGHT+120||proj.y>floorY()+60){proj.dead=true;return;}
     enemies.forEach(e=>{
+      const sp=proj.spell;
       if(e.dead||proj.dead) return;
+      if(sp.piercing && proj.hitSet?.has(e)) return;
       const dx=Math.abs(proj.x-(e.x+EW/2));
       const dy=Math.abs(proj.y-(e.y+EH/2));
       if(dx<proj.radius+EW/2&&dy<proj.radius+EH/2){
-        const sp=proj.spell;
-        const dmg=proj.damage;
+        const dmg=Math.round(proj.damage*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
         const prevHp=e.hp;
         e.hp=Math.max(0,e.hp-dmg);
         e.ghostHp=prevHp; e.ghostDrainDelay=62;
@@ -9600,8 +10693,18 @@ function _loopUpdate(){
         // frost slow
         if(sp.slowFrames){ e.slowTimer=(e.slowTimer||0)+sp.slowFrames; }
         playSfx(sp.impactSound);
-        const _pe=sp.elemental,_pl=_pe?((ELEMENTAL_LABELS[_pe]||'')+' '):'',_pc=_pe?(ELEMENTAL_FLOAT_COLORS[_pe]||'#ffffff'):'#ffffff';
-        floatText(e.x+EW/2,e.y-14,`${_pl}${dmg}`,_pc,false);
+        const _pe=sp.elemental,_pc=_pe?(ELEMENTAL_FLOAT_COLORS[_pe]||'#ffffff'):'#ffffff';
+        if(sp.elemental2){
+          const _h=Math.round(dmg/2),_o=dmg-_h;
+          const _sc2=ELEMENTAL_FLOAT_COLORS[sp.elemental2]||'#fff';
+          floatText(e.x+EW/2-10,e.y-14,`${ELEMENTAL_LABELS[sp.elemental]||''}${_h}`,_pc,false);
+          floatText(e.x+EW/2+10,e.y-24,`${ELEMENTAL_LABELS[sp.elemental2]||''}${_o}`,_sc2,false);
+        } else {
+          const _pl=_pe?((ELEMENTAL_LABELS[_pe]||'')+' '):'';
+          floatText(e.x+EW/2,e.y-14,`${_pl}${dmg}`,_pc,false);
+        }
+        addElemAccum(e, sp.elemental, true);
+        if(sp.elemental2) addElemAccum(e, sp.elemental2, true);
         const hue=sp.trailHue||20;
         for(let i=0;i<20;i++){
           const ang=Math.random()*Math.PI*2;
@@ -9613,7 +10716,21 @@ function _loopUpdate(){
             color:`hsl(${hue+Math.random()*40|0},100%,${50+Math.random()*30|0}%)`});
         }
         if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
-        proj.dead=true;
+        if(sp.piercing){ if(!proj.hitSet) proj.hitSet=new Set(); proj.hitSet.add(e); }
+        else { proj.dead=true; }
+        if(sp.chainHit){
+          enemies.forEach(other=>{
+            if(other===e||other.dead) return;
+            const _cDmg=Math.round(proj.damage*0.6*(other.elemProcs?.dark?(1+other.elemProcs.dark.dmgBoost):1));
+            other.hp=Math.max(0,other.hp-_cDmg);
+            other.ghostHp=other.hp+_cDmg; other.ghostDrainDelay=62;
+            other.hitCD=15;
+            addElemAccum(other,'lightning',true);
+            floatText(other.x+EW/2,other.y-14,`${ELEMENTAL_LABELS['lightning']||''}${_cDmg}`,ELEMENTAL_FLOAT_COLORS['lightning']||'#ffff50',false);
+            if(other.hp<=0&&!other.dead){other.dead=true;onEnemyKilled(other);}
+          });
+        }
+        if(sp.cursebolt){ _triggerElemProc(e,'dark'); _triggerElemProc(e,'poison'); }
       }
     });
   });
@@ -9658,6 +10775,12 @@ function _loopUpdate(){
   bloodDecals.forEach(d=>{d.alpha=Math.max(0,d.alpha-d.decay);});
   for(let i=bloodDecals.length-1;i>=0;i--){if(bloodDecals[i].alpha<=.015)bloodDecals.splice(i,1);}
 
+  // TENRAI SLASH LINES — fade after freeze ends
+  for(let i=_tenraiSlashes.length-1;i>=0;i--){
+    _tenraiSlashes[i].life-=_tenraiSlashes[i].decay;
+    if(_tenraiSlashes[i].life<=0)_tenraiSlashes.splice(i,1);
+  }
+
   // SHAKE
   if(shakeMag>0.3){shakeX=(Math.random()-.5)*shakeMag*2;shakeY=(Math.random()-.5)*shakeMag*2;shakeMag*=0.7;}
   else{shakeX=0;shakeY=0;shakeMag=0;}
@@ -9672,7 +10795,7 @@ function _loopDraw(){
   // Move player, enemies and camera to the sub-tick interpolated position for
   // this frame, then restore the real simulation state at the end of the draw.
   let _iSaved = null;
-  if(_sim120 && _renderAlpha < 0.999){
+  if(_smoothRender && _renderAlpha < 0.999){
     const a = _renderAlpha;
     _iSaved = { px:player.x, py:player.y, cx:camX,
                 en: enemies.map(e=>({x:e.x,y:e.y})) };
@@ -9742,6 +10865,38 @@ function _loopDraw(){
     }
     ctx.globalAlpha=1;
   });
+
+  // ── TENRAI SLASH LINES ───────────────────────────────────────────────────
+  if(_tenraiSlashes.length){
+    ctx.save();
+    ctx.lineCap='round';
+    _tenraiSlashes.forEach(s=>{
+      if(s.life<=0) return;
+      const x1=s.x1-camX, y1=s.y1, x2=s.x2-camX, y2=s.y2;
+      // Outer wide glow
+      ctx.globalAlpha=s.life*0.45;
+      ctx.strokeStyle=`hsl(${s.hue},100%,68%)`;
+      ctx.shadowColor=`hsl(${s.hue},100%,75%)`;
+      ctx.shadowBlur=22;
+      ctx.lineWidth=8;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      // Mid azure
+      ctx.globalAlpha=s.life*0.82;
+      ctx.strokeStyle=`hsl(${s.hue},100%,76%)`;
+      ctx.shadowBlur=8;
+      ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      // Bright white-azure core
+      ctx.globalAlpha=s.life;
+      ctx.strokeStyle='rgba(220,245,255,0.96)';
+      ctx.shadowColor='rgba(180,235,255,0.85)';
+      ctx.shadowBlur=4;
+      ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    });
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+    ctx.restore();
+  }
 
   // PROJECTILE RENDER
   projectiles.forEach(proj=>{
@@ -9875,6 +11030,40 @@ function _loopDraw(){
     ctx.shadowBlur=0; ctx.globalAlpha=1;
     ctx.restore();
   }
+  // ── TENRAI WINDUP DRAW — azure vortex sphere ─────────────────────────────
+  if(player.tenraiWindup){
+    const prog   = player.tenraiWindupF / TENRAI_MAX_CHARGE;
+    const radius = TENRAI_MIN_RADIUS + prog*(TENRAI_MAX_RADIUS-TENRAI_MIN_RADIUS);
+    const cx = player.x+PW/2-camX, cy = player.y+PH*0.45;
+    const pulse = 0.5+0.5*Math.sin(Date.now()/38);
+    ctx.save();
+    // Outer boundary ellipse — shows the current blast radius
+    ctx.globalAlpha = (0.20+prog*0.55)*pulse;
+    ctx.shadowColor = '#38b8ff'; ctx.shadowBlur = 28+prog*44;
+    ctx.strokeStyle = `rgba(60,190,255,${0.38+prog*0.58})`;
+    ctx.lineWidth = 2+prog*4;
+    ctx.beginPath(); ctx.ellipse(cx, cy, radius, radius*0.46, 0, 0, Math.PI*2); ctx.stroke();
+    // Second inner ring at 65%
+    ctx.globalAlpha = (0.10+prog*0.28)*pulse;
+    ctx.strokeStyle = `rgba(160,230,255,${0.28+prog*0.48})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, cy, radius*0.62, radius*0.62*0.46, 0, 0, Math.PI*2); ctx.stroke();
+    // Rotating dashed ring for vortex feel
+    const dashAngle = (Date.now()/600)%(Math.PI*2);
+    ctx.globalAlpha = (0.12+prog*0.32)*pulse;
+    ctx.strokeStyle = `rgba(120,210,255,${0.3+prog*0.4})`;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([12, 18]);
+    ctx.lineDashOffset = -Date.now()/40;
+    ctx.beginPath(); ctx.ellipse(cx, cy, radius*0.82, radius*0.82*0.46, dashAngle*0.2, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    // Haze fill
+    ctx.globalAlpha = (0.03+prog*0.09)*pulse;
+    ctx.fillStyle = 'rgba(20,140,255,0.5)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, radius, radius*0.46, 0, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    ctx.restore();
+  }
   // ── EXCALIBUR WINDUP DRAW ─────────────────────────────────────────────────
   if(player.excaliburWindup){
     const prog = player.excaliburWindupF / EXCALIBUR_WINDUP_FRAMES;
@@ -9906,8 +11095,8 @@ function _loopDraw(){
   _drawElementalEffect(player);
   // Special attack sprite overlay (only when spSheet is set on active weapon)
   drawSpecialSprite(player);
-  // Parry shield overlay
-  if(!player.dead) drawParryShield(player);
+  // Deflect shield overlay
+  if(!player.dead) drawDeflectShield(player);
   _drawMobileControls();
 
   ctx.restore();
@@ -9990,9 +11179,10 @@ window.addEventListener('keydown',e=>{
   keys[e.key]=true;
   if(!e.repeat&&(e.key==='ArrowUp'||e.key==='w'||e.key==='W'||e.key===' ')) jumpEdge=true;
   if(!e.repeat&&['z','x','Z','X','Enter'].includes(e.key)) atkEdge=true;
-  if(!e.repeat&&(e.key==='r'||e.key==='R')) evadeEdge=true;
-  if(!e.repeat&&(e.key==='g'||e.key==='G')) parryEdge=true;
-  if(['ArrowLeft','ArrowRight','ArrowUp',' '].includes(e.key))e.preventDefault();
+  if(!e.repeat&&(e.key==='Shift'||e.key==='ShiftLeft'||e.key==='ShiftRight')) evadeEdge=true;
+  if(!e.repeat&&(e.key==='g'||e.key==='G')) deflectEdge=true;
+  if(!e.repeat&&(e.key==='t'||e.key==='T')) cycleLockedTarget();
+  if(['ArrowLeft','ArrowRight','ArrowUp',' ','Shift'].includes(e.key))e.preventDefault();
 });
 window.addEventListener('keyup',e=>{keys[e.key]=false;});
 
@@ -10001,7 +11191,10 @@ window.addEventListener('keyup',e=>{keys[e.key]=false;});
 // Clicks on HUD buttons are ignored so the on-screen buttons still work.
 canvas.addEventListener('mousedown', e => {
   if (e.button === 0) { atkEdge = true; }
-  if (e.button === 2) { btnS.sp = true; requestAnimationFrame(() => { btnS.sp = false; }); }
+  if (e.button === 2) { deflectEdge = true; }
+});
+canvas.addEventListener('mouseup', e => {
+  // deflect is edge-based — nothing to clear on mouseup
 });
 canvas.addEventListener('contextmenu', e => e.preventDefault()); // suppress right-click menu
 
@@ -10140,12 +11333,12 @@ function _updateGamepadInner() {
   // X: attack (in-game only)
   if (!isInMenu && xPressed && !prevXButtonState) atkEdge = true;
 
-  // Y: special  |  LT: magic  |  LB: parry  |  B: evade  |  RT: launch
+  // Y: special  |  LT: magic  |  LB: deflect  |  B: evade  |  RT: launch
   btnS.sp     = yPressed;
   btnS.magic  = ltPressed;
   btnS.launch = rtPressed;
-  btnS.parry   = !isInMenu && lbPressed;
-  if(!isInMenu && lbPressed && !prevLBState) parryEdge = true;
+  btnS.deflect   = !isInMenu && lbPressed;
+  if(!isInMenu && lbPressed && !prevLBState) deflectEdge = true;
   btnS.evade   = !isInMenu && bPressed;
   btnS.grapple = !isInMenu && rbPressed;
   if (!isInMenu && bPressed && !prevBButtonState) evadeEdge = true;
@@ -10627,7 +11820,7 @@ function _stageMusicStop(){
 function _applyHudScale(){
   const mob = !!save.mobileControls, r = document.documentElement;
   document.body.classList.toggle('mc-active', mob);
-  const s = ((mob ? save.hudSizeMobile : save.hudSizeDesktop) || 100) / 100;
+  const s = (save.hudSize || 100) / 100;
   const px = v => Math.round(v * s) + 'px';
   const vw = v => (v * s).toFixed(1) + 'vw';
   const rm = v => (v * s).toFixed(2) + 'rem';
@@ -10671,7 +11864,7 @@ function _buildMcLayout(){
     {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.28)'},
     {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.28)'},
     {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.28)'},
-    {id:'parry',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,100,20,0.28)'},
+    {id:'deflect',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,100,20,0.28)'},
     {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.28)'},
     // Right cluster — actions
     {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.28)'},
@@ -10705,7 +11898,7 @@ function _mcOn(id){
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
   else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
-  else if(id==='parry'){parryEdge=true;btnS.parry=true;}
+  else if(id==='deflect'){deflectEdge=true;btnS.deflect=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
   else if(id==='sp')btnS.sp=true;
   else if(id==='target')cycleLockedTarget();
@@ -10714,7 +11907,7 @@ function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
-  else if(id==='parry')btnS.parry=false;else if(id==='grapple')btnS.grapple=false;
+  else if(id==='deflect')btnS.deflect=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
 function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();_syncHudSizeDisplays();writeSave();}
@@ -10726,23 +11919,19 @@ function _syncMobileBtn(){
   // Refresh the unified pause HUD row value to match current mode
   _syncHudSizeDisplays();
 }
-function changeHudSize(delta,forMobile){
-  const mob=forMobile!==undefined?forMobile:!!save.mobileControls;
-  if(mob){ save.hudSizeMobile=Math.max(50,Math.min(200,(save.hudSizeMobile||100)+delta)); }
-  else   { save.hudSizeDesktop=Math.max(50,Math.min(200,(save.hudSizeDesktop||100)+delta)); }
+function changeHudSize(delta){
+  save.hudSize=Math.max(50,Math.min(200,(save.hudSize||100)+delta));
   _applyHudScale(); _syncHudSizeDisplays(); writeSave();
 }
 function resetHudSizes(){
-  save.hudSizeDesktop=100; save.hudSizeMobile=100;
+  save.hudSize=100;
   _applyHudScale(); _syncHudSizeDisplays(); writeSave();
 }
 function _syncHudSizeDisplays(){
-  const dv=save.hudSizeDesktop||100, mv=save.hudSizeMobile||100;
-  const d=document.getElementById('hudSizeDesktopVal');   if(d) d.textContent=dv+'%';
-  const m=document.getElementById('hudSizeMobileVal');    if(m) m.textContent=mv+'%';
-  // Unified pause row — shows value for whichever mode is currently active
+  const v=save.hudSize||100;
+  const d=document.getElementById('hudSizeVal'); if(d) d.textContent=v+'%';
   const pv=document.getElementById('pauseHudVal');
-  if(pv) pv.textContent=(save.mobileControls ? mv : dv)+'%';
+  if(pv) pv.textContent=v+'%';
 }
 function initMobileControls(){
   const tmap={};
