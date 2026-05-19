@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -655,6 +655,57 @@ body.mc-active #bossBar{
 .boss-ghost{position:absolute;inset:0;background:rgba(255,170,150,0.3);width:100%;}
 .boss-bar-chips{position:absolute;inset:0;overflow:visible;pointer-events:none;}
 
+/* ── BOSS STUN BAR ── */
+.boss-stun-row{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.boss-stun-lbl{
+  font-family:'Cinzel',serif;font-size:0.48rem;letter-spacing:0.16em;
+  color:rgba(255,205,60,0.75);white-space:nowrap;flex-shrink:0;
+}
+.boss-stun-track{
+  position:relative;flex:1;height:5px;
+  background:rgba(18,10,2,0.95);
+  border:1px solid rgba(180,120,10,0.30);
+  border-radius:2px;overflow:hidden;
+}
+.boss-stun-fill{
+  position:absolute;inset:0;width:0%;
+  background:linear-gradient(90deg,#1a0800 0%,#5c2800 28%,#b86000 55%,#e8a000 78%,#ffd060 100%);
+  border-radius:2px;transition:width 0.14s ease-out;
+}
+.boss-stun-fill.near-full{
+  animation:stunPulse 0.45s ease-in-out infinite alternate;
+}
+@keyframes stunPulse{
+  from{filter:brightness(1)   drop-shadow(0 0 2px #c87800);}
+  to  {filter:brightness(1.5) drop-shadow(0 0 6px #ffd060);}
+}
+.boss-stun-shine{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.10) 0%,transparent 60%);
+  pointer-events:none;
+}
+.boss-stun-pips{display:flex;gap:3px;align-items:center;flex-shrink:0;}
+.boss-stun-pip{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(90,50,5,0.35);
+  border:1px solid rgba(180,120,10,0.30);
+  transition:background 0.12s,box-shadow 0.12s;
+}
+.boss-stun-pip.filled{
+  background:rgba(230,155,0,0.90);
+  box-shadow:0 0 4px rgba(255,190,30,0.75);
+  border-color:rgba(255,215,80,0.65);
+}
+/* Desktop stun bar — scaled up */
+body:not(.mc-active) .boss-stun-lbl{font-size:0.58rem;letter-spacing:0.18em;}
+body:not(.mc-active) .boss-stun-track{height:8px;margin:0;}
+body:not(.mc-active) .boss-stun-row{margin-top:8px;gap:8px;}
+body:not(.mc-active) .boss-stun-pip{width:7px;height:7px;}
+
+/* ── COMBO HUD shift when boss bar is active ── */
+body.boss-fighting .combo-hud{top:120px;}
+body.boss-fighting:not(.mc-active) .combo-hud{top:200px;}
+
 /* ── PAUSE ── */
 #pauseBtn{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:15;pointer-events:all;
   width:36px;height:36px;border-radius:6px;border:1px solid rgba(200,160,80,0.3);
@@ -800,13 +851,13 @@ body.mc-active #streakHud{top:54px;}
       </div>
       <div class="boss-entry-skull">☠</div>
     </button>
-    <button class="boss-entry locked" disabled>
+    <button class="boss-entry" onclick="menuBossRush('gartu')">
       <div class="boss-entry-num">III</div>
       <div class="boss-entry-info">
-        <div class="boss-entry-name">???</div>
-        <div class="boss-entry-sub">Not yet discovered</div>
+        <div class="boss-entry-name">CORRUPTED VASSAL GARTU</div>
+        <div class="boss-entry-sub">Corrupted Mage</div>
       </div>
-      <div class="boss-entry-skull">🔒</div>
+      <div class="boss-entry-skull">✦</div>
     </button>
     <button class="menu-btn" style="width:100%;font-size:0.75rem;padding:10px;margin-top:8px" onclick="showMenu()">↩ BACK</button>
   </div>
@@ -1054,6 +1105,14 @@ body.mc-active #streakHud{top:54px;}
     <div class="boss-bar-shine"></div>
   </div>
   <div class="boss-hp-num" id="bossHpNum"></div>
+  <div class="boss-stun-row">
+    <span class="boss-stun-lbl">STAGGER</span>
+    <div class="boss-stun-track">
+      <div class="boss-stun-fill" id="bossStunFill"></div>
+      <div class="boss-stun-shine"></div>
+    </div>
+    <div class="boss-stun-pips" id="bossStunPips"></div>
+  </div>
 </div>
 
 <div id="status">Connect controller...</div>
@@ -1291,6 +1350,7 @@ resize();
 const STAGES = {
   1: { name:'Airship', bg:'GFX/stage1_bg.png',  music:'Audio/stage1_music.wav' },
   2: { name:'Forest',  bg:'GFX/stage2_bg.png',  music:'Audio/stage2_music.wav' },
+  3: { name:'City',    bg:'GFX/stage3_bg.png',  music:'Audio/stage3_music.wav' },
 };
 
 // Preload all stage backgrounds up front
@@ -1390,6 +1450,27 @@ const spImg = new Image();
 let spLoaded = false;
 spImg.onload  = () => { spLoaded = true; };
 spImg.onerror = () => { spLoaded = false; };
+
+// ── SLAM-STUN OVERRIDE SPRITE (optional) ─────────────────────────────────
+// Set SLAM_STUN_SPRITE to a file path or a base64 data URL to use your own
+// art instead of the procedural cracks/chain.  Set to null to always use
+// the procedural fallback.
+// Sprite is drawn centred on the enemy, bottom edge at floor level,
+// at its natural pixel size (recommended: 64 × 128 px).
+//
+// Examples:
+//   const SLAM_STUN_SPRITE = 'GFX/slam_stun.png';
+//   const SLAM_STUN_SPRITE = 'data:image/png;base64,iVBORw0KGgo...';
+//   const SLAM_STUN_SPRITE = null; // procedural only
+const SLAM_STUN_SPRITE = 'GFX/slam_stun.png';
+
+const _slamStunImg = new Image();
+let   _slamStunImgLoaded = false;
+if(SLAM_STUN_SPRITE){
+  _slamStunImg.onload  = () => { _slamStunImgLoaded = true; };
+  _slamStunImg.onerror = () => { _slamStunImgLoaded = false; };
+  _slamStunImg.src = SLAM_STUN_SPRITE;
+}
 const spAnim = { frame: 0 };
 
 // Helper: same as cells() but for weapon sheet rows
@@ -1503,8 +1584,31 @@ function tickHeroAnim(p){
 // ══════════════════════════════════════════
 //  CONSTANTS & CONFIG
 // ══════════════════════════════════════════
+// ── PORTRAIT ANIMATION ──────────────────────────────────────────────────────
+// Add new frame filenames here to extend the idle animation.
+// PORTRAIT_FRAME_DURATION[i] = how many ms frame i stays visible before advancing.
+const PORTRAIT_FRAMES = [
+  'GFX/cp1.png',    // frame 1 — main idle pose
+  'GFX/cp2.png',
+  'GFX/cp3.png',
+  'GFX/cp4.png',
+  'GFX/cp3.png',
+  'GFX/cp2.png',
+];
+const PORTRAIT_FRAME_DURATION = [
+  3000,
+  300,
+  340,
+  300,
+  340,
+  300,
+];
+let _portraitAnimTimer = null;
+let _portraitAnimIdx   = 0;
+// ────────────────────────────────────────────────────────────────────────────
+
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-10; // +20% fall gravity (0.334 × 1.20)
+const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-14; // +20% fall gravity (0.334 × 1.20)
 const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
@@ -1695,9 +1799,10 @@ const ELEMENTAL_FLOAT_COLORS = {
   lightning: '#ffff50',
   holy:      '#fff4a0',
   dark:      '#d060ff',
+  poison:    '#80ff40',
 };
 const ELEMENTAL_LABELS = {
-  fire: '🔥', ice: '❄', wind: '💨', lightning: '⚡', holy: '✦', dark: '💀',
+  fire: '🔥', ice: '❄', wind: '💨', lightning: '⚡', holy: '✨', dark: '🌑', poison: '☠',
 };
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -1713,7 +1818,7 @@ const WEAPONS = {
       enemies.forEach(e=>{
         if(e.dead)return;
         if(Math.abs(e.x+EW/2-(p.x+PW/2))<range&&Math.abs(e.y+EH/2-(p.y+PH/2))<80){
-          _spHit(e,Math.round(calcBaseDmg()*2.5+(Math.random()*20|0)),'#c080ff','✦'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*2.5+(Math.random()*20|0))); hit=true;
           e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy-=6;
         }
       });
@@ -1745,7 +1850,7 @@ const WEAPONS = {
       const t=alive.reduce((c,e)=>Math.abs(e.x-p.x)<Math.abs(c.x-p.x)?e:c,alive[0]);
       p.x=Math.max(0,t.x+(t.facing||1)*EW); p.facing=(t.x>p.x)?1:-1;
       let hit=false;
-      for(let i=0;i<3;i++){_spHit(t,Math.round(calcBaseDmg()*0.9+(Math.random()*10|0)),'#80ffcc','✦');hit=true;}
+      for(let i=0;i<3;i++){_spHit(t,Math.round(calcBaseDmg()*0.9+(Math.random()*10|0)));hit=true;}
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(10);triggerShake(8);triggerHitFlash();}
       for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2;
         particles.push({type:'spark',x:t.x+EW/2,y:t.y+EH/2,vx:Math.cos(a)*7,vy:Math.sin(a)*7-2,
@@ -1772,8 +1877,8 @@ const WEAPONS = {
         if(e.dead)return;
         const dx=(e.x+EW/2)-(p.x+PW/2);
         if(Math.sign(dx)===p.facing&&Math.abs(dx)<220&&Math.abs(e.y-p.y)<60){
-          _spHit(e,Math.round(calcBaseDmg()*4+(Math.random()*30|0)),'#ffd060','💥'); hit=true;
-          e.vx+=p.facing*10; e.vy-=5;
+          _spHit(e,Math.round(calcBaseDmg()*4+(Math.random()*30|0))); hit=true;
+          if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=5; }
         }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(22);triggerShake(20);triggerHitFlash();}
@@ -1803,7 +1908,7 @@ const WEAPONS = {
       let hit=false;
       enemies.forEach(e=>{
         if(e.dead)return;
-        _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*15|0)),'#ff8040','🪓'); hit=true;
+        _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*15|0))); hit=true;
         e.vx+=(e.x>p.x?1:-1)*4; e.vy-=2;
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(14);triggerShake(16);triggerHitFlash();}
@@ -1906,7 +2011,7 @@ const WEAPONS = {
         if(e.dead) return;
         const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
         if(dx<200&&dy<90){
-          _spHit(e,Math.round(calcBaseDmg()*2.4+(Math.random()*22|0)),'#ffe060','⚔'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*2.4+(Math.random()*22|0))); hit=true;
           e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy=-9;
         }
       });
@@ -1946,7 +2051,7 @@ const WEAPONS = {
         const dx=(p.x+PW/2)-(e.x+EW/2), dy=(p.y+PH/2)-(e.y+EH/2);
         const dist=Math.sqrt(dx*dx+dy*dy);
         if(dist<280){
-          _spHit(e,Math.round(calcBaseDmg()*3.2+(Math.random()*28|0)),'#d060ff','💀'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*3.2+(Math.random()*28|0))); hit=true;
           e.vx+=dx/dist*10; e.vy+=dy/dist*8-4;
         }
       });
@@ -1987,7 +2092,7 @@ const WEAPONS = {
         if(e.dead) return;
         const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
         if(dx<320&&dy<80){
-          _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*14|0)),'#ff6030','🔥'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*14|0))); hit=true;
           e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*6; e.vy-=4;
           for(let i=0;i<8;i++){
             particles.push({type:'spark',x:e.x+EW/2+(Math.random()-0.5)*22,y:e.y+EH*0.38,
@@ -2032,7 +2137,7 @@ const WEAPONS = {
       enemies.forEach(e=>{
         if(e.dead) return;
         if(Math.abs((e.x+EW/2)-(p.x+PW/2))<300){
-          _spHit(e,Math.round(calcBaseDmg()*3.5+(Math.random()*30|0)),'#ff8020','💥'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*3.5+(Math.random()*30|0))); hit=true;
           e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*12; e.vy=-14;
         }
       });
@@ -2077,8 +2182,9 @@ const WEAPONS = {
         if(e.dead) return;
         const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
         if(dx<260&&dy<100){
-          _spHit(e,Math.round(calcBaseDmg()*2.6+(Math.random()*20|0)),'#70e8ff','❄'); hit=true;
-          e.stunTimer=Math.max(e.stunTimer||0,70);
+          _spHit(e,Math.round(calcBaseDmg()*2.6+(Math.random()*20|0))); hit=true;
+          if(e.boss){ feedBossStunBar(e); }
+          else { e.stunTimer=Math.max(e.stunTimer||0,70); }
           e.vx*=0.15; e.vy*=0.15;
         }
       });
@@ -2120,7 +2226,7 @@ const WEAPONS = {
         const dx=(p.x+PW/2)-(e.x+EW/2), dy=(p.y+PH/2)-(e.y+EH/2);
         const dist=Math.sqrt(dx*dx+dy*dy);
         if(dist<380&&dist>20){
-          _spHit(e,Math.round(calcBaseDmg()*1.5+(Math.random()*12|0)),'#c0a060','⛓'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*1.5+(Math.random()*12|0))); hit=true;
           e.vx=dx/dist*18; e.vy=dy/dist*12-3; e.onGround=false;
           const steps=10;
           for(let i=0;i<steps;i++){
@@ -2159,7 +2265,7 @@ const WEAPONS = {
       if(!alive.length) return;
       alive.sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
       alive.forEach((e,idx)=>{
-        _spHit(e,Math.round(calcBaseDmg()*(2.6-idx*0.25)+(Math.random()*20|0)),'#ffff50','⚡');
+        _spHit(e,Math.round(calcBaseDmg()*(2.6-idx*0.25)+(Math.random()*20|0)));
         e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*8; e.vy-=6;
         for(let i=0;i<14;i++){
           const a=Math.random()*Math.PI*2;
@@ -2215,7 +2321,7 @@ const WEAPONS = {
       p.x=target.x+(target.x>p.x?-PW-12:EW+12);
       p.facing=(target.x+EW/2>p.x+PW/2?1:-1);
       for(let i=0;i<4;i++)
-        _spHit(target,Math.round(calcBaseDmg()*1.1+(Math.random()*10|0)),'#d060ff','🌑');
+        _spHit(target,Math.round(calcBaseDmg()*1.1+(Math.random()*10|0)));
       target.vx+=p.facing*16; target.vy=-10;
       playSfx(activeWeapon.spHitSound);triggerFreeze(20);triggerShake(18);triggerHitFlash();
       for(let i=0;i<28;i++){
@@ -2251,8 +2357,8 @@ const WEAPONS = {
         if(e.dead) return;
         const dx=(e.x+EW/2)-(p.x+PW/2);
         if(Math.sign(dx)===p.facing&&Math.abs(dx)<300&&Math.abs(e.y-p.y)<70){
-          _spHit(e,Math.round(calcBaseDmg()*2.8+(Math.random()*24|0)),'#ff6020','🔥'); hit=true;
-          e.vx+=p.facing*10; e.vy-=6;
+          _spHit(e,Math.round(calcBaseDmg()*2.8+(Math.random()*24|0))); hit=true;
+          if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=6; }
         }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(16);triggerShake(14);triggerHitFlash();}
@@ -2289,7 +2395,7 @@ const WEAPONS = {
         if(e.dead) return;
         const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
         if(dx<230&&dy<90){
-          _spHit(e,Math.round(calcBaseDmg()*2.0+(Math.random()*16|0)),'#80ff40','☠'); hit=true;
+          _spHit(e,Math.round(calcBaseDmg()*2.0+(Math.random()*16|0))); hit=true;
           e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*5; e.vy-=4;
         }
       });
@@ -2312,7 +2418,7 @@ const WEAPONS = {
       {motion:'lunge-thrust', easing:'out',               pivotX:14,pivotY:0.34, swingH:90,  frameIdx:2, duration:14, dmgMult:2.4, dashDist:54, stamCost:18, hitMargin:11, sweepSteps:5, hitCD:14, knockback:[ 7, 9,14]},
     ],
     desc: 'Four fast claw strikes then a venomous lunging stab. Toxic nova on special.',
-    elemental: null,
+    elemental: 'poison',
     unlocked: true, cost: 460,
   },
 
@@ -2607,6 +2713,7 @@ const SPELLS={
     key:'fireball',
     name:'Fireball',
     icon:'🔥',
+    elemental:'fire',
     mpCost:20,
     speed:5,
     damage:35,
@@ -2626,6 +2733,7 @@ const SPELLS={
     key:'frostbolt',
     name:'Frost Bolt',
     icon:'❄',
+    elemental:'ice',
     mpCost:15,
     speed:9,
     damage:22,
@@ -2646,6 +2754,7 @@ const SPELLS={
     key:'arcanebolt',
     name:'Arcane Explosion',
     icon:'💜',
+    elemental:'dark',
     mpCost:65,
     damage:90,
     dmgPerInt:10,
@@ -2666,6 +2775,7 @@ const SPELLS={
     key:'magicmissile',
     name:'Magic Missile',
     icon:'🔮',
+    elemental:null,
     mpCost:8,
     speed:11,
     damage:1,
@@ -2727,10 +2837,11 @@ function _triggerArcaneExplosion(sp){
       e.ghostHp=prev; e.ghostDrainDelay=62;
       e.hitCD=28;
       const dir=(e.x+EW/2)>cx?1:-1;
-      e.vx+=dir*sp.knockback*falloff;
-      e.vy-=sp.knockbackUp*falloff;
+      if(!_groundLocked(e)) e.vx+=dir*sp.knockback*falloff;
+      if(!e.slammed && !e.slamStunned && !e.bossSlamStunned && !e.bossSlamLanded) e.vy-=sp.knockbackUp*falloff;
       spawnEnemyBarChips(e,prev,e.hp);
-      floatText(e.x+EW/2,e.y-20,`-${dmg}`,sp.color,true);
+      const _se=sp.elemental,_sl=_se?((ELEMENTAL_LABELS[_se]||'')+' '):'',_sc=_se?(ELEMENTAL_FLOAT_COLORS[_se]||'#ffffff'):'#ffffff';
+      floatText(e.x+EW/2,e.y-20,`${_sl}${dmg}`,_sc,true);
       sparkBurst(e.x+EW/2,e.y+EH*0.4,14,true);
       if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
     }
@@ -2770,9 +2881,8 @@ function _fireExcaliburBeam(){
     const ex = e.x+EW/2;
     if(f === 1 && ex < px) return;
     if(f ===-1 && ex > px) return;
-    _spHit(e, dmg, '#fffbe8', '⚡');
-    e.vx = f * 18;
-    e.vy = -8;
+    _spHit(e, dmg);
+    if(!_groundLocked(e)){ e.vx = f * 18; e.vy = -8; }
   });
 
   // Beam from player forward to stage edge
@@ -2898,7 +3008,9 @@ const JUGGLE_PLAYER_VY=JUGGLE_VY*0.95; // player peaks 5% lower — enemy always
 // Gravity multiplier to pass to physics() for juggled enemies — cancels ENEMY_GRAV_MULT
 // so enemy and player fall at identical rates during juggle
 const JUGGLE_ENEMY_GRAV_MULT=JUGGLE_GRAV/(GRAV*ENEMY_GRAV_MULT); // cancels ENEMY_GRAV_MULT so juggled enemy falls at same rate as player
-const EVADE_SPEED         = 8;   // dash velocity (bypasses normal 4-unit cap)
+const RUN_ACCEL           = 2.0; // velocity added per frame while holding a direction
+const RUN_MAX             = 7.0; // top horizontal speed (units/frame)
+const EVADE_SPEED         = 10; // dash velocity (bypasses normal 4-unit cap)
 const EVADE_DURATION      = 28;  // total frames of the evade (= 2 × anim speed 14 → even frame pacing)
 const EVADE_INVULN_FRAMES = 28;  // frames of invincibility — full evade duration
 const EVADE_COOLDOWN      = 32;  // cooldown frames before next evade is allowed
@@ -2956,6 +3068,37 @@ const SHAMAZ_CANNON_WINDUP  = 144;  // ~2.4 s at 60 fps (40% faster than origina
 const SHAMAZ_CANNON_SPEED   = 14;
 const SHAMAZ_CANNON_RADIUS  = 22;
 
+// ── STAGE 3 ENEMY CONSTANTS ──────────────────────────────────
+const GUARD_THRUST_RANGE        = 72;   // melee trigger distance
+const GUARD_THRUST_WINDUP       = 22;   // thrust wind-up frames (snappier than normal)
+const GUARD_COMBO_GAP           = 11;   // pause between the 2 thrust hits
+const GUARD_SHIELD_THROW_RANGE  = 310;  // max range for shield throw
+const GUARD_SHIELD_THROW_RMIN   = 110;  // min range (won't throw if too close)
+const GUARD_SHIELD_WINDUP       = 40;   // frames guard raises shield before throw
+const GUARD_SHIELD_THROW_CD     = 185;  // cooldown between throws
+const GUARD_SHIELD_THROW_ANIM   = 22;   // follow-through after release
+const GUARD_SHIELD_SPEED        = 10;   // px/frame
+const GUARD_SHIELD_LIFE         = 250;  // auto-expire frames
+const GUARD_SHIELD_RADIUS       = 16;   // collision radius
+
+const ROYAL_GUARD_ATK_RANGE     = 105;  // enter windup within this distance
+const ROYAL_GUARD_WINDUP1       = 34;   // first hit of 3-combo — long telegraph
+const ROYAL_GUARD_GAP1          = 16;   // gap between hits 1→2
+const ROYAL_GUARD_GAP2          = 13;   // gap between hits 2→3
+const ROYAL_GUARD_ATK_COOLDOWN  = 135;  // rest after full 3-hit combo
+
+// ── BOSS: CORRUPTED VASSAL GARTU ─────────────────────────────
+const GARTU_WINDUP_BOLT         = 40;   // single aimed bolt cast time
+const GARTU_WINDUP_TRIPLE       = 55;   // triple burst cast time
+const GARTU_WINDUP_NOVA         = 96;   // nova charge (longer telegraph)
+const GARTU_WINDUP_HOMING       = 50;   // homing orb cast time
+const GARTU_ATK_COOLDOWN        = 78;   // post-fire cooldown
+const GARTU_BOLT_SPEED          = 12;   // fast bolt px/frame
+const GARTU_ORB_SPEED           = 4.5;  // slow homing orb px/frame
+const GARTU_HOVER_OFFSET        = 115;  // px above floor when floating
+const GARTU_BOLT_RADIUS         = 9;
+const GARTU_ORB_RADIUS          = 14;
+
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
@@ -2967,6 +3110,8 @@ let frozen=0,shakeMag=0,shakeX=0,shakeY=0;
 let _bgCanvas=null,_bgDirty=true; // offscreen cache for static background
 let camX=0;
 let player={},enemies=[],particles=[],bloodDecals=[],swordTrail=[],projectiles=[],beams=[],enemyProjectiles=[],throws=[];
+let _dashTrail=[];                            // evade afterimage entries
+let _dashGhostCanvas=null,_dashGhostCtx=null; // offscreen canvas for purple tint blit
 let ghostTimerHp=null;
 let runKills=0,runGold=0,runExp=0;
 let hitStreak=0,hitStreakTimer=0,hitStreakTier=0,lastHitEnemyExp=25;
@@ -2990,6 +3135,29 @@ function floorY(){ return canvas.height-FLOOR_PAD; }
 // ══════════════════════════════════════════
 //  SCREEN MANAGEMENT
 // ══════════════════════════════════════════
+
+// ── Portrait idle animation ──────────────
+function _startPortraitAnim(){
+  _stopPortraitAnim();
+  _portraitAnimIdx = 0;
+  if(PORTRAIT_FRAMES.length <= 1) return; // nothing to animate with only one frame
+  const _step = () => {
+    _portraitAnimIdx = (_portraitAnimIdx + 1) % PORTRAIT_FRAMES.length;
+    const el = document.querySelector('.prep-portrait-img');
+    if(el) el.src = PORTRAIT_FRAMES[_portraitAnimIdx];
+    _portraitAnimTimer = setTimeout(_step, PORTRAIT_FRAME_DURATION[_portraitAnimIdx] ?? 500);
+  };
+  _portraitAnimTimer = setTimeout(_step, PORTRAIT_FRAME_DURATION[0] ?? 2200);
+}
+function _stopPortraitAnim(){
+  if(_portraitAnimTimer){ clearTimeout(_portraitAnimTimer); _portraitAnimTimer = null; }
+  // reset to frame 0 if the element exists
+  const el = document.querySelector('.prep-portrait-img');
+  if(el) el.src = PORTRAIT_FRAMES[0];
+  _portraitAnimIdx = 0;
+}
+// ─────────────────────────────────────────
+
 function showMenu(){
   gameOver=true;
   cancelAnimationFrame(frameId);
@@ -2997,11 +3165,13 @@ function showMenu(){
   document.getElementById('cdBar').classList.remove('visible');
   document.getElementById('dead').classList.remove('show');
   document.getElementById('stageCompleteScreen').classList.remove('show');
+  _stopPortraitAnim();
   document.getElementById('menuScreen').classList.remove('hidden');
   document.getElementById('prepScreen').classList.add('hidden');
   document.getElementById('bossRushScreen').classList.add('hidden');
   document.getElementById('stageSelectScreen').classList.add('hidden');
   document.getElementById('bossBar').classList.remove('show');
+  document.body.classList.remove('boss-fighting');
   document.getElementById('pauseBtn').classList.remove('visible');
   document.getElementById('pauseScreen').classList.remove('show');
   paused=false;
@@ -3037,6 +3207,7 @@ function quitToMenu(){
 function menuPlay(){ preloadAllSfx(); currentStage=1; openPrep(); }
 
 function prepBack(){
+  _stopPortraitAnim();
   document.getElementById('prepScreen').classList.add('hidden');
   if(bossRushMode){
     bossRushMode=false;
@@ -3074,6 +3245,7 @@ function openPrep(){
   renderSpellSelect();
   const w = document.getElementById('prepWrap');
   if(w) w.scrollTop = 0;
+  _startPortraitAnim();
 }
 
 function confirmPrep(){
@@ -3099,7 +3271,7 @@ function openBossRushScreen(){
 
 function menuBossRush(bossId){
   // Route bossId to the correct stage
-  currentStage = bossId==='gronk' ? 2 : 1;  // shamaz→1, gronk→2
+  currentStage = bossId==='gartu' ? 3 : bossId==='gronk' ? 2 : 1;  // shamaz→1, gronk→2, gartu→3
   bossRushMode=true;
   document.getElementById('bossRushScreen').classList.add('hidden');
   openPrep();
@@ -3156,6 +3328,7 @@ async function confirmReset(){
 // ══════════════════════════════════════════
 function startRun(){
   _menuAmbStop();
+  _stopPortraitAnim();
   _stageMusicPlay(currentStage);
   document.getElementById('menuScreen').classList.add('hidden');
   document.getElementById('prepScreen').classList.add('hidden');
@@ -3164,22 +3337,28 @@ function startRun(){
   document.getElementById('cdBar').classList.add('visible');
   document.getElementById('dead').classList.remove('show');
   document.getElementById('bossBar').classList.remove('show');
+  document.body.classList.remove('boss-fighting');
   document.getElementById('pauseBtn').classList.add('visible');
   paused=false;
 
   runKills=0; runGold=0; runExp=0;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
+  // Reset stun bar UI
+  const _sf=document.getElementById('bossStunFill');
+  if(_sf){ _sf.style.width='0%'; _sf.classList.remove('near-full'); }
+  const _sp=document.getElementById('bossStunPips');
+  if(_sp) _sp.innerHTML='';
   hideComboHud();
   document.getElementById('streakHud').style.display='none';
   lastHitEnemy=null; lockedTarget=null; grappleTarget=null; grappleState='none'; grappleTimer=0; grappleCooldown=0; grappleHoldFrames=0;
   grappleRopeNodes=[]; grappleRopeProgress=0;
-  gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[];
+  gameOver=false; frozen=0; shakeMag=0; camX=0; swordTrail=[]; _dashTrail=[];
   jumpBuffer=0; coyoteFrames=0;
   heroAnim.name='idle'; heroAnim.frame=0; heroAnim.tick=0;
 
   const maxHp=calcMaxHp(), maxSt=calcMaxSt(), maxMp=calcMaxMp();
   player={
-    x:120,y:0,vx:0,vy:0,onGround:false,
+    x:120,y:floorY()-PH,vx:0,vy:0,onGround:true,
     facing:1,
     hp:maxHp,maxHp,
     stamina:maxSt,maxStamina:maxSt,
@@ -3214,9 +3393,9 @@ function startRun(){
     }
     spawnedCount=0;
     bossSpawned=false;
-    // Start with 2 enemies — a new one spawns each time one is killed
-    spawnNextEnemy();
-    spawnNextEnemy();
+    // Start with a random 1–3 enemies
+    const _initCount = 1 + Math.floor(Math.random() * 3);
+    for(let i = 0; i < _initCount; i++) spawnNextEnemy();
   }
 
   setHpBar(maxHp,maxHp,false);
@@ -3238,10 +3417,12 @@ function startRun(){
 // Per-enemy base stats. All combat values scale with save.difficulty (%).
 // Speed never scales — edit it directly here.
 const ENEMY_DEFS = {
-  pirate:   { hp:200,  dmg:20, speed:0.85, exp:32,  gold:8  },
-  drunkard: { hp:200,  dmg:10, speed:0.70, exp:28,  gold:5  },
-  grunt:    { hp:300,  dmg:25, speed:0.80, exp:25,  gold:10 },
-  knight:   { hp:500,  dmg:40, speed:0.95, exp:55,  gold:20 },
+  pirate:      { hp:200,  dmg:20, speed:0.85, exp:32,  gold:8  },
+  drunkard:    { hp:200,  dmg:10, speed:0.70, exp:28,  gold:5  },
+  grunt:       { hp:300,  dmg:25, speed:0.80, exp:25,  gold:10 },
+  knight:      { hp:500,  dmg:40, speed:0.95, exp:55,  gold:20 },
+  guard:       { hp:700,  dmg:48, speed:1.00, exp:72,  gold:28 },
+  royal_guard: { hp:950,  dmg:64, speed:0.88, exp:100, gold:45 },
 };
 function enemyStats(type){
   const def=ENEMY_DEFS[type]||ENEMY_DEFS.grunt;
@@ -3268,8 +3449,10 @@ function spawnNextEnemy(){
   let type;
   if(currentStage===1){
     type=Math.random()<0.3?'drunkard':'pirate';
-  } else {
+  } else if(currentStage===2){
     type=Math.random()<0.3?'knight':'grunt';
+  } else {
+    type=Math.random()<0.35?'royal_guard':'guard';
   }
   const st=enemyStats(type);
   enemies.push({
@@ -3279,9 +3462,10 @@ function spawnNextEnemy(){
     exp:st.exp, gold:st.gold,
     facing:-1, dead:false,
     hitCD:0, atkCD:0, atkF:0, atk:false, windupTimer:0, juggled:false, juggleTimer:0, airFreezeTimer:0,
-    legF:0, legT:0, state:'patrol', comboPhase:0, comboFirstParried:false, slammed:false,
+    legF:0, legT:0, state:'patrol', comboPhase:0, comboFirstParried:false, comboParriedCount:0, slammed:false,
     pDir:Math.random()<.5?1:-1, pTimer:80+Math.random()*100|0,
     type, slowTimer:0, stunTimer:0, throwAnim:0,
+    guardThrowPending:false,
   });
 }
 
@@ -3520,8 +3704,8 @@ function iaidoLines(x,y,facing){
 function physics(e,isP,gravMult=1){
   const _gm=gravMult*(isP?1:ENEMY_GRAV_MULT);
   e.vy+=GRAV*_gm*GAME_SPEED;
-  // Slammed enemies must only fall — prevent any upward velocity from combos, spells, etc.
-  if(!isP && e.slammed && e.vy<0) e.vy=0;
+  // Slammed/slam-stunned enemies must only fall — block upward velocity from all sources
+  if(!isP && (e.slammed || e.slamStunned || e.bossSlamStunned || e.bossSlamLanded>0) && e.vy<0) e.vy=0;
   // Terminal velocity (slammed enemies exempt so spike lands with full force)
   if(!isP && !e.slammed && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
   else if(isP && e.vy>22*GAME_SPEED) e.vy=22*GAME_SPEED;
@@ -3747,8 +3931,8 @@ function _tickMultiHitQueue(){
     floatText(
       e.x+EW/2-14 + (Math.random()-0.5)*8,
       e.y - (h.isFinisher ? 32 : 16) - yOff,
-      h.isFinisher ? `⚡${h.roll}` : `-${h.roll}`,
-      h.isFinisher ? '#ffc840' : '#ff6060'
+      `${h.roll}`,
+      '#ffffff'
     );
     if(h.elemDmg > 0){
       floatText(e.x+EW/2+10, e.y-(h.isFinisher?50:32)-yOff, `${h.el}${h.elemDmg}`, h.ec, false);
@@ -3797,7 +3981,7 @@ function tickThrows(){
           el: t.elemental ? (ELEMENTAL_LABELS[t.elemental]||'')           : null,
         });
         e.hitCD=22;
-        e.vx+=t.facing*10; if(!e.slammed) e.vy-=5;
+        if(!_groundLocked(e)){ e.vx+=t.facing*10; if(!e.slammed && !e.bossSlamLanded) e.vy-=5; }
         goreBurst(e.x+EW/2,e.y+EH*.35,t.facing,true);
         triggerImpact(e.x+EW/2,e.y+EH*0.35);
         triggerFreeze(8); triggerShake(9);
@@ -3982,13 +4166,13 @@ function tickAttackHits(){
       // Immediate feedback on first contact (sound, freeze, shake, knockback, impact)
       e.hitCD = weaponHitCD + (hitCount - 1) * 3; // cover the full burst window
       if(particles.length < 350) goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,isFinisher);
-      e.vx += player.facing * kb;
+      if(!_groundLocked(e)) e.vx += player.facing * kb;
       // SLAM: crush enemies DOWN toward the floor; all other motions launch them upward.
       // Use Math.max so we never *slow down* an enemy that is already falling faster than the threshold.
       if(motion === 'slam'){
         e.vy = Math.max(e.vy, isFinisher ? 18 : 12);
       } else {
-        if(!e.slammed && !e.stunTimer) e.vy -= isFinisher ? 5 : 3;
+        if(!e.slammed && !e.slamStunned && !e.bossSlamStunned && !e.bossSlamLanded && !e.stunTimer) e.vy -= isFinisher ? 5 : 3;
       }
       // UPPERCUT: extra upward launch + golden upward sparks — skip if slammed
       if(motion === 'uppercut' && !e.slammed){
@@ -4034,8 +4218,8 @@ function tickAttackHits(){
       if(_sdx*_sdx+_sdy*_sdy > _sr*_sr) return;
       player.swingHitMap.set(_se.id, true);
       const _skb = (stepData.knockback ?? [8,8,16])[Math.min(step,2)];
-      _se.vx += player.facing*(_skb+_svx);
-      _se.vy   = Math.max(_se.vy, 4);  // shockwave: push DOWN (positive vy) — floor-level spread
+      if(!_groundLocked(_se)) _se.vx += player.facing*(_skb+_svx);
+      if(!_groundLocked(_se)) _se.vy = Math.max(_se.vy, 4);  // shockwave: push DOWN — floor-level spread
       _se.hitCD = weaponHitCD;
       if(particles.length<350) goreBurst(_se.x+EW/2,_se.y+EH*.35,player.facing,false);
       _multiHitQueue.push({
@@ -4070,8 +4254,12 @@ function tickAttackHits(){
   }
 }
 
-// Shared helper used by all weapon specials — apply damage + effects to one enemy
-function _spHit(e, dmg, col, label){
+// Shared helper used by all weapon specials — apply damage + effects to one enemy.
+// Label and colour are derived from activeWeapon.elemental via the central maps.
+function _spHit(e, dmg){
+  const _elem = activeWeapon?.elemental;
+  const _lbl  = _elem ? ((ELEMENTAL_LABELS[_elem]       || '') + ' ') : '';
+  const _col  = _elem ? (ELEMENTAL_FLOAT_COLORS[_elem]  || '#ffffff') : '#ffffff';
   lastHitEnemy=e;
   rumble(132, 0.63, 0.88);
   const prev=e.hp;
@@ -4081,7 +4269,7 @@ function _spHit(e, dmg, col, label){
   bloodBurst(e.x+EW/2,e.y+EH*.35,20);
   sparkBurst(e.x+EW/2,e.y+EH*.25,16,true);
   goreBurst(e.x+EW/2,e.y+EH*.35,player.facing,true);
-  floatText(e.x+EW/2-16,e.y-36,`${label}${dmg}`,col,true);
+  floatText(e.x+EW/2-16,e.y-36,`${_lbl}${dmg}`,_col,true);
   triggerImpact(e.x+EW/2,e.y+EH*0.35);
   if(!player.spStreakCounted){
     player.spStreakCounted=true;
@@ -4191,9 +4379,10 @@ function airSlamEnemy(){
   target.hp=Math.max(0,target.hp-_spikeDmg);
   target.ghostHp=_spikePrev; target.ghostDrainDelay=62;
   spawnEnemyBarChips(target,_spikePrev,target.hp);
-  floatText(target.x+EW/2-12,target.y-24,`⬇${_spikeDmg}`,'#ff4400',true);
+  floatText(target.x+EW/2-12,target.y-24,`${_spikeDmg}`,'#ff4400',true);
   target.vx=0;
   target.slammed=true;
+  target.slammedFromAir=!target.onGround; // only grant stun if enemy was actually in the air
   target.juggled=false;   // must use full gravity — not the slow juggle arc
   target.juggleTimer=0;
   target.airFreezeTimer=0;
@@ -4211,7 +4400,7 @@ function airSlamEnemy(){
   player.airSlamArmed=false;
   player.juggleFollow=false;
   player.airSmashTimer=30;
-  player.vy=-7; // slight upward recoil on impact — intentional feel
+  player.vy=-7; // slight upward recoil on impact
   launchHoldFrames=0;
   // Impact effects
   bloodBurst(target.x+EW/2,target.y+EH*0.35,22);
@@ -4296,6 +4485,9 @@ function _initRopeNodes(x1,y1,x2,y2){
 
 function grapplePull(target){
   if(!target||target.boss) return;
+  // Pulling toward the player snaps the enemy out of slam-stun ground lock.
+  // stunTimer keeps ticking so they stay dazed; only the movement lock clears.
+  if(target.slamStunned) target.slamStunned=false;
   const dx=(player.x+PW/2)-(target.x+EW/2);
   const dy=(player.y+PH/2)-(target.y+EH/2);
   const dist=Math.hypot(dx,dy)||1;
@@ -4317,7 +4509,7 @@ function grappleZip(target){
   if(!target) return;
   grappleState='zip'; grappleTarget=target; grappleTimer=140;
   grappleCooldown=GRAPPLE_COOLDOWN_MAX;
-  player.onGround=false; player.jumpsLeft=0;
+  player.onGround=false; player.jumpsLeft=Math.max(0, player.jumpsLeft-1); // consume one jump slot, leave remainder (e.g. double-jump still usable)
   // Initial burst toward target
   const dx=(target.x+EW/2)-(player.x+PW/2);
   const dy=(target.y+EH/2)-(player.y+PH/2);
@@ -4603,14 +4795,15 @@ function _airRelaunch(){
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=14;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      if(e.slammed) return;
+      if(e.slammed || e.slamStunned) return; // never relaunch a grounded slam victim
+      if(e.boss && (!(e.stunTimer>0) || e.bossSlamLanded>0)) return; // bosses only relaunchable when parry-stunned and not freshly slammed
       e.vy=JUGGLE_VY; // full relaunch — same height each time
       e.vx=player.facing*14;
       e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0;
       spawnEnemyBarChips(e,prev,e.hp);
       bloodBurst(e.x+EW/2,e.y+EH*0.35,12);
       sparkBurst(e.x+EW/2,e.y+EH*0.25,10,false);
-      floatText(e.x+EW/2-12,e.y-22,`↑${dmg}`,'#80ffee',true);
+      floatText(e.x+EW/2-12,e.y-22,`${dmg}`,'#ffffff',true);
       lastHitEnemy=e; anyHit=true;
       if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
     }
@@ -4657,10 +4850,10 @@ function launchEnemy(held=false){
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=18;
       e.ghostHp=prev; e.ghostDrainDelay=62;
-      const canLaunch = !e.slammed && (!e.boss || e.stunTimer>0);
+      const canLaunch = !e.slammed && !e.slamStunned && (!e.boss || e.stunTimer>0);
       if(canLaunch){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0; anyJuggled=true; }
       spawnEnemyBarChips(e,prev,e.hp);
-      floatText(e.x+EW/2-12,e.y-18,`${e.slammed?'↓':'↑'}${dmg}`,'#40ffcc',false);
+      floatText(e.x+EW/2-12,e.y-18,`${dmg}`,'#ffffff',false);
       sparkBurst(e.x+EW/2,e.y+EH*0.4,8,false);
       lastHitEnemy=e;
       hit=true;
@@ -4695,10 +4888,53 @@ function updateBossBar(e){
     numEl.textContent=Math.max(0,Math.round(e.hp)).toLocaleString()+' / '+e.maxHp.toLocaleString();
     numEl.classList.add('show-num');
   }
+  if(e.bossStunMax) updateBossStunBar(e);
+}
+
+// Feed the boss stun bar by one pip — used by any hit source that should count
+// (reflected projectile landing, spell hits, etc.) without going through onParrySuccess
+function feedBossStunBar(e){
+  if(!e||!e.boss||e.dead) return;
+  e.bossStunProgress=(e.bossStunProgress||0)+1;
+  if(e.bossStunProgress>=(e.bossStunMax||1)){
+    e.stunTimer=220;
+    e.bossStunProgress=0;
+    floatText(e.x+EW/2-36,e.y-54,'STAGGERED!','#ffd060',true);
+    triggerShake(32); rumble(420,1.0,0.85); setTimeout(()=>rumble(280,0.6,0.3),180);
+  }
+  // Partial fills: bar updates visually only — NO stun
+  updateBossStunBar(e);
+}
+
+function updateBossStunBar(e){
+  const max=e.bossStunMax||1;
+  const prog=e.bossStunProgress||0;
+  const pct=Math.min(1,prog/max)*100;
+  const fill=document.getElementById('bossStunFill');
+  if(fill){
+    fill.style.width=pct+'%';
+    fill.classList.toggle('near-full', pct>=75);
+  }
+  // Rebuild pip dots (once on first call or when max changes)
+  const pipsEl=document.getElementById('bossStunPips');
+  if(pipsEl){
+    if(pipsEl.childElementCount!==max){
+      pipsEl.innerHTML='';
+      for(let i=0;i<max;i++){
+        const d=document.createElement('div');
+        d.className='boss-stun-pip';
+        pipsEl.appendChild(d);
+      }
+    }
+    Array.from(pipsEl.children).forEach((d,i)=>{
+      d.classList.toggle('filled',i<prog);
+    });
+  }
 }
 
 function spawnBoss(isBossRush=false){
   if(currentStage===1){ spawnShamaz(isBossRush); return; }
+  if(currentStage===3){ spawnGartu(isBossRush);  return; }
   const cx=camX+canvas.width*0.65;
   const hp=Math.round(3000*((save.difficulty||100)/100));
   bossSpawned=true;
@@ -4721,7 +4957,9 @@ function spawnBoss(isBossRush=false){
     type:'boss',tier:3,boss:true,bossName:'GRONK',
     slowTimer:0,stunTimer:0,
     atkPattern:0,atkPhase:0,spinning:false,spinTimer:0,spinDir:1,comboFirstParried:false,
+    bossStunMax:4,bossStunProgress:0,
   });
+  document.body.classList.add('boss-fighting');
 }
 
 function spawnShamaz(isBossRush=false){
@@ -4749,7 +4987,38 @@ function spawnShamaz(isBossRush=false){
     atkPattern:0,atkPhase:0,
     comboParriedCount:0,
     cannonFired:false,
+    bossStunMax:2,bossStunProgress:0,
   });
+  document.body.classList.add('boss-fighting');
+}
+
+function spawnGartu(isBossRush=false){
+  const cx=camX+canvas.width*0.60;
+  const hp=Math.round(5000*((save.difficulty||100)/100));
+  bossSpawned=true;
+  document.getElementById('bossNameEl').textContent='CORRUPTED VASSAL GARTU';
+  document.getElementById('bossBar').classList.add('show');
+  document.getElementById('waveLabel').textContent='⚔ BOSS';
+  updateBossBar({hp,maxHp:hp,ghostHp:hp});
+  floatText(camX+canvas.width/2,floorY()-200,'✦ CORRUPTED VASSAL GARTU ✦','#cc44ff',true);
+  triggerShake(35);rumble(600,1.0,1.0);
+  enemies.push({
+    id:eid++,x:cx,y:0,vx:0,vy:0,onGround:false,
+    hp,maxHp:hp,ghostHp:hp,ghostDrainDelay:0,
+    dmg:68,speed:0.7,
+    exp:1800,gold:500,
+    facing:-1,dead:false,
+    hitCD:0,atkCD:90,atkF:0,atk:false,windupTimer:0,atkHit:false,
+    juggled:false,juggleTimer:0,airFreezeTimer:0,
+    legF:0,legT:0,state:'chase',
+    pDir:-1,pTimer:100,
+    type:'boss',tier:3,boss:true,bossName:'GARTU',
+    slowTimer:0,stunTimer:0,
+    atkPattern:0,atkPhase:0,
+    comboFirstParried:false,comboParriedCount:0,
+    bossStunMax:6,bossStunProgress:0,
+  });
+  document.body.classList.add('boss-fighting');
 }
 
 // ── STAGE 1 PROJECTILE HELPERS ────────────────────────────────
@@ -4783,6 +5052,87 @@ function fireCannonball(e){
   });
 }
 
+// ── STAGE 3 PROJECTILE HELPERS ───────────────────────────────
+function fireShield(e){
+  enemyProjectiles.push({
+    type:'shield',fromEnemy:e,fromBoss:null,
+    x:e.x+EW/2+e.facing*18, y:e.y+EH*0.35,
+    vx:e.facing*GUARD_SHIELD_SPEED, vy:-0.8,
+    gravity:0.05,
+    damage:Math.round(e.dmg*1.15),
+    radius:GUARD_SHIELD_RADIUS,
+    parried:false,homingTarget:null,
+    life:GUARD_SHIELD_LIFE,dead:false,
+  });
+  sparkBurst(e.x+EW/2,e.y+EH*0.3,5,false);
+}
+
+// Gartu: single aimed bolt
+function fireGartuBolt(e){
+  const tx=player.x+PW/2, ty=player.y+PH/2;
+  const dx=tx-(e.x+EW/2), dy=ty-(e.y+EH/2);
+  const dist=Math.hypot(dx,dy)||1;
+  enemyProjectiles.push({
+    type:'gartu_bolt',fromBoss:e,fromEnemy:null,
+    x:e.x+EW/2+e.facing*28, y:e.y+EH*0.25,
+    vx:(dx/dist)*GARTU_BOLT_SPEED,
+    vy:(dy/dist)*GARTU_BOLT_SPEED,
+    gravity:0, radius:GARTU_BOLT_RADIUS,
+    damage:Math.round(e.dmg*1.3),
+    parried:false,homingTarget:null,
+    life:320,dead:false,
+  });
+}
+
+// Gartu: fan of 3 bolts
+function fireGartuTriple(e){
+  const tx=player.x+PW/2, ty=player.y+PH/2;
+  const baseA=Math.atan2(ty-(e.y+EH*0.25), tx-(e.x+EW/2));
+  [-0.28,0,0.28].forEach(off=>{
+    const a=baseA+off;
+    enemyProjectiles.push({
+      type:'gartu_bolt',fromBoss:e,fromEnemy:null,
+      x:e.x+EW/2, y:e.y+EH*0.25,
+      vx:Math.cos(a)*GARTU_BOLT_SPEED*0.82,
+      vy:Math.sin(a)*GARTU_BOLT_SPEED*0.82,
+      gravity:0, radius:GARTU_BOLT_RADIUS,
+      damage:Math.round(e.dmg*0.85),
+      parried:false,homingTarget:null,
+      life:300,dead:false,
+    });
+  });
+}
+
+// Gartu: radial nova burst — 8 bolts in all directions
+function fireGartuNova(e){
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2;
+    enemyProjectiles.push({
+      type:'gartu_bolt',fromBoss:e,fromEnemy:null,
+      x:e.x+EW/2, y:e.y+EH*0.3,
+      vx:Math.cos(a)*8, vy:Math.sin(a)*8,
+      gravity:0, radius:GARTU_BOLT_RADIUS,
+      damage:Math.round(e.dmg*0.7),
+      parried:false,homingTarget:null,
+      life:260,dead:false,
+    });
+  }
+}
+
+// Gartu: slow homing orb
+function fireGartuHoming(e){
+  enemyProjectiles.push({
+    type:'gartu_orb',fromBoss:e,fromEnemy:null,
+    x:e.x+EW/2, y:e.y+EH*0.25,
+    vx:e.facing*2, vy:-1,
+    gravity:0, radius:GARTU_ORB_RADIUS,
+    damage:Math.round(e.dmg*1.5),
+    parried:false,homingTarget:null,
+    homingOnPlayer:true,
+    life:380,dead:false,
+  });
+}
+
 function glassShatter(x,y){
   for(let i=0;i<14;i++){
     const ang=Math.random()*Math.PI*2,spd=2+Math.random()*5;
@@ -4799,6 +5149,16 @@ function updateEnemyProjectiles(){
     if(p.dead) return;
     p.life--;
     if(p.life<=0){p.dead=true;return;}
+    // Gartu homing orb steering (before movement)
+    if(p.homingOnPlayer && !p.parried && !player.dead){
+      const tx=player.x+PW/2, ty=player.y+PH*0.4;
+      const hdx=tx-p.x, hdy=ty-p.y;
+      const dist=Math.hypot(hdx,hdy)||1;
+      p.vx+=(hdx/dist*GARTU_ORB_SPEED-p.vx)*0.055;
+      p.vy+=(hdy/dist*GARTU_ORB_SPEED-p.vy)*0.055;
+      const ns=Math.hypot(p.vx,p.vy)||1;
+      p.vx=p.vx/ns*GARTU_ORB_SPEED; p.vy=p.vy/ns*GARTU_ORB_SPEED;
+    }
     p.vy+=(p.gravity||0);
     p.x+=p.vx; p.y+=p.vy;
     if(p.x<STAGE_LEFT-120||p.x>STAGE_RIGHT+120||p.y>floorY()+80){p.dead=true;return;}
@@ -4816,7 +5176,7 @@ function updateEnemyProjectiles(){
         p.gravity=0; // no gravity on reflected projectile
         p.homingTarget=p.fromEnemy||p.fromBoss;
         const attacker=p.fromEnemy||p.fromBoss;
-        if(attacker) onParrySuccess(attacker,{skipStun:true});
+        if(attacker) onParrySuccess(attacker,{reflectParried:true});
         return;
       }
       // player hit
@@ -4824,6 +5184,7 @@ function updateEnemyProjectiles(){
          !(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
         const dmg=p.damage;
         player.hp=Math.max(0,player.hp-dmg);
+        resetHitStreak();
         player.hitCD=72;player.invuln=true;
         setTimeout(()=>{player.invuln=false;},2000);
         player.vx+=p.vx*0.35; player.vy-=2;
@@ -4838,6 +5199,16 @@ function updateEnemyProjectiles(){
         }
         floatText(bx,by-22,`-${dmg}`,'#ff4040',false);
         if(p.type==='bottle') glassShatter(p.x,p.y);
+        else if(p.type==='shield'){ sparkBurst(p.x,p.y,8,false); }
+        else if(p.type==='gartu_bolt'||p.type==='gartu_orb'){
+          for(let _i=0;_i<10;_i++){
+            const _a=Math.random()*Math.PI*2,_s=2+Math.random()*4;
+            particles.push({type:'spark',x:p.x,y:p.y,
+              vx:Math.cos(_a)*_s,vy:Math.sin(_a)*_s-1,
+              life:0.85,decay:0.07+Math.random()*0.04,r:2+Math.random()*3,
+              color:`hsl(${270+Math.random()*40|0},100%,${65+Math.random()*20|0}%)`});
+          }
+        }
         else sparkBurst(p.x,p.y,14,true);
         if(player.hp<=0&&!player.dead){player.dead=true;setTimeout(onPlayerDead,900);}
         p.dead=true; return;
@@ -4865,11 +5236,31 @@ function updateEnemyProjectiles(){
           const prev=e.hp;
           e.hp=Math.max(0,e.hp-dmg);
           e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=18;
-          e.stunTimer=Math.max(e.stunTimer||0,PARRY_STUN_FRAMES+(e.boss?0:40));
-          floatText(e.x+EW/2-18,e.y-38,'STUNNED!','#ffe060',true);
-          floatText(e.x+EW/2-10,e.y-18,`-${dmg}`,'#ff6060',false);
+          if(e.boss){
+            // Reflected projectile lands on boss — only count once per attack using the
+            // boss-level gate (already set when the player parried it; all bolts from
+            // the same nova/triple share this flag so only 1 stun pip per attack total)
+            if(!e.reflectParriedThisAtk){
+              e.reflectParriedThisAtk=true;
+              feedBossStunBar(e);
+            }
+          } else {
+            e.stunTimer=Math.max(e.stunTimer||0,PARRY_STUN_FRAMES+40);
+            floatText(e.x+EW/2-18,e.y-38,'STUNNED!','#ffe060',true);
+          }
+          floatText(e.x+EW/2-10,e.y-18,`${dmg}`,'#ffffff',false);
           triggerShake(14);triggerFreeze(14);
           if(p.type==='bottle') glassShatter(p.x,p.y);
+          else if(p.type==='shield'){ sparkBurst(p.x,p.y,10,false); }
+          else if(p.type==='gartu_bolt'||p.type==='gartu_orb'){
+            for(let _i=0;_i<14;_i++){
+              const _a=Math.random()*Math.PI*2,_s=3+Math.random()*5;
+              particles.push({type:'spark',x:p.x,y:p.y,
+                vx:Math.cos(_a)*_s,vy:Math.sin(_a)*_s-1.5,
+                life:0.9,decay:0.06+Math.random()*0.04,r:2.5+Math.random()*3.5,
+                color:`hsl(${270+Math.random()*40|0},100%,${68+Math.random()*18|0}%)`});
+            }
+          }
           else sparkBurst(p.x,p.y,16,true);
           p.dead=true;
           if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
@@ -4926,13 +5317,28 @@ function onEnemyKilled(e){
   if(e.boss){
     // Boss killed → hide bar and complete stage
     document.getElementById('bossBar').classList.remove('show');
+  document.body.classList.remove('boss-fighting');
     floatText(e.x+EW/2, e.y-60,'BOSS SLAIN!','#ffd060',true);
     triggerShake(40);rumble(800,1.0,1.0);
     setTimeout(stageComplete,1200);
   } else {
-    // Regular enemy — keep queue going
-    if(spawnedCount < staggeredEnemies.length) spawnNextEnemy();
+    // Regular enemy — vary spawning: clear screen or immediate reinforcement
     const aliveNow=enemies.filter(en=>!en.dead&&en.id!==e.id&&!en.boss).length;
+    const _slots = Math.max(0, 3 - aliveNow);
+    if(spawnedCount < staggeredEnemies.length){
+      if(aliveNow === 0){
+        // Screen wiped — always spawn a fresh batch (1 to min(slots, remaining))
+        const _available = Math.min(_slots, staggeredEnemies.length - spawnedCount);
+        const _toSpawn = 1 + Math.floor(Math.random() * _available);
+        for(let _si = 0; _si < _toSpawn && spawnedCount < staggeredEnemies.length; _si++) spawnNextEnemy();
+      } else if(_slots > 0 && Math.random() < 0.5){
+        // Enemies still alive — 50% chance an immediate reinforcement drops in
+        const _available = Math.min(_slots, staggeredEnemies.length - spawnedCount);
+        const _toSpawn = 1 + Math.floor(Math.random() * _available);
+        for(let _si = 0; _si < _toSpawn && spawnedCount < staggeredEnemies.length; _si++) spawnNextEnemy();
+      }
+      // else: no spawn — player must clear remaining enemies first
+    }
     const queued=staggeredEnemies.length-spawnedCount;
     if(!bossSpawned) document.getElementById('waveLabel').textContent=`${aliveNow+queued} REMAIN`;
     // All regular enemies dead → spawn boss
@@ -5122,6 +5528,10 @@ function updateStreakTimerBar(){
   }
 }
 
+// Returns true while an enemy is pinned to the ground (slamStunned or
+// bossSlamStunned). Used to suppress knockback on grounded enemies.
+function _groundLocked(e){ return !!(e.slamStunned || e.bossSlamStunned); }
+
 function resetHitStreak(){
   if(hitStreak<=0)return;
   hitStreak=0; hitStreakTimer=0; hitStreakTier=0;
@@ -5246,7 +5656,7 @@ function drawBG(){
       enemies.forEach(en=>{
         if(en.dead)return;
         const ePct=(en.x-STAGE_LEFT)/stageW;
-        const mmDotCol=en.boss?'rgba(255,0,0,0.9)':en.type==='knight'?'rgba(255,120,40,0.8)':en.type==='pirate'||en.type==='drunkard'?'rgba(180,140,60,0.75)':'rgba(255,80,80,0.7)';
+        const mmDotCol=en.boss?'rgba(255,0,0,0.9)':en.type==='royal_guard'?'rgba(220,180,50,0.88)':en.type==='guard'?'rgba(60,120,220,0.85)':en.type==='knight'?'rgba(255,120,40,0.8)':en.type==='pirate'||en.type==='drunkard'?'rgba(180,140,60,0.75)':'rgba(255,80,80,0.7)';
         ctx.fillStyle=mmDotCol;ctx.fillRect(mmX+ePct*mmW-1.5,mmY,3,mmH);
       });
       ctx.strokeStyle='rgba(200,180,255,0.18)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.stroke();
@@ -5267,7 +5677,7 @@ function drawBG(){
     enemies.forEach(en=>{
       if(en.dead)return;
       const ePct=(en.x-STAGE_LEFT)/stageW;
-      const mmDotCol=en.boss?'rgba(255,0,0,0.9)':en.type==='knight'?'rgba(255,120,40,0.8)':en.type==='pirate'||en.type==='drunkard'?'rgba(180,140,60,0.75)':'rgba(255,80,80,0.7)';
+      const mmDotCol=en.boss?'rgba(255,0,0,0.9)':en.type==='royal_guard'?'rgba(220,180,50,0.88)':en.type==='guard'?'rgba(60,120,220,0.85)':en.type==='knight'?'rgba(255,120,40,0.8)':en.type==='pirate'||en.type==='drunkard'?'rgba(180,140,60,0.75)':'rgba(255,80,80,0.7)';
       ctx.fillStyle=mmDotCol;ctx.fillRect(mmX+ePct*mmW-1.5,mmY,3,mmH);
     });
     ctx.strokeStyle='rgba(200,180,255,0.18)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.stroke();
@@ -5289,9 +5699,263 @@ function drawBG(){
 // ── STAGE FX ──────────────────────────────
 // Per-stage atmospheric effects drawn on top of the background but behind all game objects.
 function _drawStageFX(){
-  if(currentStage!==1) return; // ── Stage 1: Airship sky ──
   const W=canvas.width,H=canvas.height;
   const t=Date.now()/1000;
+  if(currentStage===2){
+    // ── Stage 2: Forest — rain ────────────────────────────────────
+    ctx.save();
+    // Desaturating overcast veil (top → mid)
+    const overcast=ctx.createLinearGradient(0,0,0,H*0.55);
+    overcast.addColorStop(0,'rgba(20,30,45,0.18)');
+    overcast.addColorStop(1,'rgba(20,30,45,0)');
+    ctx.fillStyle=overcast; ctx.fillRect(0,0,W,H);
+
+    // Rain streaks — two layers for parallax depth
+    // Layer 1: far/light (thin, low-opacity, slight angle)
+    ctx.strokeStyle='rgba(160,185,210,0.22)';
+    ctx.lineWidth=0.7;
+    ctx.lineCap='butt';
+    const FAR_COUNT=90, FAR_LEN=18, FAR_SPD=420, FAR_ANG=0.08;
+    for(let i=0;i<FAR_COUNT;i++){
+      const phase=((t*FAR_SPD/H)+i*(1/FAR_COUNT))%1;
+      const rx=((i*347+60)%W);
+      const ry=phase*H;
+      ctx.beginPath();
+      ctx.moveTo(rx+FAR_ANG*ry, ry);
+      ctx.lineTo(rx+FAR_ANG*(ry+FAR_LEN), ry+FAR_LEN);
+      ctx.stroke();
+    }
+
+    // Layer 2: near/heavy (thicker, brighter, more angle)
+    ctx.strokeStyle='rgba(190,215,240,0.38)';
+    ctx.lineWidth=1.2;
+    const NEAR_COUNT=55, NEAR_LEN=28, NEAR_SPD=680, NEAR_ANG=0.12;
+    for(let i=0;i<NEAR_COUNT;i++){
+      const phase=((t*NEAR_SPD/H)+i*(1/NEAR_COUNT))%1;
+      const rx=((i*521+190)%W);
+      const ry=phase*H;
+      ctx.beginPath();
+      ctx.moveTo(rx+NEAR_ANG*ry, ry);
+      ctx.lineTo(rx+NEAR_ANG*(ry+NEAR_LEN), ry+NEAR_LEN);
+      ctx.stroke();
+    }
+
+    // Splash ripples on the floor
+    const flY=floorY();
+    const SPLASH_COUNT=14;
+    for(let i=0;i<SPLASH_COUNT;i++){
+      const spd=NEAR_SPD;
+      const phase=((t*spd/H)+i*(1/SPLASH_COUNT))%1;
+      // only visible near the floor
+      const splashPhase=(phase*H-flY+8)/12; // 0..1 as drop hits
+      if(splashPhase<0||splashPhase>1) continue;
+      const rx=((i*389+70)%W);
+      const rAlpha=(1-splashPhase)*0.45;
+      const rRad=splashPhase*7;
+      ctx.save();
+      ctx.globalAlpha=rAlpha;
+      ctx.strokeStyle='rgba(200,225,245,0.9)';
+      ctx.lineWidth=0.8;
+      ctx.beginPath();
+      ctx.ellipse(rx, flY, rRad, rRad*0.35, 0, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Thin ground-level mist ribbon
+    const mistG=ctx.createLinearGradient(0,flY-28,0,flY+6);
+    mistG.addColorStop(0,'rgba(180,200,220,0)');
+    mistG.addColorStop(0.5,'rgba(180,200,220,0.07)');
+    mistG.addColorStop(1,'rgba(180,200,220,0)');
+    ctx.fillStyle=mistG; ctx.fillRect(0,flY-28,W,34);
+
+    ctx.restore();
+    return;
+  }
+  if(currentStage===3){
+    // ── Stage 3: City — war atmosphere ───────────────────────────
+    ctx.save();
+
+    // ── 1. Warm fire-lit haze (bottom) + upper smoke veil ──
+    const hazeG=ctx.createLinearGradient(0,H*0.55,0,H);
+    hazeG.addColorStop(0,'rgba(0,0,0,0)');
+    hazeG.addColorStop(1,'rgba(55,15,3,0.20)');
+    ctx.fillStyle=hazeG; ctx.fillRect(0,0,W,H);
+
+    // ── 2. Rising smoke plumes (distant burning buildings) ──
+    // 4 fixed columns at different X positions, slow upward drift
+    const PLUME_X=[W*0.08,W*0.28,W*0.68,W*0.90];
+    for(let i=0;i<4;i++){
+      const px=PLUME_X[i];
+      // Each plume is a chain of rising blobs
+      for(let b=0;b<7;b++){
+        const bPhase=((t*(6+i*1.3)/H)+b/7)%1; // 0→1 rising
+        const by=H*(1-bPhase*0.82)-H*0.05;
+        const brad=18+bPhase*38; // grows as it rises
+        const bal=Math.max(0,(0.065-bPhase*0.065)); // fades out at top
+        const bx=px+Math.sin(bPhase*Math.PI*2+i*1.4)*12; // gentle sway
+        ctx.globalAlpha=bal;
+        ctx.fillStyle='rgba(22,14,10,1)';
+        ctx.beginPath(); ctx.arc(bx,by,brad,0,Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha=1;
+
+    // ── 3. Ballistic arrows — true parabolic arcs across the battlefield ──
+    // Each arrow is defined by: [period, phaseOffset, x0, x1, y0, yEnd, arcDip, shaftScale]
+    // Trajectory: x = lerp(x0,x1,p), y = lerp(y0,yEnd,p) + 4*arcDip*p*(1-p)
+    // arcDip < 0 → arrow flies UP then falls DOWN to yEnd (landing on floor)
+    // arcDip > 0 → arrow has a downward belly (cross-fire shot)
+    const flY=floorY();
+    // [period, ph0, x0, x1, y0, yEnd, arcDip, scale, opacity]
+    const _ARCS=[
+      // Long ballistic arcs from left, landing on floor
+      [4.8, 0.00, -55, W*0.42, H*0.55, flY+4, -(flY-H*0.1)*0.80, 1.1, 0.48],
+      [3.9, 0.20, -55, W*0.68, H*0.50, flY+4, -(flY-H*0.08)*0.72, 1.0, 0.42],
+      [5.3, 0.50, -55, W*0.28, H*0.45, flY+4, -(flY-H*0.12)*0.75, 0.9, 0.45],
+      // From right side
+      [4.3, 0.12, W+55, W*0.55, H*0.52, flY+4, -(flY-H*0.09)*0.78, 1.0, 0.44],
+      [3.7, 0.65, W+55, W*0.22, H*0.48, flY+4, -(flY-H*0.14)*0.70, 0.85,0.40],
+      [5.0, 0.38, W+55, W*0.72, H*0.42, flY+4, -(flY-H*0.07)*0.82, 1.15,0.43],
+      // Steep plunging shots — start near top, hit mid-screen at steep angle
+      [3.2, 0.77, W*0.12, W*0.48, -30,  flY+4, -(flY*0.30),        0.9, 0.38],
+      [3.6, 0.45, W*0.85, W*0.38, -30,  flY+4, -(flY*0.26),        1.0, 0.36],
+      // Flat/low fast cross-shots (stray arrows at mid-height)
+      [2.2, 0.30, -55,  W+55,  H*0.52, H*0.56, H*0.03,             0.8, 0.34],
+      [2.6, 0.72, W+55, -55,   H*0.58, H*0.54, H*0.02,             0.8, 0.34],
+      [2.9, 0.55, -55,  W+55,  H*0.38, H*0.44, H*0.04,             0.75,0.32],
+    ];
+    for(let i=0;i<_ARCS.length;i++){
+      const [period,ph0,x0,x1,y0,yEnd,arcDip,sc,baseAl]=_ARCS[i];
+      const p=((t/period)+ph0)%1; // 0→1
+      // Fade: ramp in 0→0.08, full 0.08→0.88, ramp out 0.88→1
+      const fade=p<0.08?p/0.08:p>0.88?(1-p)/0.12:1;
+      const al=baseAl*fade;
+      if(al<0.02) continue;
+
+      const ax=x0+(x1-x0)*p;
+      const ay=y0+(yEnd-y0)*p + 4*arcDip*p*(1-p);
+
+      // Tangent direction → arrow rotation
+      const dpx=(x1-x0);
+      const dpy=(yEnd-y0)+4*arcDip*(1-2*p);
+      const ang=Math.atan2(dpy,dpx);
+
+      const shaft=(22+(i%4)*6)*sc;
+      ctx.save();
+      ctx.globalAlpha=al;
+      ctx.translate(ax,ay);
+      ctx.rotate(ang);
+
+      // Shaft
+      ctx.strokeStyle='rgba(148,118,65,1)';
+      ctx.lineWidth=1.1*sc; ctx.lineCap='butt';
+      ctx.beginPath(); ctx.moveTo(-shaft,0); ctx.lineTo(3,0); ctx.stroke();
+
+      // Arrowhead
+      ctx.fillStyle='rgba(185,158,82,1)';
+      ctx.beginPath();
+      ctx.moveTo(9*sc,0); ctx.lineTo(2*sc,-2.5*sc); ctx.lineTo(2*sc,2.5*sc);
+      ctx.closePath(); ctx.fill();
+
+      // Fletching — two feather split lines at back
+      ctx.strokeStyle='rgba(120,95,55,1)';
+      ctx.lineWidth=0.85*sc;
+      ctx.beginPath(); ctx.moveTo(-shaft,0); ctx.lineTo(-shaft+6*sc,-3.5*sc); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-shaft,0); ctx.lineTo(-shaft+6*sc, 3.5*sc); ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // ── 3b. Arrows stuck in the ground ──
+    // A handful of static arrows embedded in the floor at varied angles
+    const _STUCK=[
+      [W*0.15, 0.20, -1.35],[W*0.31, 0.18, -1.45],[W*0.52, 0.22, -1.30],
+      [W*0.67, 0.19, -1.40],[W*0.83, 0.21, -1.35],[W*0.44, 0.17, -1.50],
+    ];
+    for(let i=0;i<_STUCK.length;i++){
+      const [sx,sal,sang]=_STUCK[i];
+      const shaft=20;
+      ctx.save();
+      ctx.globalAlpha=sal*1.4; // clearly visible stuck arrows
+      ctx.translate(sx, flY);
+      ctx.rotate(sang); // nearly vertical, slightly angled
+      ctx.strokeStyle='rgba(130,105,58,1)';
+      ctx.lineWidth=1.2; ctx.lineCap='butt';
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-shaft); ctx.stroke();
+      // tip peeking above floor
+      ctx.fillStyle='rgba(160,135,70,1)';
+      ctx.beginPath();
+      ctx.moveTo(0,-shaft-6); ctx.lineTo(-2,-shaft+1); ctx.lineTo(2,-shaft+1);
+      ctx.closePath(); ctx.fill();
+      // fletching at ground level
+      ctx.strokeStyle='rgba(105,82,45,1)';
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-4,-5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo( 4,-5); ctx.stroke();
+      ctx.restore();
+    }
+
+    // ── 4. Distant cannonballs arcing slowly overhead ──
+    // 3 at a time, very slow arc trajectories — top 35% of screen only
+    for(let i=0;i<3;i++){
+      const period=8+i*3.4; // seconds per arc
+      const phase=(t/period+i*0.33)%1;
+      // Parabolic arc: rises then falls
+      const arcX=phase*(W+200)-100;
+      const arcY=H*0.06+Math.sin(phase*Math.PI)*(-(H*0.18)); // peaks higher
+      const al=0.18*Math.sin(phase*Math.PI); // fade in/out with arc
+      if(al<0.03) continue;
+      ctx.save();
+      ctx.globalAlpha=al;
+      ctx.fillStyle='rgba(60,50,40,1)';
+      ctx.beginPath(); ctx.arc(arcX,arcY,3.5,0,Math.PI*2); ctx.fill();
+      // Motion blur tail
+      ctx.strokeStyle='rgba(60,50,40,1)';
+      ctx.lineWidth=2; ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(arcX-12*(1-phase*0.5),arcY+4*(1-phase*2));
+      ctx.lineTo(arcX,arcY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ── 5. Rising embers from the fires ──
+    for(let i=0;i<22;i++){
+      const spd=16+(i%5)*8;
+      const phase=((t*spd/H)+i*0.29)%1;
+      const ex=((i*197+55)%W);
+      const ey=H*(1-phase);
+      if(ey<H*0.05||ey>H*0.92) continue; // don't draw past top or at ground
+      const al=Math.pow(Math.sin(phase*Math.PI),1.6)*0.38;
+      if(al<0.04) continue;
+      const er=0.9+0.6*(i%3)*0.2;
+      ctx.save();
+      ctx.globalAlpha=al;
+      ctx.shadowColor='rgba(255,100,10,0.7)'; ctx.shadowBlur=5;
+      ctx.fillStyle=`hsl(${18+(i%4)*12|0},100%,${52+(i%3)*8}%)`;
+      ctx.beginPath(); ctx.arc(ex+Math.sin(t*1.8+i*0.9)*5,ey,er,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+
+    // ── 6. Faint distant impact flashes on the far edges ──
+    // Subtle brightening on screen edges suggesting distant explosions
+    for(let i=0;i<2;i++){
+      const flashPeriod=5.5+i*3.1;
+      const flashPhase=(t/flashPeriod+i*0.5)%1;
+      if(flashPhase>0.07) continue; // only visible briefly
+      const flashAl=Math.max(0,0.06-flashPhase*0.06/0.07);
+      const fx=i===0?0:W;
+      const flashG=ctx.createRadialGradient(fx,H*0.55,0,fx,H*0.55,W*0.28);
+      flashG.addColorStop(0,`rgba(255,180,60,${flashAl})`);
+      flashG.addColorStop(1,'rgba(255,180,60,0)');
+      ctx.fillStyle=flashG; ctx.fillRect(0,0,W,H);
+    }
+
+    ctx.globalAlpha=1;
+    ctx.restore();
+    return;
+  }
+  if(currentStage!==1) return; // ── Stage 1: Airship sky ──
   ctx.save();
 
   // ── Layer 1: distant slow puffs (high up) ─────────────────────────────────
@@ -6340,6 +7004,41 @@ function drawSwordTrail(){
   }
 }
 
+// ── EVADE AFTERIMAGE TRAIL ───────────────
+function _drawDashTrail(){
+  if(!_dashTrail.length || !heroLoaded || !heroCanvas) return;
+  // Lazily create an offscreen canvas sized to one scaled sprite cell
+  if(!_dashGhostCanvas){
+    _dashGhostCanvas = document.createElement('canvas');
+    _dashGhostCanvas.width  = Math.ceil(CELL   * HERO_SCALE);
+    _dashGhostCanvas.height = Math.ceil(CELL_H * HERO_SCALE);
+    _dashGhostCtx = _dashGhostCanvas.getContext('2d');
+  }
+  const gc = _dashGhostCtx;
+  const gw = _dashGhostCanvas.width, gh = _dashGhostCanvas.height;
+  const dw = CELL   * HERO_SCALE, dh = CELL_H * HERO_SCALE;
+  const ox = ORIGIN_X * HERO_SCALE, oy = ORIGIN_Y * HERO_SCALE;
+
+  _dashTrail.forEach(t=>{
+    const f = HERO_FRAMES[t.name]?.[t.frame];
+    if(!f) return;
+    // Render sprite onto offscreen canvas, then flood-fill in purple using source-in
+    gc.clearRect(0, 0, gw, gh);
+    gc.drawImage(heroCanvas, f.sx, f.sy, f.sw, f.sh, 0, 0, dw, dh);
+    gc.globalCompositeOperation = 'source-in';
+    gc.fillStyle = 'rgba(150, 50, 255, 1)';
+    gc.fillRect(0, 0, gw, gh);
+    gc.globalCompositeOperation = 'source-over';
+    // Blit the tinted ghost onto the main canvas at the recorded position
+    ctx.save();
+    ctx.globalAlpha = t.alpha;
+    ctx.translate(t.x + PW/2 - camX, t.y + PH);
+    if(t.facing === -1) ctx.scale(-1, 1);
+    ctx.drawImage(_dashGhostCanvas, -ox, -oy, dw, dh);
+    ctx.restore();
+  });
+}
+
 // ── PLAYER SPRITE ────────────────────────
 function drawPlayer(p){
   // Flicker during invulnerability — hide every other 4-frame interval
@@ -6422,6 +7121,7 @@ function drawPlayerFallback(p){
 // ── DRAW BOSS ──────────────────────────────────────────────
 function drawBoss(e){
   if(e.bossName==='SHAMAZ'){ drawShamaz(e); return; }
+  if(e.bossName==='GARTU') { drawGartu(e);  return; }
   const sx=e.x-camX;
   if(sx<-250||sx>canvas.width+250) return;
   const sy=e.y, flash=e.hitCD>10;
@@ -6558,12 +7258,12 @@ function drawBoss(e){
       ctx.textAlign = 'center';
       let sym, symCol, symShadow;
       if(isSpin){
-        sym='↻'; symCol='#ffcc00'; symShadow='#ff8800';
+        sym='⚡'; symCol='#ffcc00'; symShadow='#ff8800';
       } else if(isCombo){
-        sym = e.atkPhase===0 ? '!!' : '!';
+        sym = e.atkPhase===0 ? '◆◆' : '◆';
         symCol = `hsl(${Math.round(22-22*windProg)},100%,55%)`; symShadow='#ff3300';
       } else {
-        sym='!'; symCol=`hsl(${Math.round(22-22*windProg)},100%,55%)`; symShadow='#ff3300';
+        sym='◆'; symCol=`hsl(${Math.round(22-22*windProg)},100%,55%)`; symShadow='#ff3300';
       }
       ctx.shadowColor=symShadow; ctx.shadowBlur=24+14*windProg;
       ctx.strokeStyle='rgba(0,0,0,0.88)'; ctx.lineWidth=5; ctx.lineJoin='round';
@@ -6602,11 +7302,93 @@ function drawBoss(e){
   updateBossBar(e);
 }
 
+// ── SLAM-STUN "STUCK IN GROUND" OVERLAY ──────────────────────────────────
+// Drawn AFTER the enemy body so it sits on top. Called from the draw loop
+// for every non-boss enemy whose slamStunned flag is set.
+function _drawSlamStunIndicator(e){
+  const sx  = e.x - camX;
+  const sy  = e.y;
+  const ecx = sx + EW/2;
+  const gy  = floorY();
+
+  // Fade out during the last 20 % of the stun window.
+  // Bosses use their snapshotted stun duration as the reference so the fade
+  // tracks correctly regardless of parry-stun length.
+  const _refFrames = e.boss ? (e.bossSlamStunMax || PARRY_STUN_FRAMES) : SLAM_STUN_FRAMES;
+  const stunProg   = Math.min(1, (e.stunTimer || 0) / _refFrames);
+  const fade       = Math.min(1, stunProg * 5);
+  const t        = Date.now() / 1000;
+  const pulse    = 0.55 + 0.45 * Math.sin(t * 4.5);
+
+  ctx.save();
+
+  // ── SPRITE OVERRIDE ─────────────────────────────────────────────────────
+  // If GFX/slam_stun.png is present, use it instead of the procedural version.
+  // Drawn centred on the enemy, bottom edge at floor level, full natural size.
+  if(_slamStunImgLoaded){
+    const iw = _slamStunImg.naturalWidth;
+    const ih = _slamStunImg.naturalHeight;
+    ctx.globalAlpha = fade * (0.75 + 0.25 * pulse);
+    ctx.drawImage(_slamStunImg, ecx - iw/2, gy - ih + 30, iw, ih);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    return;
+  }
+
+  // ── PROCEDURAL FALLBACK ─────────────────────────────────────────────────
+
+  // — Glow pool at feet
+  ctx.globalAlpha = fade * 0.50 * pulse;
+  ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 10;
+  ctx.fillStyle   = 'rgba(190,70,10,0.65)';
+  ctx.beginPath();
+  ctx.ellipse(ecx, gy - 2, 30, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur  = 0;
+
+  // — Six radial ground cracks (angles seeded on e.x so they never jitter)
+  ctx.globalAlpha = fade * 0.72;
+  ctx.strokeStyle = '#7a3a10';
+  ctx.lineWidth   = 1.5;
+  ctx.lineCap     = 'round';
+  const seed = (e.x * 7) % 60;
+  for(let i = 0; i < 6; i++){
+    const a   = ((seed + i * 60) % 360) * Math.PI / 180;
+    const len = 12 + (i % 3) * 9;
+    ctx.beginPath();
+    ctx.moveTo(ecx, gy - 1);
+    ctx.lineTo(ecx + Math.cos(a) * len, gy - 1 + Math.sin(a) * len * 0.30);
+    ctx.stroke();
+  }
+
+  // — Hairline ring around the impact point
+  ctx.globalAlpha = fade * 0.32;
+  ctx.strokeStyle = 'rgba(100,40,10,0.9)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.ellipse(ecx, gy - 1, 34, 9, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // — Chain icon above the enemy: bobs gently, indicates "grounded / no relaunch"
+  const iconY = sy - 68 + Math.sin(t * 4) * 3;
+  ctx.globalAlpha = fade * (0.60 + 0.40 * pulse);
+  ctx.font        = 'bold 16px sans-serif';
+  ctx.textAlign   = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.95)'; ctx.shadowBlur = 7;
+  ctx.fillStyle   = '#e07828';
+  ctx.fillText('⛓', ecx, iconY);
+
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
 // ── ENEMY SPRITE ─────────────────────────
 function drawEnemy(e){
   if(e.boss){ drawBoss(e); return; }
-  if(e.type==='pirate')   { drawPirate(e);   return; }
-  if(e.type==='drunkard') { drawDrunkard(e); return; }
+  if(e.type==='pirate')      { drawPirate(e);     return; }
+  if(e.type==='drunkard')    { drawDrunkard(e);   return; }
+  if(e.type==='guard')       { drawGuard(e);      return; }
+  if(e.type==='royal_guard') { drawRoyalGuard(e); return; }
   const sx=e.x-camX;
   if(sx<-100||sx>canvas.width+100) return;
   const sy=e.y,flash=e.hitCD>10;
@@ -6673,8 +7455,8 @@ function drawEnemy(e){
     ctx.ellipse(sx+EW/2+e.facing*44, floorY()-3, 72, 9, 0, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
-    // Symbol — !! for knight first hit, ! otherwise
-    const sym=(e.type==='knight'&&e.comboPhase===0)?'!!':'!';
+    // Symbol — ◆◆ for knight first hit, ◆ otherwise
+    const sym=(e.type==='knight'&&e.comboPhase===0)?'◆◆':'◆';
     const exSize=Math.round(18+5*windProg);
     const exPulse=0.75+0.28*Math.sin(t*14);
     ctx.save();
@@ -6891,9 +7673,9 @@ function drawPirate(e){
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor='#ff3300';ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText('!',sx+EW/2,sy-50);
+    ctx.strokeText('◆',sx+EW/2,sy-50);
     ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText('!',sx+EW/2,sy-50);
+    ctx.fillText('◆',sx+EW/2,sy-50);
     ctx.restore();
   }
   // HP bar + name
@@ -6981,14 +7763,201 @@ function drawDrunkard(e){
     ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
     ctx.shadowColor='#ff6600';ctx.shadowBlur=18+10*windProg;
     ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText('!',sx+EW/2,sy-50);
+    ctx.strokeText('◈',sx+EW/2,sy-50);
     ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText('!',sx+EW/2,sy-50);
+    ctx.fillText('◈',sx+EW/2,sy-50);
     ctx.restore();
   }
   // HP bar
   const bw=82,bh=9,bx=sx+EW/2-bw/2,by_=sy-30,R=1;
   _drawEnemyHpBar(e,bx,by_,bw,bh,R,'Drunkard');
+  _drawTargetIndicator(e,sx,sy);
+  _drawStunStars(e,sx,sy);
+}
+
+// ── DRAW GUARD ───────────────────────────────────────────────
+function drawGuard(e){
+  const sx=e.x-camX;
+  if(sx<-100||sx>canvas.width+100) return;
+  const sy=e.y, flash=e.hitCD>10;
+  const windingUp=e.windupTimer>0;
+  const windPulse=windingUp&&Math.floor(e.windupTimer/5)%2===0;
+  const isThrow=e.guardThrowPending&&windingUp;
+  ctx.save();
+  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.scale(e.facing,1);
+  ctx.shadowColor=windingUp?'rgba(60,140,255,0.9)':'rgba(30,60,180,0.15)';
+  ctx.shadowBlur=windingUp?22:8;
+  // legs
+  const ls=e.onGround&&Math.abs(e.vx)>.3?Math.sin(e.legF*.35)*10:0;
+  ctx.fillStyle='#1a1a2e';ctx.fillRect(4,EH*.3,9,EH*.36-ls);ctx.fillRect(-13,EH*.3,9,EH*.36+ls);
+  // body — navy blue uniform
+  const c1=flash?'#ff5555':windPulse?'#0a2060':'#0e2850';
+  const c2=flash?'#ff9999':windPulse?'#1a40a0':'#1e4080';
+  const cbg=ctx.createLinearGradient(-EW*.5,-EH*.45,EW*.5,0);
+  cbg.addColorStop(0,c1);cbg.addColorStop(1,c2);
+  ctx.fillStyle=cbg;ctx.shadowBlur=0;
+  ctx.beginPath();ctx.roundRect(-EW*.5,-EH*.45,EW,EH*.7,4);ctx.fill();
+  // silver trim
+  ctx.strokeStyle='rgba(160,180,220,0.55)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(-EW*.48,-EH*.45);ctx.lineTo(-EW*.48,-EH*.1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(EW*.48,-EH*.45);ctx.lineTo(EW*.48,-EH*.1);ctx.stroke();
+  // head — bucket helmet
+  const hc=flash?'#6688cc':'#4060a0';
+  ctx.fillStyle=hc;ctx.beginPath();ctx.roundRect(-EW*.4,-EH*.6,EW*.8,EH*.3,3);ctx.fill();
+  // visor slit
+  ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(-EW*.3,-EH*.47,EW*.6,6);
+  // eye glow behind visor
+  ctx.shadowColor='rgba(80,160,255,0.9)';ctx.shadowBlur=6;
+  ctx.fillStyle='rgba(80,150,255,0.7)';ctx.fillRect(-EW*.2,-EH*.47,EW*.4,4);
+  ctx.shadowBlur=0;
+  // helmet crest
+  ctx.fillStyle='#c0c8d8';ctx.fillRect(-2,-EH*.64,4,EH*.08);
+  // shield (left/back arm) — round with city crest
+  if(!e.throwAnim||e.throwAnim<=0){
+    ctx.save();ctx.translate(-EW*0.52,-EH*0.1);
+    ctx.fillStyle=flash?'#8888cc':'#3a3a70';
+    ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(150,160,200,0.65)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='rgba(180,190,220,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(0,9);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-9,0);ctx.lineTo(9,0);ctx.stroke();
+    ctx.restore();
+  }
+  // weapon — short thrusting sword (forward stab animation)
+  const thrustRef=e.comboPhase===1?GUARD_COMBO_GAP:GUARD_THRUST_WINDUP;
+  const wa=e.windupTimer>0&&!isThrow
+    ? -0.3*(1-e.windupTimer/thrustRef) // pull back slightly
+    : e.atk ? -0.15+0.5*Math.min(e.atkF/ENEMY_SWING_FRAMES,1) // thrust forward
+    : 0.15; // rest angle
+  ctx.save();ctx.translate(EW*0.88,-EH*0.25);ctx.rotate(wa);
+  ctx.fillStyle='#6a4020';ctx.fillRect(-2,2,4,14);  // handle
+  ctx.fillStyle='#9a8860';ctx.fillRect(-4,-2,8,5);  // guard
+  const sg2=ctx.createLinearGradient(-1,-44,1,0);
+  sg2.addColorStop(0,'rgba(230,225,210,0.95)');sg2.addColorStop(1,'rgba(150,140,110,0.6)');
+  ctx.fillStyle=sg2;ctx.beginPath();
+  ctx.moveTo(-2,0);ctx.lineTo(2,0);ctx.lineTo(1,-44);ctx.lineTo(0,-46);ctx.lineTo(-1,-44);
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+  ctx.restore();
+  // telegraph
+  if(windingUp){
+    const t=Date.now()/1000;
+    const _wRef=isThrow?GUARD_SHIELD_WINDUP:(e.comboPhase===1?GUARD_COMBO_GAP:GUARD_THRUST_WINDUP);
+    const windProg=1-e.windupTimer/_wRef;
+    const gPulse=0.10+0.08*Math.sin(t*10);
+    ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
+    ctx.fillStyle=isThrow?'#0055ff':'#ff2200';
+    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    const sym=isThrow?'◈':(e.comboPhase===0?'◆◆':'◆');
+    const exSize=Math.round(18+5*windProg);
+    ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
+    ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
+    ctx.shadowColor=isThrow?'#2244ff':'#ff3300';ctx.shadowBlur=18+10*windProg;
+    ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
+    ctx.strokeText(sym,sx+EW/2,sy-50);
+    ctx.fillStyle=isThrow?`hsl(220,100%,${55+Math.round(20*windProg)}%)`:`hsl(${Math.round(22-22*windProg)},100%,55%)`;
+    ctx.fillText(sym,sx+EW/2,sy-50);
+    ctx.restore();
+  }
+  const bw=82,bh=9,bx_=sx+EW/2-bw/2,by_=sy-30,R=1;
+  _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Guard');
+  _drawTargetIndicator(e,sx,sy);
+  _drawStunStars(e,sx,sy);
+}
+
+// ── DRAW ROYAL GUARD ─────────────────────────────────────────
+function drawRoyalGuard(e){
+  const sx=e.x-camX;
+  if(sx<-100||sx>canvas.width+100) return;
+  const sy=e.y, flash=e.hitCD>10;
+  const windingUp=e.windupTimer>0;
+  const windPulse=windingUp&&Math.floor(e.windupTimer/4)%2===0;
+  ctx.save();
+  ctx.translate(sx+EW/2,sy+EH/2);
+  ctx.scale(e.facing,1);
+  ctx.shadowColor=windingUp?'rgba(255,200,0,0.95)':'rgba(180,140,0,0.2)';
+  ctx.shadowBlur=windingUp?28:10;
+  // legs — plate
+  const ls=e.onGround&&Math.abs(e.vx)>.3?Math.sin(e.legF*.3)*11:0;
+  ctx.fillStyle=flash?'#aa6644':'#3a3218';
+  ctx.fillRect(5,EH*.28,11,EH*.38-ls);ctx.fillRect(-16,EH*.28,11,EH*.38+ls);
+  // body — gold-trimmed heavy plate
+  const c1=flash?'#ff7722':windPulse?'#8a6000':'#4a3808';
+  const c2=flash?'#ffaa44':windPulse?'#d4a000':'#8a6210';
+  const cbg=ctx.createLinearGradient(-EW*.55,-EH*.48,EW*.55,0);
+  cbg.addColorStop(0,c1);cbg.addColorStop(1,c2);
+  ctx.fillStyle=cbg;ctx.shadowBlur=0;
+  ctx.beginPath();ctx.roundRect(-EW*.55,-EH*.48,EW*1.1,EH*.74,5);ctx.fill();
+  // gold trim lines
+  ctx.strokeStyle=`rgba(220,180,40,${windPulse?0.9:0.5})`;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-EW*.5,-EH*.48);ctx.lineTo(-EW*.5,EH*.26);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(EW*.5,-EH*.48);ctx.lineTo(EW*.5,EH*.26);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-EW*.5,-EH*.1);ctx.lineTo(EW*.5,-EH*.1);ctx.stroke();
+  // head — full plate helm with tall plume
+  const hc=flash?'#cc8822':c1;
+  ctx.fillStyle=hc;ctx.beginPath();ctx.roundRect(-EW*.42,-EH*.62,EW*.84,EH*.32,4);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fillRect(-EW*.36,-EH*.5,EW*.72,7); // visor
+  // eyes
+  ctx.shadowColor='rgba(255,200,0,0.9)';ctx.shadowBlur=8;
+  ctx.fillStyle='rgba(255,190,0,0.85)';
+  ctx.beginPath();ctx.ellipse(-7,-EH*.46,4,3,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(7,-EH*.46,4,3,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  // tall helmet plume (red/gold)
+  ctx.fillStyle=windPulse?'#ff8800':'#cc2200';
+  ctx.beginPath();
+  ctx.moveTo(-5,-EH*.62);ctx.quadraticCurveTo(-8,-EH*1.05,0,-EH*.9);
+  ctx.quadraticCurveTo(8,-EH*1.05,5,-EH*.62);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,160,0,0.5)';
+  ctx.beginPath();
+  ctx.moveTo(-2,-EH*.62);ctx.quadraticCurveTo(-3,-EH*0.95,0,-EH*.85);
+  ctx.quadraticCurveTo(3,-EH*0.95,2,-EH*.62);ctx.closePath();ctx.fill();
+  // big greatsword — two-handed
+  const _wRef=e.comboPhase===0?ROYAL_GUARD_WINDUP1:e.comboPhase===1?ROYAL_GUARD_GAP1:ROYAL_GUARD_GAP2;
+  const wa=e.windupTimer>0
+    ? 0.3-1.5*(1-e.windupTimer/_wRef)           // raise overhead
+    : e.atk ? -1.2+3.2*Math.min(e.atkF/ENEMY_SWING_FRAMES,1) // heavy crash
+    : 0.3;
+  ctx.save();ctx.translate(EW*0.85,-EH*0.2);ctx.rotate(wa);
+  // handle (two-handed — tall)
+  ctx.fillStyle='#4a2a0a';ctx.fillRect(-3,4,6,24);
+  ctx.fillStyle='#8a7030';ctx.fillRect(-8,-2,16,7); // crossguard
+  ctx.fillStyle='#6a5020';ctx.fillRect(-3,-18,6,22); // lower grip
+  // blade (wide greatsword)
+  const bsg=ctx.createLinearGradient(-4,-80,4,0);
+  bsg.addColorStop(0,'rgba(240,235,220,0.97)');bsg.addColorStop(0.6,'rgba(180,165,120,0.8)');bsg.addColorStop(1,'rgba(100,90,60,0.4)');
+  ctx.fillStyle=bsg;
+  ctx.beginPath();ctx.moveTo(-5,0);ctx.lineTo(5,0);ctx.lineTo(3,-78);ctx.lineTo(0,-82);ctx.lineTo(-3,-78);ctx.closePath();ctx.fill();
+  // fuller (blade groove)
+  ctx.strokeStyle='rgba(200,190,160,0.45)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(0,-72);ctx.stroke();
+  ctx.restore();
+  ctx.restore();
+  // telegraph
+  if(windingUp){
+    const t=Date.now()/1000;
+    const windProg=1-e.windupTimer/_wRef;
+    const gPulse=0.10+0.08*Math.sin(t*10);
+    ctx.save();ctx.globalAlpha=gPulse*(0.25+0.65*windProg);
+    ctx.fillStyle='#ff8800';
+    ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*50,floorY()-3,90,11,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    const sym=e.comboPhase===0?'◆◆◆':(e.comboPhase===1?'◆◆':'◆');
+    const exSize=Math.round(20+6*windProg);
+    ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*12))*(0.5+0.5*windProg);
+    ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
+    ctx.shadowColor='#ff8800';ctx.shadowBlur=20+12*windProg;
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=4;ctx.lineJoin='round';
+    ctx.strokeText(sym,sx+EW/2,sy-54);
+    ctx.fillStyle=`hsl(${Math.round(38-18*windProg)},100%,55%)`;
+    ctx.fillText(sym,sx+EW/2,sy-54);
+    ctx.restore();
+  }
+  const bw=88,bh=9,bx_=sx+EW/2-bw/2,by_=sy-30,R=1;
+  _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Royal Guard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
 }
@@ -7136,7 +8105,7 @@ function drawShamaz(e){
       ctx.fillStyle='#ff6600';
       ctx.beginPath();ctx.ellipse(sx+EW/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
       ctx.restore();
-      const sym=e.atkPattern===1?(['!!!','!!','!'][e.atkPhase]||'!'):'!';
+      const sym=e.atkPattern===2?'◈':e.atkPattern===1?(['◆◆◆','◆◆','◆'][e.atkPhase]||'◆'):'◆';
       const exSize=Math.round(18+5*wProg);
       ctx.save();ctx.globalAlpha=0.55+0.4*Math.sin(t*14);
       ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
@@ -7147,6 +8116,122 @@ function drawShamaz(e){
       ctx.fillText(sym,sx+EW/2,sy-60);
       ctx.restore();
     }
+  }
+
+  updateBossBar(e);
+  _drawStunStars(e,sx,sy);
+  _drawTargetIndicator(e,sx,sy);
+}
+
+function drawGartu(e){
+  const sx=e.x-camX; if(sx<-250||sx>canvas.width+250) return;
+  const sy=e.y, flash=e.hitCD>10;
+  const windingUp=e.windupTimer>0;
+  const t=Date.now()/1000;
+  const ecx=sx+EW/2, ecy=sy+EH/2;
+  const bob=e.bossSlamStunned ? 0 : Math.sin(t*1.9)*3;
+
+  ctx.save(); ctx.translate(ecx,ecy+bob); ctx.scale(e.facing,1);
+
+  // ── Lower robe (wide flowing) ──────────────────────────────────
+  ctx.fillStyle=flash?'#dd99ff':'#120028';
+  ctx.beginPath();
+  ctx.moveTo(-18,EH*0.05); ctx.lineTo(-28,EH*0.52);
+  ctx.lineTo(28,EH*0.52);  ctx.lineTo(18,EH*0.05);
+  ctx.closePath(); ctx.fill();
+  // robe inner sheen
+  ctx.fillStyle='rgba(150,40,255,0.13)';
+  ctx.beginPath();
+  ctx.moveTo(-5,EH*0.05); ctx.lineTo(-9,EH*0.52);
+  ctx.lineTo(7,EH*0.52);  ctx.lineTo(5,EH*0.05);
+  ctx.closePath(); ctx.fill();
+
+  // ── Upper body ────────────────────────────────────────────────
+  ctx.fillStyle=flash?'#dd99ff':'#1e0040';
+  ctx.beginPath(); ctx.roundRect(-14,-EH*0.36,28,EH*0.43,4); ctx.fill();
+
+  // ── Head ──────────────────────────────────────────────────────
+  ctx.fillStyle=flash?'#eeb8ff':'#260050';
+  ctx.beginPath(); ctx.ellipse(0,-EH*0.42,12,14,0,0,Math.PI*2); ctx.fill();
+
+  // ── Hood ──────────────────────────────────────────────────────
+  ctx.fillStyle='#0a0016';
+  ctx.beginPath();
+  ctx.moveTo(-14,-EH*0.30); ctx.lineTo(-16,-EH*0.60);
+  ctx.lineTo(0,-EH*0.74);   ctx.lineTo(16,-EH*0.60);
+  ctx.lineTo(14,-EH*0.30);
+  ctx.closePath(); ctx.fill();
+
+  // ── Glowing eyes ──────────────────────────────────────────────
+  ctx.shadowColor='#cc44ff'; ctx.shadowBlur=10;
+  ctx.fillStyle='rgba(210,90,255,0.9)';
+  ctx.beginPath(); ctx.ellipse(-4,-EH*0.445,2.5,2,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(4,-EH*0.445,2.5,2,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+
+  // ── Staff ─────────────────────────────────────────────────────
+  ctx.fillStyle='#3a1860';
+  ctx.fillRect(18,-EH*0.34,5,EH*0.80);
+  ctx.fillStyle='#5a2888';
+  ctx.fillRect(16,-EH*0.28,9,4); ctx.fillRect(16,-EH*0.12,9,3);
+  // staff orb
+  const op=0.72+0.28*Math.sin(t*4.2);
+  ctx.shadowColor='#cc44ff'; ctx.shadowBlur=20*op;
+  const og=ctx.createRadialGradient(20,-EH*0.40,0,20,-EH*0.40,11);
+  og.addColorStop(0,`rgba(240,160,255,${(0.9+0.1*op).toFixed(2)})`);
+  og.addColorStop(0.5,`rgba(170,60,255,${(0.75*op).toFixed(2)})`);
+  og.addColorStop(1,'rgba(120,0,200,0)');
+  ctx.fillStyle=og;
+  ctx.beginPath(); ctx.arc(20,-EH*0.40,11,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+  // ── Orbiting runes ────────────────────────────────────────────
+  const RUNE_SYMS=['✦','◈','⬡'];
+  for(let i=0;i<3;i++){
+    const ra=t*1.15+(i/3)*Math.PI*2;
+    const rx=ecx+Math.cos(ra)*40*e.facing;
+    const ry=ecy+bob+Math.sin(ra)*20;
+    const rp=0.35+0.28*Math.sin(t*3.2+i*2.1);
+    ctx.save();
+    ctx.globalAlpha=rp;
+    ctx.shadowColor='#aa22ff'; ctx.shadowBlur=12;
+    ctx.fillStyle='#ee99ff';
+    ctx.font='bold 12px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(RUNE_SYMS[i],rx,ry);
+    ctx.restore();
+  }
+
+  // ── Windup telegraph ─────────────────────────────────────────
+  if(windingUp){
+    const wRef=e.atkPattern===0?GARTU_WINDUP_BOLT
+              :e.atkPattern===1?GARTU_WINDUP_TRIPLE
+              :e.atkPattern===2?GARTU_WINDUP_NOVA
+              :GARTU_WINDUP_HOMING;
+    const wProg=Math.max(0,1-e.windupTimer/wRef);
+    const sym=e.atkPattern===2?'◈◈◈':e.atkPattern===3?'◈◈':e.atkPattern===1?'◈◈':'◈';
+    const tSym=Date.now()/1000;
+    // expanding magic circles
+    ctx.save();
+    ctx.globalAlpha=0.12+0.28*wProg;
+    ctx.strokeStyle='#cc44ff'; ctx.lineWidth=2+wProg*2;
+    ctx.shadowColor='#cc44ff'; ctx.shadowBlur=22*wProg;
+    ctx.beginPath(); ctx.arc(ecx,ecy+bob,28+52*wProg,0,Math.PI*2); ctx.stroke();
+    ctx.globalAlpha=0.08+0.16*wProg;
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(ecx,ecy+bob,14+28*wProg,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
+    // symbol
+    const exSize=Math.round(18+6*wProg);
+    const pulse=0.55+0.4*Math.sin(tSym*14);
+    ctx.save(); ctx.globalAlpha=pulse;
+    ctx.font=`bold ${exSize}px Cinzel,serif`; ctx.textAlign='center';
+    ctx.shadowColor='#cc44ff'; ctx.shadowBlur=18+10*wProg;
+    ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
+    ctx.strokeText(sym,ecx,sy-4);
+    ctx.fillStyle=`hsl(${280+Math.round(20*wProg)},100%,${Math.round(60+15*wProg)}%)`;
+    ctx.fillText(sym,ecx,sy-4);
+    ctx.restore();
   }
 
   updateBossBar(e);
@@ -7257,9 +8342,62 @@ function drawEnemyProjectiles(){
       ctx.shadowBlur=p.parried?18:14;
       ctx.fillStyle=p.parried?'#88ff88':'#3a3a3a';
       ctx.beginPath();ctx.arc(0,0,SHAMAZ_CANNON_RADIUS,0,Math.PI*2);ctx.fill();
-      // cannonball seam
       ctx.strokeStyle=p.parried?'rgba(0,200,0,0.4)':'rgba(80,80,80,0.5)';
       ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,SHAMAZ_CANNON_RADIUS*0.65,0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    } else if(p.type==='shield'){
+      // spinning metallic disc
+      ctx.save(); ctx.translate(sx,sy);
+      ctx.rotate(t*8*(p.vx>0?1:-1)+(p.parried?-t*16:0));
+      ctx.shadowColor=p.parried?'rgba(80,255,80,0.7)':'rgba(160,180,220,0.6)';
+      ctx.shadowBlur=p.parried?14:6;
+      ctx.fillStyle=p.parried?'#66ee88':'#2858a0';
+      ctx.beginPath(); ctx.arc(0,0,GUARD_SHIELD_RADIUS,0,Math.PI*2); ctx.fill();
+      // cross-bar detail
+      ctx.strokeStyle=p.parried?'rgba(100,255,140,0.6)':'rgba(100,140,200,0.55)';
+      ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(-GUARD_SHIELD_RADIUS*0.55,0); ctx.lineTo(GUARD_SHIELD_RADIUS*0.55,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,-GUARD_SHIELD_RADIUS*0.55); ctx.lineTo(0,GUARD_SHIELD_RADIUS*0.55); ctx.stroke();
+      // center boss stud
+      ctx.fillStyle=p.parried?'#aaffcc':'#b0bcd0';
+      ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill();
+      // rim
+      ctx.strokeStyle=p.parried?'rgba(0,220,100,0.55)':'rgba(130,155,195,0.7)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(0,0,GUARD_SHIELD_RADIUS,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    } else if(p.type==='gartu_bolt'){
+      // elongated purple energy bolt
+      ctx.save(); ctx.translate(sx,sy);
+      const bAngle=Math.atan2(p.vy,p.vx);
+      ctx.rotate(bAngle);
+      const bPulse=0.7+0.3*Math.sin(t*12+p.x*0.02);
+      ctx.shadowColor=p.parried?'rgba(80,255,80,0.9)':'rgba(180,0,255,0.9)';
+      ctx.shadowBlur=p.parried?18:14;
+      ctx.fillStyle=p.parried?'rgba(100,255,110,0.9)'
+        :`rgba(${Math.round(180+60*bPulse)},50,255,0.92)`;
+      ctx.beginPath(); ctx.ellipse(0,0,GARTU_BOLT_RADIUS*1.5,GARTU_BOLT_RADIUS*0.55,0,0,Math.PI*2); ctx.fill();
+      // bright core streak
+      ctx.fillStyle=p.parried?'rgba(210,255,215,0.8)':'rgba(240,190,255,0.8)';
+      ctx.beginPath(); ctx.ellipse(0,0,GARTU_BOLT_RADIUS*0.75,GARTU_BOLT_RADIUS*0.28,0,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    } else if(p.type==='gartu_orb'){
+      // pulsing homing orb with swirling ring
+      ctx.save(); ctx.translate(sx,sy);
+      const oPulse=0.65+0.35*Math.sin(t*6);
+      ctx.shadowColor=p.parried?'rgba(80,255,80,0.8)':'rgba(200,0,255,0.9)';
+      ctx.shadowBlur=Math.round((p.parried?16:22)*oPulse);
+      const og2=ctx.createRadialGradient(0,0,0,0,0,GARTU_ORB_RADIUS);
+      og2.addColorStop(0,p.parried?'rgba(200,255,210,0.95)':'rgba(255,180,255,0.95)');
+      og2.addColorStop(0.5,p.parried?'rgba(50,210,60,0.7)'
+        :`rgba(${Math.round(160+70*oPulse)},0,255,0.75)`);
+      og2.addColorStop(1,'rgba(80,0,160,0)');
+      ctx.fillStyle=og2;
+      ctx.beginPath(); ctx.arc(0,0,GARTU_ORB_RADIUS,0,Math.PI*2); ctx.fill();
+      // swirling outer ring
+      ctx.strokeStyle=p.parried?'rgba(100,255,120,0.5)':'rgba(220,80,255,0.55)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(0,0,GARTU_ORB_RADIUS+2+2*oPulse,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
   });
@@ -7268,6 +8406,7 @@ function drawEnemyProjectiles(){
 // ── PARRY ─────────────────────────────────
 function _bossHitPlayer(e, dmg, knockVx, knockVy){
   player.hp=Math.max(0,player.hp-dmg);
+  resetHitStreak();
   player.hitCD=72; player.invuln=true;
   setTimeout(()=>{player.invuln=false;},2000);
   player.vx=knockVx; player.vy=knockVy;
@@ -7283,21 +8422,40 @@ function _bossHitPlayer(e, dmg, knockVx, knockVy){
   if(player.hp<=0&&!player.dead){player.dead=true;setTimeout(onPlayerDead,900);}
 }
 
-function onParrySuccess(attacker, {skipStun=false, fastReady=false}={}){
+function onParrySuccess(attacker, {skipStun=false, fastReady=false, reflectParried=false}={}){
   player.parryTimer=0;
   player.parryCD=fastReady ? 16 : PARRY_COOLDOWN; // fast re-ready for combo parry window (must be < smallest boss combo gap: 22)
   player.invuln=true;
   setTimeout(()=>{ player.invuln=false; },800);
 
   // Stun the attacker + any enemy extremely close to the player
-  // skipStun=true is used for the first hit of a boss combo (both hits must be parried)
+  // skipStun=true is used for intermediate hits of a boss combo
   if(!skipStun){
     const PARRY_STUN_RADIUS = 80;
     enemies.forEach(e=>{
       if(e.dead) return;
-      const close = Math.abs(e.x+EW/2-(player.x+PW/2))<PARRY_STUN_RADIUS &&
-                    Math.abs(e.y+EH/2-(player.y+PH/2))<PARRY_STUN_RADIUS;
-      if(e===attacker || close) e.stunTimer=PARRY_STUN_FRAMES;
+      if(e===attacker && e.boss){
+        // ── Boss: feed the stun bar instead of an immediate full stun ──
+        // For reflected projectiles: only credit once per attack burst
+        if(reflectParried && e.reflectParriedThisAtk) return;
+        if(reflectParried) e.reflectParriedThisAtk=true;
+        e.bossStunProgress=(e.bossStunProgress||0)+1;
+        if(e.bossStunProgress>=(e.bossStunMax||1)){
+          // Bar filled → full stagger only
+          e.stunTimer=220;
+          e.bossStunProgress=0;
+          floatText(e.x+EW/2-36,e.y-54,'STAGGERED!','#ffd060',true);
+          triggerShake(32); rumble(420,1.0,0.85); setTimeout(()=>rumble(280,0.6,0.3),180);
+        }
+        // Partial fills: bar updates visually only — NO stun so boss keeps acting normally
+        updateBossStunBar(e);
+      } else if(!e.boss){
+        // Non-boss enemy — direct stun (attacker or nearby splash)
+        const close = Math.abs(e.x+EW/2-(player.x+PW/2))<PARRY_STUN_RADIUS &&
+                      Math.abs(e.y+EH/2-(player.y+PH/2))<PARRY_STUN_RADIUS;
+        if(e===attacker || close) e.stunTimer=PARRY_STUN_FRAMES;
+      }
+      // Bosses that aren't the attacker are never caught by proximity stun
     });
   }
 
@@ -7455,11 +8613,11 @@ function _loopUpdate(){
   else if(player.evadeTimer>0){ player.vx=player.evadeDir*EVADE_SPEED*GAME_SPEED; }
   else if(player.airAtkFreezeTimer>0){ player.vx=goL?-AIR_ATK_FREEZE_DRIFT:goR?AIR_ATK_FREEZE_DRIFT:0; }
   else {
-    if(goL){player.vx-=2.0*GAME_SPEED;player.facing=-1;}
-    if(goR){player.vx+=2.0*GAME_SPEED;player.facing=1;}
+    if(goL){player.vx-=RUN_ACCEL*GAME_SPEED;player.facing=-1;}
+    if(goR){player.vx+=RUN_ACCEL*GAME_SPEED;player.facing=1;}
     // Gentle air drag when no directional input held — stops floaty drift
     if(!goL&&!goR&&!player.onGround) player.vx*=0.88;
-    player.vx=Math.max(-7*GAME_SPEED,Math.min(7*GAME_SPEED,player.vx));
+    player.vx=Math.max(-RUN_MAX*GAME_SPEED,Math.min(RUN_MAX*GAME_SPEED,player.vx));
   }
   if(player.onGround){ player.jumpsLeft=2; coyoteFrames=6; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSlamNeedsRehold=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; }
   else if(coyoteFrames>0){ coyoteFrames--; } // off-ledge grace window
@@ -7563,21 +8721,47 @@ function _loopUpdate(){
       _fireExcaliburBeam();
     }
   }
-  // EVADE
+  // EVADE — action cancel: fires even mid-attack, clears all ongoing actions
   if(doEvade&&!player.dead&&!player.evadeTimer&&!player.evadeCD&&!player.stDepleted&&player.stamina>=EVADE_STAMINA){
     player.stamina=Math.max(0,player.stamina-EVADE_STAMINA);
     if(player.stamina<8) player.stDepleted=true;
     setStBar(player.stamina,player.maxStamina);
     player.evadeTimer=EVADE_DURATION; player.evadeDir=player.facing; player.evadeCD=EVADE_COOLDOWN;
+    // Air-dash: kill downward momentum so the dash is horizontal, not a falling arc
+    if(!player.onGround) player.vy = 0; // zero ALL vertical velocity at dash start (up or down)
+    // ── Cancel all ongoing actions ──────────────────────────────────────────
+    player.atk=false; player.atkF=0; player.atkCD=0;
+    player.spAtk=false; player.spF=0;
+    player.rsWindup=false; player.rsF=0;
+    player.excaliburWindup=false; player.excaliburWindupF=0;
+    player.arcaneWindup=0; player.arcaneWindupSpell=null;
+    player.airAtkFreezeTimer=0; player.airSmashTimer=0;
+    // ── Reset combo chain to first step ─────────────────────────────────────
+    player.comboStep=0; player.comboTimer=0; player.comboQueued=false;
+    player.curStep=0; player.swingHitMap=new Map();
+    player.swingStreakCounted=false; player.spStreakCounted=false;
   }
   if(player.evadeTimer>0){
     player.evadeTimer--;
+    // Spawn afterimage every 4 frames during the dash
+    if(player.evadeTimer % 4 === 0){
+      _dashTrail.push({
+        x:player.x, y:player.y,
+        name:heroAnim.name, frame:heroAnim.frame,
+        facing:player.facing, alpha:0.38,
+      });
+    }
     // Dash just ended in the air — suspend briefly so the player can follow up
     if(player.evadeTimer===0 && !player.onGround){
-      // Reduced hang — only brief suspend, no vy zeroing so gravity stays active
-      player.airGrappleSuspendTimer=Math.floor(GRAPPLE_AIR_FREEZE_FRAMES*0.5);
+      // Hang after air-dash — slightly extended for better follow-up window
+      player.airGrappleSuspendTimer=Math.floor(GRAPPLE_AIR_FREEZE_FRAMES*1.1);
       player.airSuspendKeepEvade=true;
     }
+  }
+  // Decay afterimage trail (simulation-rate so it's frame-rate independent)
+  for(let _di=_dashTrail.length-1;_di>=0;_di--){
+    _dashTrail[_di].alpha-=0.038;
+    if(_dashTrail[_di].alpha<=0) _dashTrail.splice(_di,1);
   }
   if(player.evadeCD>0) player.evadeCD--;
 
@@ -7716,9 +8900,8 @@ function _loopUpdate(){
         if(Math.sign(dx)===player.facing || Math.abs(dx)<40){
           const _spDmgMult = (activeWeapon.dmgMult ?? 1.0);
           const dmg = Math.round(calcBaseDmg()*_spDmgMult*3.8+(Math.random()*30|0));
-          _spHit(e, dmg, '#FF7010', '💥');
-          e.vx = player.facing * 32;  // colossal horizontal knockback
-          e.vy = -6;
+          _spHit(e, dmg);
+          if(!_groundLocked(e)){ e.vx = player.facing * 32; e.vy = -6; }  // colossal horizontal knockback
           hitAny = true;
         }
       });
@@ -7802,13 +8985,15 @@ function _loopUpdate(){
   // Air-smash hang: zero gravity for first 8 frames (airSmashTimer 62→54), then normal fall
   const _airSmashHang = player.airSmashTimer > 54;
   const _airSmashFall = player.airSmashTimer > 0 && !_airSmashHang; // falling phase after hang
-  const _pGrav = player.airGrappleSuspendTimer>0 ? 0
+  const _pGrav = (player.evadeTimer>0 && !player.onGround && player.vy>=0) ? 0
+    : (player.airGrappleSuspendTimer>0 && (!player.airSuspendKeepEvade || player.vy>=0)) ? 0
     : player.airAtkFreezeTimer>0 ? 0
     : _airSmashHang ? 0
     : _airSmashFall ? 0.6
     : (!player.onGround&&player.atk) ? AIR_ATK_GRAV_MULT
     : player.juggleFollow ? JUGGLE_GRAV/GRAV
     : 1;
+  if(player.evadeTimer>0 && !player.onGround && player.vy>=0) player.vy=0; // DMC-style air dash: hold altitude, but let upward jump velocity through
   if(_airSmashHang) player.vy=0; // freeze vertical during hang
   physics(player, true, _pGrav);
   updateGrapple();
@@ -7832,7 +9017,22 @@ function _loopUpdate(){
     // stunTimer>0 when slammed the code returned early and slam landing never triggered.
     if(e.slammed&&e.onGround){
       e.slammed=false;
-      e.stunTimer=Math.max(e.stunTimer||0, e.boss ? 70 : SLAM_STUN_FRAMES);
+      // Bosses: no slam stun — they resume immediately after being spiked
+      // Regular enemies: long stun AND ground-lock flag for the whole duration
+      if(!e.boss){
+        if(e.slammedFromAir){
+          // Only stun if the enemy was actually airborne when slammed — prevents ground-spam stunlock
+          e.stunTimer=Math.max(e.stunTimer||0, SLAM_STUN_FRAMES);
+          e.slamStunned=true;  // blocks re-launch and upward velocity for full stun window
+        }
+        e.slammedFromAir=false;
+      } else {
+        e.bossSlamLanded=30; // short cooldown blocks accidental re-launch / upward vy sources
+        if(e.stunTimer>0){
+          e.bossSlamStunned=true;      // show stuck-in-ground gfx while boss is still stunned
+          e.bossSlamStunMax=e.stunTimer; // snapshot for fade calculation
+        }
+      }
       e.vx=0;
       const _slamDmg=Math.round(calcBaseDmg()*1.2+(Math.random()*10|0));
       const _prev=e.hp;
@@ -7864,13 +9064,34 @@ function _loopUpdate(){
       floatText(e.x+EW/2-12,e.y-14,`${_slamDmg}`,'#ff6060',false);
       if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
     }
+    if(e.bossSlamLanded>0) e.bossSlamLanded--;  // tick boss post-slam cooldown (always)
+    // ── GARTU hover spring — skip when juggled so launches aren't fought ──
+    if(e.boss && e.bossName==='GARTU' && !e.juggled && !e.slammed && !e.bossSlamStunned){
+      // Hover target drifts vertically with a slow sine so Gartu moves across the full screen
+      const _t=Date.now()/1000;
+      const _vertDrift=Math.sin(_t*0.55)*80; // ±80 px vertical range
+      const _gtY=floorY()-EH-GARTU_HOVER_OFFSET+_vertDrift;
+      e.vy+=(_gtY-(e.y+EH*0.5))*0.07;
+      e.vy*=0.82;
+      e.vy=Math.max(-10,Math.min(10,e.vy));
+      // Soft position boundaries — only clamp the extreme edges
+      const _yMin=30, _yMax=floorY()-EH*0.15;
+      if(e.y<_yMin){ e.y=_yMin; if(e.vy<0) e.vy=0; }
+      if(e.y>_yMax){ e.y=_yMax; if(e.vy>0) e.vy=0; }
+    }
     if(e.stunTimer>0){
       e.stunTimer--;
+      if(e.stunTimer===0){ e.slamStunned=false; e.bossSlamStunned=false; } // slam ground-lock expires with stun
       e.vx*=0.82; e.atk=false; e.windupTimer=0; e.spinning=false; e.atkCD=Math.max(e.atkCD,1);
       if(e.boss) e.comboFirstParried=false;
       else { e.comboPhase=0; e.comboFirstParried=false; }
       if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
-      physics(e, false, e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 1);
+      // GARTU: juggled during stun uses juggle gravity; bossSlamStunned uses normal
+      // gravity so it falls/stays on the floor; otherwise 0 so spring stays in control
+      const _gm = (e.boss&&e.bossName==='GARTU')
+        ? (e.bossSlamStunned ? 1 : e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 0)
+        : (e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 1);
+      physics(e, false, _gm);
       return;
     }
     if(!e.juggled){
@@ -7887,6 +9108,7 @@ function _loopUpdate(){
           e.vx*=0.65;
           e.windupTimer--;
           if(e.windupTimer===0){
+            e.reflectParriedThisAtk=false; // new attack — reset once-per-attack reflect gate
             if(e.atkPattern===2){
               // Cannon fires
               fireCannonball(e);
@@ -7917,6 +9139,56 @@ function _loopUpdate(){
             if(adx>SHAMAZ_ATK_RANGE) e.vx+=e.facing*e.speed*0.4*speedMult;
           }
         }
+      } else if(e.bossName==='GARTU'){
+      // ── GARTU AI ──────────────────────────
+      // (Hover spring runs unconditionally above the stun block — no duplicate here)
+      e.facing=dx>0?1:-1;
+      // Horizontal repositioning — wider preferred range + active strafing
+      if(adx>240){
+        // Too far → close in assertively
+        e.vx+=e.facing*e.speed*0.38*speedMult;
+      } else if(adx<110){
+        // Too close → back off
+        e.vx-=e.facing*e.speed*0.30*speedMult;
+      } else {
+        // In preferred range → strafe laterally to stay unpredictable
+        if(!e.gartuStrafeTimer||e.gartuStrafeTimer<=0){
+          e.gartuStrafeDir=(e.gartuStrafeDir||1)*-1;
+          e.gartuStrafeTimer=48+(Math.random()*40|0);
+        }
+        e.gartuStrafeTimer--;
+        e.vx+=(e.gartuStrafeDir||1)*e.speed*0.22*speedMult;
+      }
+      e.vx*=0.83;
+      e.vx=Math.max(-8,Math.min(8,e.vx)); // cap horizontal speed
+      // Occasional vertical dart — makes Gartu feel alive in 2D space
+      if(!e.gartuVertTimer||e.gartuVertTimer<=0){
+        e.gartuVertDir=(Math.random()<0.5)?-1:1; // random up or down burst
+        e.gartuVertTimer=60+(Math.random()*50|0);
+        e.vy+=(e.gartuVertDir)*1.8; // gentle nudge — spring will handle the return arc
+      }
+      e.gartuVertTimer=(e.gartuVertTimer||0)-1;
+      if(e.windupTimer>0){
+        e.vx*=0.88; e.windupTimer--;
+        if(e.windupTimer===0){
+          e.reflectParriedThisAtk=false; // new attack — reset once-per-attack reflect gate
+          if(e.atkPattern===0)      fireGartuBolt(e);
+          else if(e.atkPattern===1) fireGartuTriple(e);
+          else if(e.atkPattern===2) fireGartuNova(e);
+          else                      fireGartuHoming(e);
+          e.atkPattern=(e.atkPattern+1)%4;
+          e.atkCD=GARTU_ATK_COOLDOWN+(Math.random()*18|0);
+        }
+      } else if(!e.atk){
+        if(e.atkCD<=0){
+          const _wf=e.atkPattern===0?GARTU_WINDUP_BOLT
+                   :e.atkPattern===1?GARTU_WINDUP_TRIPLE
+                   :e.atkPattern===2?GARTU_WINDUP_NOVA
+                   :GARTU_WINDUP_HOMING;
+          e.windupTimer=_wf;
+        }
+      }
+
       } else {
       // ── GRONK AI ───────────────────────────
       if(!e.spinning) e.facing=dx>0?1:-1;
@@ -7954,6 +9226,7 @@ function _loopUpdate(){
         e.vx*=0.7;
         e.windupTimer--;
         if(e.windupTimer===0){
+          e.reflectParriedThisAtk=false; // new attack — reset once-per-attack reflect gate
           if(e.atkPattern===2){
             e.spinning=true;e.spinTimer=BOSS_SPIN_DURATION;
             e.spinDir=e.facing;e.atkHit=false;
@@ -8001,9 +9274,13 @@ function _loopUpdate(){
       if(e.state==='chase'){
         e.facing=dx>0?1:-1;
         // Range by type
-        const _atkRange = e.type==='knight'?90:e.type==='drunkard'?DRUNKARD_THROW_RANGE:ENEMY_ATK_RANGE;
+        const _atkRange = e.type==='knight'?90
+                        : e.type==='drunkard'?DRUNKARD_THROW_RANGE
+                        : e.type==='guard'?GUARD_THRUST_RANGE
+                        : e.type==='royal_guard'?ROYAL_GUARD_ATK_RANGE
+                        : ENEMY_ATK_RANGE;
         if(e.windupTimer>0){
-          e.vx *= e.type==='knight'?0.40:0.7;
+          e.vx *= (e.type==='knight'||e.type==='royal_guard')?0.40:0.70;
           e.windupTimer--;
           if(e.windupTimer===0){
             if(e.type==='drunkard'){
@@ -8011,9 +9288,21 @@ function _loopUpdate(){
               fireBottle(e);
               e.atkCD=DRUNKARD_THROW_CD;
               e.throwAnim=DRUNKARD_THROW_ANIM;
+            } else if(e.type==='guard'&&e.guardThrowPending){
+              // Shield throw fires
+              fireShield(e);
+              e.guardThrowPending=false;
+              if(e.guardShieldCD===undefined) e.guardShieldCD=0;
+              e.guardShieldCD=GUARD_SHIELD_THROW_CD;
+              e.throwAnim=GUARD_SHIELD_THROW_ANIM;
+              e.atkCD=GUARD_SHIELD_THROW_ANIM+22+(Math.random()*12|0);
+            } else if(e.type==='royal_guard'){
+              const _cd=ENEMY_SWING_FRAMES*3+ROYAL_GUARD_GAP1+ROYAL_GUARD_GAP2+ROYAL_GUARD_ATK_COOLDOWN;
+              e.atkCD=_cd;
+              e.atk=true; e.atkF=0; e.atkHit=false;
             } else {
               e.atkCD=ENEMY_SWING_FRAMES+ENEMY_ATK_COOLDOWN+(Math.random()*10|0);
-              e.atk=true;e.atkF=0;e.atkHit=false;
+              e.atk=true; e.atkF=0; e.atkHit=false;
             }
           }
         } else if(e.type==='drunkard'){
@@ -8026,6 +9315,25 @@ function _loopUpdate(){
           if(e.atkCD<=0&&adx<=DRUNKARD_THROW_RANGE&&adx>DRUNKARD_THROW_RANGE*0.3){
             e.windupTimer=DRUNKARD_THROW_WINDUP;
           }
+        } else if(e.type==='guard'){
+          // Guard: thrust combo OR shield throw
+          if(e.guardShieldCD===undefined) e.guardShieldCD=0;
+          if(e.guardShieldCD>0) e.guardShieldCD--;
+          if(e.atkCD<=0&&e.hitCD<=0){
+            const _canThrow=e.guardShieldCD<=0&&adx>=GUARD_SHIELD_THROW_RMIN&&adx<=GUARD_SHIELD_THROW_RANGE;
+            if(_canThrow&&Math.random()<0.38){
+              e.guardThrowPending=true; e.windupTimer=GUARD_SHIELD_WINDUP;
+            } else if(adx<=GUARD_THRUST_RANGE){
+              e.guardThrowPending=false; e.windupTimer=GUARD_THRUST_WINDUP;
+            } else {
+              e.vx+=e.facing*e.speed*0.5*speedMult;
+            }
+          } else if(adx>GUARD_THRUST_RANGE){
+            e.vx+=e.facing*e.speed*0.5*speedMult;
+          }
+        } else if(e.type==='royal_guard'){
+          if(adx>_atkRange) e.vx+=e.facing*e.speed*0.44*speedMult;
+          else if(e.atkCD<=0&&e.hitCD<=0) e.windupTimer=ROYAL_GUARD_WINDUP1;
         } else if(adx>_atkRange){
           e.vx+=e.facing*e.speed*0.5*speedMult;
         } else if(e.atkCD<=0&&e.hitCD<=0){
@@ -8061,17 +9369,11 @@ function _loopUpdate(){
           if(_hitX&&_hitY&&player.parryTimer>0){
             e.atkHit=true;
             if(e.atkPattern===1){
-              if(e.atkPhase===0){
-                e.comboParriedCount=1;
-                onParrySuccess(e,{skipStun:true,fastReady:true});
-              } else if(e.atkPhase===1){
-                if(e.comboParriedCount>=1) e.comboParriedCount=2;
-                else e.comboParriedCount=0;
-                onParrySuccess(e,{skipStun:true,fastReady:true});
-              } else { // phase 2
-                if(e.comboParriedCount>=2){ onParrySuccess(e); }
-                else { onParrySuccess(e,{skipStun:true,fastReady:false}); }
-                e.comboParriedCount=0;
+              // Each hit in the 3-hit chain counts toward the stun bar individually
+              if(e.atkPhase===0 || e.atkPhase===1){
+                onParrySuccess(e,{fastReady:true});
+              } else { // phase 2 — last hit, normal cooldown
+                onParrySuccess(e);
               }
             } else {
               onParrySuccess(e); // single hook swing — normal stun
@@ -8092,6 +9394,9 @@ function _loopUpdate(){
             e.atkCD=SHAMAZ_ATK_COOLDOWN;
           }
         }
+      } else if(e.boss&&e.bossName==='GARTU'){
+        // ── GARTU: no melee — immediately cancel any accidental atk ──
+        e.atk=false;
       } else if(e.boss){
         // ── GRONK swing (pattern/phase aware) ──
         const _swingF=e.atkPattern===1&&e.atkPhase===0?BOSS_COMBO_SWING1
@@ -8108,13 +9413,10 @@ function _loopUpdate(){
           if(_hitX&&_hitY&&player.parryTimer>0){
             e.atkHit=true;
             if(e.atkPattern===1&&e.atkPhase===0){
-              e.comboFirstParried=true;
-              onParrySuccess(e,{skipStun:true,fastReady:true});
-            } else if(e.atkPattern===1&&e.atkPhase===1){
-              if(e.comboFirstParried){ onParrySuccess(e); }
-              else { onParrySuccess(e,{skipStun:true,fastReady:false}); }
-              e.comboFirstParried=false;
+              // First hit of 2-hit combo — counts toward bar, fast re-ready for second
+              onParrySuccess(e,{fastReady:true});
             } else {
+              // Second hit or any single swing — counts toward bar normally
               onParrySuccess(e);
             }
           } else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
@@ -8134,42 +9436,69 @@ function _loopUpdate(){
         }
       } else {
         // ── Regular enemy swing ──
+        const _isGuard=e.type==='guard', _isRG=e.type==='royal_guard';
         if(!e.atkHit){
-          const _wa=-0.9+2.2*Math.min(e.atkF/ENEMY_SWING_FRAMES,1);
-          const _reach=e.type==='knight'?58:e.type==='pirate'?44:34;
-          const _tipX=e.x+EW/2+e.facing*(EW*0.9+_reach*Math.sin(_wa));
-          const _tipY=e.y+EH/2+(-EH*0.3)-_reach*Math.cos(_wa);
-          const _hitX=Math.abs(_tipX-(player.x+PW/2))<40;
+          // Guard uses short forward thrust; royal guard wide arc; others overhead chop
+          const _wa=_isGuard
+            ? 0.05+0.55*Math.min(e.atkF/ENEMY_SWING_FRAMES,1)   // forward stab
+            : -0.9+2.2*Math.min(e.atkF/ENEMY_SWING_FRAMES,1);   // overhead chop
+          const _reach=_isRG?68:e.type==='knight'?58:_isGuard?44:e.type==='pirate'?44:34;
+          const _pivX=_isGuard?EW*0.55:EW*0.9;
+          const _pivY=_isGuard?-EH*0.18:-EH*0.3;
+          const _tipX=e.x+EW/2+e.facing*(_pivX+_reach*Math.sin(_wa));
+          const _tipY=e.y+EH/2+_pivY-_reach*Math.cos(_wa);
+          const _hxTol=_isGuard?28:40;
+          const _hitX=Math.abs(_tipX-(player.x+PW/2))<_hxTol;
           const _hitY=_tipY>player.y-15&&_tipY<player.y+PH+15;
           if(_hitX&&_hitY&&player.parryTimer>0){
             e.atkHit=true;
-            if(e.type==='knight'&&e.comboPhase===0){
-              // First hit of knight combo — no stun yet, fast-ready player for second parry
+            if(_isGuard){
+              if(e.comboPhase===0){
+                e.comboFirstParried=true;
+                onParrySuccess(e,{skipStun:true,fastReady:true});
+              } else {
+                if(e.comboFirstParried) onParrySuccess(e);
+                else onParrySuccess(e,{skipStun:true,fastReady:false});
+                e.comboFirstParried=false;
+              }
+            } else if(_isRG){
+              if(e.comboPhase===0){
+                e.comboParriedCount=1;
+                onParrySuccess(e,{skipStun:true,fastReady:true});
+              } else if(e.comboPhase===1){
+                if(e.comboParriedCount>=1) e.comboParriedCount=2;
+                else e.comboParriedCount=0;
+                onParrySuccess(e,{skipStun:true,fastReady:true});
+              } else {
+                if(e.comboParriedCount>=2) onParrySuccess(e);
+                else onParrySuccess(e,{skipStun:true,fastReady:false});
+                e.comboParriedCount=0;
+              }
+            } else if(e.type==='knight'&&e.comboPhase===0){
               e.comboFirstParried=true;
               onParrySuccess(e,{skipStun:true,fastReady:true});
             } else if(e.type==='knight'&&e.comboPhase===1){
-              // Second hit — stun only if first was also parried
-              if(e.comboFirstParried){ onParrySuccess(e); }
-              else { onParrySuccess(e,{skipStun:true,fastReady:false}); }
+              if(e.comboFirstParried) onParrySuccess(e);
+              else onParrySuccess(e,{skipStun:true,fastReady:false});
               e.comboFirstParried=false;
             } else {
-              onParrySuccess(e); // grunt single hit — normal stun
+              onParrySuccess(e); // grunt/pirate single hit
             }
-          }
-          else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
+          } else if(_hitX&&_hitY&&!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
             e.atkHit=true;
             const dmg=e.dmg+(Math.random()*8|0);
             player.hp=Math.max(0,player.hp-dmg);
-            player.hitCD=72;player.invuln=true;
+            resetHitStreak();
+            player.hitCD=72; player.invuln=true;
             setTimeout(()=>{player.invuln=false;},2000);
-            player.vx-=e.facing*10;player.vy-=3;
+            player.vx-=e.facing*10; player.vy-=3;
             setHpBar(player.hp,player.maxHp);
-            const bx=player.x+PW/2,by=player.y+PH*0.35;
+            const bx=player.x+PW/2, by=player.y+PH*0.35;
             for(let i=0;i<22;i++){
-              const spread=(Math.random()-.5)*1.8,spd=3+Math.random()*7;
+              const spread=(Math.random()-.5)*1.8, spd=3+Math.random()*7;
               particles.push({type:'blood',x:bx,y:by,
-                vx:e.facing*spd+spread,vy:-(Math.random()*4+1),
-                life:1,decay:.03+Math.random()*.025,r:2+Math.random()*4,
+                vx:e.facing*spd+spread, vy:-(Math.random()*4+1),
+                life:1, decay:.03+Math.random()*.025, r:2+Math.random()*4,
                 color:`hsl(${2+Math.random()*10|0},90%,${20+Math.random()*12|0}%)`});
             }
             if(player.hp<=0&&!player.dead){player.dead=true;setTimeout(onPlayerDead,900);}
@@ -8177,11 +9506,15 @@ function _loopUpdate(){
         }
         if(e.atkF>=ENEMY_SWING_FRAMES){
           e.atk=false;
-          if(e.type==='knight'&&e.comboPhase===0){
-            // Knight first hit done — queue second hit with short gap windup
+          if(_isGuard&&e.comboPhase===0){
+            e.comboPhase=1; e.windupTimer=GUARD_COMBO_GAP; e.atkHit=false;
+          } else if(_isRG&&e.comboPhase<2){
+            const _gap=e.comboPhase===0?ROYAL_GUARD_GAP1:ROYAL_GUARD_GAP2;
+            e.comboPhase++; e.windupTimer=_gap; e.atkHit=false;
+          } else if(e.type==='knight'&&e.comboPhase===0){
             e.comboPhase=1; e.windupTimer=KNIGHT_COMBO_GAP;
           } else {
-            e.comboPhase=0; e.comboFirstParried=false; // second hit or grunt done — full reset
+            e.comboPhase=0; e.comboFirstParried=false; e.comboParriedCount=0;
           }
         }
       }
@@ -8195,7 +9528,11 @@ function _loopUpdate(){
       e.vx=0; e.vy=0;
       physics(e,false,0); // gravMult=0 — floats in place
     } else {
-      physics(e,false,e.juggled?JUGGLE_ENEMY_GRAV_MULT:1);
+      // GARTU: juggled = normal juggle gravity so launches arc properly; otherwise 0 so spring controls hover
+      const _gm=(e.boss&&e.bossName==='GARTU')
+        ? (e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 0)
+        : (e.juggled ? JUGGLE_ENEMY_GRAV_MULT : 1);
+      physics(e,false,_gm);
     }
   });
   if(player.hitCD>0) player.hitCD--;
@@ -8255,13 +9592,16 @@ function _loopUpdate(){
             e.vx+=(proj.vx>0?1:-1)*1.5;
           }
         } else {
-          e.vx+=(proj.vx>0?1:-1)*(sp.knockback||12);
-          e.vy-=(sp.knockbackUp||4);
+          if(!_groundLocked(e)){
+            e.vx+=(proj.vx>0?1:-1)*(sp.knockback||12);
+            e.vy-=(sp.knockbackUp||4);
+          }
         }
         // frost slow
         if(sp.slowFrames){ e.slowTimer=(e.slowTimer||0)+sp.slowFrames; }
         playSfx(sp.impactSound);
-        floatText(e.x+EW/2,e.y-14,`-${dmg}`,sp.color,false);
+        const _pe=sp.elemental,_pl=_pe?((ELEMENTAL_LABELS[_pe]||'')+' '):'',_pc=_pe?(ELEMENTAL_FLOAT_COLORS[_pe]||'#ffffff'):'#ffffff';
+        floatText(e.x+EW/2,e.y-14,`${_pl}${dmg}`,_pc,false);
         const hue=sp.trailHue||20;
         for(let i=0;i<20;i++){
           const ang=Math.random()*Math.PI*2;
@@ -8291,7 +9631,7 @@ function _loopUpdate(){
       const ex=e.x+EW/2,ey=e.y+EH/2;
       if(ex>=bLeft&&ex<=bRight&&ey>=b.y-b.halfH&&ey<=b.y+b.halfH){
         b.hitSet.add(e);
-        _spHit(e,b.dmg,'#a0e8ff','✦');
+        _spHit(e,b.dmg);
         e.vx+=b.facing*3;
         if(b.hitSet.size===1){playSfx(activeWeapon.spHitSound);triggerShake(6);rumble(264,0.38,0.69);}
       }
@@ -8506,7 +9846,12 @@ function _loopDraw(){
   // SPIN-THROW render
   drawThrows();
 
-  enemies.forEach(e=>{if(!e.dead)drawEnemy(e);});
+  enemies.forEach(e=>{
+    if(!e.dead){
+      drawEnemy(e);
+      if(e.slamStunned || e.bossSlamStunned) _drawSlamStunIndicator(e);
+    }
+  });
   drawGrappleIndicator();
   drawGrappleLine();
   // Arcane explosion charge ring
@@ -8552,6 +9897,7 @@ function _loopDraw(){
   }
   // Trail pass — drawn BEHIND player (trailOnly=true skips weapon/impact)
   drawSwordSprite(player, true);
+  _drawDashTrail();
   drawPlayer(player);
 
   // Sword sprite drawn ON TOP of player (handles idle/attack/trail/impact)
@@ -8580,6 +9926,7 @@ function onPlayerDead(){
   document.getElementById('hud').classList.add('hidden');
   document.getElementById('cdBar').classList.remove('visible');
   document.getElementById('bossBar').classList.remove('show');
+  document.body.classList.remove('boss-fighting');
   const dead=document.getElementById('dead');
   dead.querySelector('h1').textContent='YOU HAVE FALLEN';
   dead.style.background='rgba(0,0,0,0.9)';
