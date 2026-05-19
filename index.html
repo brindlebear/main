@@ -2004,6 +2004,7 @@ const WEAPONS = {
     sprites: { weapon: null, trail: null, hit: null },
     swingSound: null, hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/cestus_sp.wav', spHitSound: 'Audio/cestus_sp_hit.wav',
+    usesRsWindup: true,
     special(p){
       if(p.rsWindup) return;
       p.rsWindup=true; p.rsF=0;
@@ -2431,10 +2432,11 @@ const WEAPONS = {
       let hit=false;
       enemies.forEach(e=>{
         if(e.dead) return;
-        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
-        if(dx<230&&dy<90){
+        const ecx=e.x+eW(e)/2, ecy=e.y+eH(e)/2;
+        const dx=Math.abs(ecx-(p.x+PW/2)), dy=Math.abs(ecy-(p.y+PH/2));
+        if(dx<230&&dy<140){
           _spHit(e,Math.round(calcBaseDmg()*2.0+(Math.random()*16|0))); hit=true;
-          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*5; e.vy-=4;
+          e.vx+=(ecx>p.x+PW/2?1:-1)*5; e.vy-=4;
         }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(14);triggerShake(12);triggerHitFlash();}
@@ -3328,9 +3330,10 @@ const BOSS_WINDUP      = 32;   // 2× then +10%
 const BOSS_SWING       = 50;   // 2× then +10%
 const BOSS_ATK_RANGE   = 100;  // px distance to trigger boss windup
 const BOSS_ATK_COOLDOWN= 95;   // post-swing cooldown frames
-const BOSS_REACH       = 38;   // club-head radius used in hit check
-const BOSS_PIVOT_X     = 34;   // club pivot x from boss centre (local)
-const BOSS_PIVOT_Y     = -18;  // club pivot y from boss centre (local)
+const BOSS_REACH       = 48;   // club-head collision radius (ball size)
+const BOSS_ARM_LEN     = 78;   // pivot → ball-centre distance (arc radius)
+const BOSS_PIVOT_X     = 58;   // club pivot x from boss centre (local) — further out for wide arc
+const BOSS_PIVOT_Y     = -10;  // club pivot y from boss centre (local)
 // Boss attack pattern 1 — two-hit combo
 const BOSS_COMBO_WINDUP1 = 20;
 const BOSS_COMBO_SWING1  = 23;
@@ -4766,7 +4769,7 @@ function launchSpecial(){
   player.mp=Math.max(0,player.mp-SP_MANA_COST);
   setMpBar(player.mp,player.maxMp);
   // Weapons whose special sets rsWindup (cestus-style) skip normal spAtk flow
-  const _hasRsWindup = activeWeapon.steps && activeWeapon.steps.some(s=>s.motion==='strike');
+  const _hasRsWindup = !!activeWeapon.usesRsWindup;
   if(_hasRsWindup){
     player.spCD=120;
     playSfx(activeWeapon.spSound);
@@ -7649,7 +7652,7 @@ const BOSS_ANIM_DEFS = {
     src: 'GFX/gronk.png',  // ← update path if needed
     frameW:220, frameH:220,
     drawW:220,  drawH:220,
-    offsetX:0, offsetY:40,
+    offsetX:0, offsetY:30,
     hitW:220, hitH:220,
     anims:{
       idle  : { row:0, frames:4, fps:5  },  // subtle idle sway
@@ -7845,22 +7848,22 @@ function _drawBossSwingTrail(e, sx, sy){
                : e.atkPattern===1&&e.atkPhase===1?BOSS_COMBO_SWING2
                : BOSS_SWING;
     const _t = Math.min(e.atkF/_swF, 1);
-    waCurrent = e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*_t
-              : e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*_t
-              : -1.5+3.4*_t;
+    waCurrent = e.atkPattern===1&&e.atkPhase===0?-1.0+4.2*_t
+              : e.atkPattern===1&&e.atkPhase===1?-1.4+4.4*_t
+              : -1.5+4.7*_t;
     if(waCurrent <= -0.2) return;
     trailColor = '#ff4400';
     glowColor  = 'rgba(255,80,10,0.95)';
     tipFn = a => ({
-      x: sx + eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_REACH*Math.sin(a)),
-      y: sy + eH(e)/2 + BOSS_PIVOT_Y - BOSS_REACH*Math.cos(a),
+      x: sx + eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_ARM_LEN*Math.sin(a)),
+      y: sy + eH(e)/2 + BOSS_PIVOT_Y - BOSS_ARM_LEN*Math.cos(a),
     });
 
   } else { return; }
 
   // ── Sample arc: show last 1.6 rad of the sweep (or however far it's gone) ──
   const STEPS   = 16;
-  const arcSpan = Math.min(waCurrent - (-0.2), 1.6); // cap trail length
+  const arcSpan = Math.min(waCurrent - (-0.2), 2.4); // cap trail length
   const aStart  = waCurrent - arcSpan;
   const pts = [];
   for(let i=0; i<=STEPS; i++) pts.push(tipFn(aStart + arcSpan*(i/STEPS)));
@@ -8003,25 +8006,25 @@ function drawBoss(e){
           : 0.3-1.6*(1-e.windupTimer/BOSS_WINDUP)          // slam raise
       )
     : e.atk ? (
-        e.atkPattern===1&&e.atkPhase===0 ? -1.0+3.2*Math.min(e.atkF/BOSS_COMBO_SWING1,1)
-        : e.atkPattern===1&&e.atkPhase===1 ? -1.4+3.0*Math.min(e.atkF/BOSS_COMBO_SWING2,1)
-        : -1.5+3.4*Math.min(e.atkF/BOSS_SWING,1)
+        e.atkPattern===1&&e.atkPhase===0 ? -1.0+4.2*Math.min(e.atkF/BOSS_COMBO_SWING1,1)
+        : e.atkPattern===1&&e.atkPhase===1 ? -1.4+4.4*Math.min(e.atkF/BOSS_COMBO_SWING2,1)
+        : -1.5+4.7*Math.min(e.atkF/BOSS_SWING,1)
       )
     : 0.3;
   ctx.save();
   ctx.translate(BOSS_PIVOT_X,BOSS_PIVOT_Y);ctx.rotate(cwa);
-  ctx.fillStyle='#5a3012';ctx.fillRect(-4,0,8,52);
+  ctx.fillStyle='#5a3012';ctx.fillRect(-4,0,8,72);
   ctx.fillStyle=flash?'#c09050':'#7a5018';
   ctx.shadowColor=windingUp?'rgba(255,130,0,0.65)':'transparent';
   ctx.shadowBlur=windingUp?22:0;
-  ctx.beginPath();ctx.arc(0,-BOSS_REACH,BOSS_REACH,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(0,-BOSS_ARM_LEN,BOSS_REACH,0,Math.PI*2);ctx.fill();
   ctx.shadowBlur=0;
   ctx.strokeStyle='#503810';ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(0,-BOSS_REACH,BOSS_REACH,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(0,-BOSS_ARM_LEN,BOSS_REACH,0,Math.PI*2);ctx.stroke();
   ctx.fillStyle='#604418';
   for(let k=0;k<6;k++){
     const ka=k/6*Math.PI*2;
-    ctx.beginPath();ctx.arc(Math.cos(ka)*(BOSS_REACH-4),Math.sin(ka)*(BOSS_REACH-4)-BOSS_REACH,5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(Math.cos(ka)*(BOSS_REACH-4),Math.sin(ka)*(BOSS_REACH-4)-BOSS_ARM_LEN,5,0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
   ctx.restore();
@@ -8076,12 +8079,12 @@ function drawBoss(e){
         // Club head screen position
         const _cpx = sx + eW(e)/2 + e.facing*BOSS_PIVOT_X;
         const _cpy = sy + eH(e)/2 + BOSS_PIVOT_Y;
-        const _hx  = _cpx + e.facing*BOSS_REACH*Math.sin(cwa);
-        const _hy  = _cpy - BOSS_REACH*Math.cos(cwa);
+        const _hx  = _cpx + e.facing*BOSS_ARM_LEN*Math.sin(cwa);
+        const _hy  = _cpy - BOSS_ARM_LEN*Math.cos(cwa);
 
         // ── Slash preview arc: faint line showing the full planned swing path ──
         // Drawn first so it sits under the charging ring
-        const swingEndA  = isCombo ? (e.atkPhase===0 ? 2.2 : 2.0) : 1.9;
+        const swingEndA  = isCombo ? (e.atkPhase===0 ? 3.2 : 3.0) : 3.2;
         const ARC_STEPS  = 18;
         ctx.save();
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -8092,15 +8095,15 @@ function drawBoss(e){
         ctx.beginPath();
         for(let _i=0; _i<=ARC_STEPS; _i++){
           const _a  = cwa + (swingEndA - cwa)*(_i/ARC_STEPS);
-          const _ax = _cpx + e.facing*BOSS_REACH*Math.sin(_a);
-          const _ay = _cpy - BOSS_REACH*Math.cos(_a);
+          const _ax = _cpx + e.facing*BOSS_ARM_LEN*Math.sin(_a);
+          const _ay = _cpy - BOSS_ARM_LEN*Math.cos(_a);
           _i===0 ? ctx.moveTo(_ax,_ay) : ctx.lineTo(_ax,_ay);
         }
         ctx.stroke();
         // Arrowhead at the end of the arc
         const _arrA = swingEndA;
-        const _arrX = _cpx + e.facing*BOSS_REACH*Math.sin(_arrA);
-        const _arrY = _cpy - BOSS_REACH*Math.cos(_arrA);
+        const _arrX = _cpx + e.facing*BOSS_ARM_LEN*Math.sin(_arrA);
+        const _arrY = _cpy - BOSS_ARM_LEN*Math.cos(_arrA);
         const _tanX = e.facing*Math.cos(_arrA), _tanY = Math.sin(_arrA);
         ctx.globalAlpha = windProg * 0.35;
         ctx.fillStyle = '#ff6600';
@@ -8180,14 +8183,14 @@ function drawBoss(e){
                : e.atkPattern===1&&e.atkPhase===1?BOSS_COMBO_SWING2
                : BOSS_SWING;
     const _t   = Math.min(e.atkF/_swF, 1);
-    const _cwa = e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*_t
-               : e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*_t
-               : -1.5+3.4*_t;
+    const _cwa = e.atkPattern===1&&e.atkPhase===0?-1.0+4.2*_t
+               : e.atkPattern===1&&e.atkPhase===1?-1.4+4.4*_t
+               : -1.5+4.7*_t;
     if(_cwa > -0.2){
       const _cpx = sx + eW(e)/2 + e.facing*BOSS_PIVOT_X;
       const _cpy = sy + eH(e)/2 + BOSS_PIVOT_Y;
-      const _hx  = _cpx + e.facing*BOSS_REACH*Math.sin(_cwa);
-      const _hy  = _cpy - BOSS_REACH*Math.cos(_cwa);
+      const _hx  = _cpx + e.facing*BOSS_ARM_LEN*Math.sin(_cwa);
+      const _hy  = _cpy - BOSS_ARM_LEN*Math.cos(_cwa);
 
       // Tangent direction (direction of swing velocity)
       const _tanX = e.facing*Math.cos(_cwa);
@@ -8198,8 +8201,8 @@ function drawBoss(e){
       ctx.lineCap = 'round';
       for(let _i=0;_i<5;_i++){
         const _backA  = _cwa - (_i+1)*0.20;
-        const _lx     = _cpx + e.facing*BOSS_REACH*Math.sin(_backA);
-        const _ly     = _cpy - BOSS_REACH*Math.cos(_backA);
+        const _lx     = _cpx + e.facing*BOSS_ARM_LEN*Math.sin(_backA);
+        const _ly     = _cpy - BOSS_ARM_LEN*Math.cos(_backA);
         const _len    = 20 - _i*3;
         const _alpha  = (0.55 - _i*0.09) * _t;
         ctx.globalAlpha  = _alpha;
@@ -10274,7 +10277,11 @@ function _loopUpdate(){
 
       } else {
       // ── GRONK AI ───────────────────────────
-      if(!e.spinning && !e.atk && e.windupTimer===0) e.facing=dx>0?1:-1;
+      // Only re-orient while chasing from distance. Once the player is inside
+      // attack range Gronk commits to his current facing — prevents instant
+      // 180° snap when the player walks past him at close range.
+      if(!e.spinning && !e.atk && e.windupTimer===0 && adx>BOSS_ATK_RANGE)
+        e.facing=dx>0?1:-1;
       // Boss always chases — no patrol state, no range cap
 
       if(e.spinning){
@@ -10490,14 +10497,14 @@ function _loopUpdate(){
         const _swingF=e.atkPattern===1&&e.atkPhase===0?BOSS_COMBO_SWING1
                      :e.atkPattern===1&&e.atkPhase===1?BOSS_COMBO_SWING2
                      :BOSS_SWING;
-        const _wa=e.atkPattern===1&&e.atkPhase===0?-1.0+3.2*Math.min(e.atkF/BOSS_COMBO_SWING1,1)
-                 :e.atkPattern===1&&e.atkPhase===1?-1.4+3.0*Math.min(e.atkF/BOSS_COMBO_SWING2,1)
-                 :-1.5+3.4*Math.min(e.atkF/BOSS_SWING,1);
+        const _wa=e.atkPattern===1&&e.atkPhase===0?-1.0+4.2*Math.min(e.atkF/BOSS_COMBO_SWING1,1)
+                 :e.atkPattern===1&&e.atkPhase===1?-1.4+4.4*Math.min(e.atkF/BOSS_COMBO_SWING2,1)
+                 :-1.5+4.7*Math.min(e.atkF/BOSS_SWING,1);
         // Arc-based hitbox: tracks the club ball tip through the swing.
         // Matches exactly what the trail/telegraph draw — no more wide AABB rectangle.
         const _swingActive = _wa > -0.2;
-        const _tipX = e.x+eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_REACH*Math.sin(_wa));
-        const _tipY = e.y+eH(e)/2 + BOSS_PIVOT_Y - BOSS_REACH*Math.cos(_wa);
+        const _tipX = e.x+eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_ARM_LEN*Math.sin(_wa));
+        const _tipY = e.y+eH(e)/2 + BOSS_PIVOT_Y - BOSS_ARM_LEN*Math.cos(_wa);
         const _hitX = _swingActive && Math.abs(_tipX-(player.x+PW/2)) < BOSS_REACH+PW/2;
         const _hitY = _tipY > player.y-BOSS_REACH && _tipY < player.y+PH+BOSS_REACH;
         if(!e.atkHit){
