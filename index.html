@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1599,13 +1599,41 @@ const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
-let PW=30, PH=58; // player physics hitbox (px) — edit in Player tab of editor
+let PW=44, PH=110;; // player physics hitbox (px) — edit in Player tab of editor
+let _pHitOX=0, _pHitOY=30;; // player hitbox offset (px) — edit in Player tab; shifts the vulnerable box relative to physics position
 const EW=28, EH=52;
 // Helpers that return per-enemy hitbox dimensions, falling back to the shared EW/EH.
 // Bosses with a custom hitW/hitH (from BOSS_ANIM_DEFS) use their own size;
 // regular enemies use the shared constants.
-function eW(e){ return e.hitW||EW; }
-function eH(e){ return e.hitH||EH; }
+function eW(e){ return e.hitW || ENEMY_ANIM_DEFS[e.type]?.hitW || EW; }
+function eH(e){ return e.hitH || ENEMY_ANIM_DEFS[e.type]?.hitH || EH; }
+// Hitbox world position — independent of the sprite visual offset so you can
+// dial in the vulnerable zone separately from where the art sits.
+// hitOffsetX/Y override offsetX/Y when present in ENEMY_ANIM_DEFS.
+// Physics (floor/wall) still uses e.x/e.y; all hit detection uses eSX/eSY.
+function eSX(e){
+  if(!e.boss){
+    const d=ENEMY_ANIM_DEFS[e.type];
+    if(d){
+      const hox = (d.hitOffsetX!=null) ? d.hitOffsetX : (d.offsetX||0);
+      return e.x + hox * e.facing;
+    }
+  }
+  return e.x;
+}
+function eSY(e){
+  if(!e.boss){
+    const d=ENEMY_ANIM_DEFS[e.type];
+    if(d){
+      const hoy = (d.hitOffsetY!=null) ? d.hitOffsetY : (d.offsetY||0);
+      return e.y + hoy;
+    }
+  }
+  return e.y;
+}
+// Player hitbox world position — offset from physics anchor by _pHitOX/_pHitOY.
+function pHitX(){ return player.x + _pHitOX; }
+function pHitY(){ return player.y + _pHitOY; }
 
 // Returns the screen-space visual anchor for boss indicators (stun stars,
 // telegraph symbols, target chevron). Respects BOSS_ANIM_DEFS drawH/offsetX/Y
@@ -3730,6 +3758,9 @@ function spawnNextEnemy(){
     type=Math.random()<0.35?'royal_guard':'guard';
   }
   const st=enemyStats(type);
+  // Pull per-type values from ENEMY_ANIM_DEFS so the entity is correct from
+  // frame 0 — no need to press Apply Live before hitboxes/arc match the sprite.
+  const _ad = ENEMY_ANIM_DEFS[type];
   enemies.push({
     id:eid++, x, y:0, vx:0, vy:0, onGround:false,
     hp:st.hp, maxHp:st.hp, ghostHp:st.hp, ghostDrainDelay:0,
@@ -3741,6 +3772,8 @@ function spawnNextEnemy(){
     pDir:Math.random()<.5?1:-1, pTimer:80+Math.random()*100|0,
     type, slowTimer:0, stunTimer:0, throwAnim:0,
     guardThrowPending:false,
+    // Inherit hitbox size and arc tuning from def so values are live from spawn
+    hitW: _ad?.hitW, hitH: _ad?.hitH,
   });
 }
 
@@ -4411,7 +4444,8 @@ function tickAttackHits(){
     if(e.dead || e.hitCD>0) return;
     if(player.swingHitMap.has(e.id)) return;
     // Expand enemy box by margin — weapon needs to graze the expanded box to register
-    const ex0=e.x-margin, ey0=e.y-margin, ex1=e.x+eW(e)+margin, ey1=e.y+eH(e)+margin;
+    const _sex=eSX(e), _sey=eSY(e);
+    const ex0=_sex-margin, ey0=_sey-margin, ex1=_sex+eW(e)+margin, ey1=_sey+eH(e)+margin;
     let touched = false;
     let prevSeg = null;
     // Sample SWEEP_STEPS+1 blade positions; between each pair test the swept QUAD
@@ -4697,8 +4731,9 @@ function _decayElemAccum(e){
 function _spInRange(p, e, range, halfH, margin=12, bothSides=false){
   if(e.dead) return false;
   const px=p.x+PW/2, py=p.y+PH*0.45;
-  const ex0=e.x-margin, ex1=e.x+EW+margin;
-  const ey0=e.y-margin, ey1=e.y+EH+margin;
+  const _sex=eSX(e), _sey=eSY(e);
+  const ex0=_sex-margin, ex1=_sex+eW(e)+margin;
+  const ey0=_sey-margin, ey1=_sey+eH(e)+margin;
   // Vertical check
   if(py+halfH < ey0 || py-halfH > ey1) return false;
   // Horizontal: if bothSides test both directions, else only facing direction
@@ -5392,7 +5427,7 @@ function feedBossStunBar(e){
   if(!e||!e.boss||e.dead) return;
   e.bossStunProgress=(e.bossStunProgress||0)+1;
   if(e.bossStunProgress>=(e.bossStunMax||1)){
-    e.stunTimer=220;
+    e.stunTimer=e.bossStunDur||220;
     e.bossStunProgress=0;
     floatText(e.x+EW/2-36,e.y-54,'STAGGERED!','#ffd060',true);
     triggerShake(32); rumble(420,1.0,0.85); setTimeout(()=>rumble(280,0.6,0.3),180);
@@ -5427,9 +5462,7 @@ function updateBossStunBar(e){
   }
 }
 
-function spawnBoss(isBossRush=false){
-  if(currentStage===1){ spawnShamaz(isBossRush); return; }
-  if(currentStage===3){ spawnGartu(isBossRush);  return; }
+function spawnGronk(isBossRush=false){
   const cx=camX+canvas.width*0.65;
   const hp=Math.round(3000*((save.difficulty||100)/100));
   bossSpawned=true;
@@ -5453,9 +5486,15 @@ function spawnBoss(isBossRush=false){
     hitW:BOSS_ANIM_DEFS.GRONK?.hitW||EW, hitH:BOSS_ANIM_DEFS.GRONK?.hitH||EH,
     slowTimer:0,stunTimer:0,
     atkPattern:0,atkPhase:0,spinning:false,spinTimer:0,spinDir:1,comboFirstDeflected:false,
-    bossStunMax:4,bossStunProgress:0,
+    bossStunMax:4,bossStunProgress:0,bossStunDur:220,
   });
   document.body.classList.add('boss-fighting');
+}
+
+function spawnBoss(isBossRush=false){
+  if(currentStage===1){ spawnShamaz(isBossRush); return; }
+  if(currentStage===3){ spawnGartu(isBossRush);  return; }
+  spawnGronk(isBossRush);
 }
 
 function spawnShamaz(isBossRush=false){
@@ -5484,7 +5523,7 @@ function spawnShamaz(isBossRush=false){
     atkPattern:0,atkPhase:0,
     comboParriedCount:0,
     cannonFired:false,
-    bossStunMax:2,bossStunProgress:0,
+    bossStunMax:2,bossStunProgress:0,bossStunDur:220,
   });
   document.body.classList.add('boss-fighting');
 }
@@ -5514,7 +5553,7 @@ function spawnGartu(isBossRush=false){
     slowTimer:0,stunTimer:0,
     atkPattern:0,atkPhase:0,
     comboFirstDeflected:false,comboParriedCount:0,
-    bossStunMax:6,bossStunProgress:0,
+    bossStunMax:6,bossStunProgress:0,bossStunDur:220,
   });
   document.body.classList.add('boss-fighting');
 }
@@ -5663,8 +5702,8 @@ function updateEnemyProjectiles(){
 
     if(!p.deflected){
       // deflect check
-      const pdx=Math.abs(p.x-(player.x+PW/2));
-      const pdy=Math.abs(p.y-(player.y+PH*0.4));
+      const pdx=Math.abs(p.x-(pHitX()+PW/2));
+      const pdy=Math.abs(p.y-(pHitY()+PH*0.4));
       if(pdx<36&&pdy<48&&player.deflectTimer>0&&!player.dead){
         p.deflected=true;
         const spd=Math.max(Math.hypot(p.vx,p.vy)*1.35, 10);
@@ -5677,7 +5716,7 @@ function updateEnemyProjectiles(){
         if(attacker) onDeflectSuccess(attacker,{reflectParried:true});
         return;
       }
-      // player hit
+      // player hit (pdx/pdy already use pHitX/pHitY from deflect check above)
       if(pdx<30&&pdy<40&&!player.invuln&&!player.dead&&
          !(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
         const dmg=p.damage;
@@ -7316,9 +7355,8 @@ function drawSwordSprite(p, trailOnly=false){
       const tAncX = _WM.trail.anchorX, tAncY = _WM.trail.anchorY;
       if(isSingleFrameTrail){
         // Single-frame square PNG — draw at current swing angle using anchor metadata.
-        // Strike weapons: use displayH (or 104) so the trail sprite matches the weapon render
-        // size rather than the tiny swingH that controls hitbox range.
-        const _trailRenderH = (motion === 'strike') ? (stepData.displayH || 104) : stepData.swingH;
+        // displayH overrides swingH for trail size — same rule as the weapon render path.
+        const _trailRenderH = stepData.displayH || (motion === 'strike' ? 104 : stepData.swingH);
         const TRAIL_H = _trailRenderH * 1.1;
         const ts = TRAIL_H / tImg.naturalHeight, tw = tImg.naturalWidth*ts, th = tImg.naturalHeight*ts;
         if(motion === 'strike'){
@@ -7399,10 +7437,12 @@ function drawSwordSprite(p, trailOnly=false){
       const srcY = isSingleFrame ? 0                    : af.sy;
       const srcW = isSingleFrame ? wImg.naturalWidth    : af.sw;
       const srcH = isSingleFrame ? wImg.naturalHeight   : af.sh;
-      // Strike weapons use a separate render height so swingH (which controls hitbox range
-      // and is intentionally small for punches/claws) doesn't also shrink the sprite.
-      const renderH = (motion === 'strike') ? (stepData.displayH || 104) : sH;
+      // displayH overrides swingH for rendering only — hitbox still uses swingH.
+      // For strike the fallback is 104 (punches/claws have intentionally small swingH).
+      const renderH = stepData.displayH || (motion === 'strike' ? 104 : sH);
       const as_ = renderH/srcH, aw = srcW*as_, ah = srcH*as_;
+      // displayRot: per-step rotation offset (degrees) layered on top of swing angle.
+      const _dRotRad = (stepData.displayRot || 0) * Math.PI / 180;
       // Anchor: where in the PNG the guard sits.  Read from weapon definition metadata.
       // For single-frame exports this is set by the editor; for legacy spritesheets uses (0.5,0.1).
       const ancX = isSingleFrame ? _WM.weapon.anchorX : 0.5;
@@ -7411,19 +7451,20 @@ function drawSwordSprite(p, trailOnly=false){
         // +π/2 with ancY:0.1 (guard near top): tip at bottom rotates to point right toward enemy.
         ctx.save(); ctx.translate(drawPivX, drawPivY);
         if(p.facing===-1) ctx.scale(-1,1);
-        ctx.rotate(Math.PI/2);
+        ctx.rotate(Math.PI/2 + _dRotRad);
         ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
         ctx.restore();
       } else if(motion === 'strike'){
         ctx.save(); ctx.translate(drawPivX, drawPivY);
         if(p.facing===-1) ctx.scale(-1,1);
+        ctx.rotate(_dRotRad);
         ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
         ctx.restore();
       } else {
         const drawAngle = swordAngle(t, step) + Math.PI/2;
         ctx.save(); ctx.translate(drawPivX, drawPivY);
         if(p.facing===-1) ctx.scale(-1,1);
-        ctx.rotate(drawAngle);
+        ctx.rotate(drawAngle + _dRotRad);
         ctx.drawImage(wImg, srcX, srcY, srcW, srcH, -aw*ancX, -ah*ancY, aw, ah);
         ctx.restore();
       }
@@ -7547,7 +7588,9 @@ function _drawDashTrail(){
 // ── PLAYER SPRITE ────────────────────────
 function drawPlayer(p){
   // Flicker during invulnerability — hide every other 4-frame interval
-  if(p.hitCD>0 && Math.floor(p.hitCD/4)%2===0 && p.hitCD<35) return;
+  // Skip flicker while attacking so the character is always visible during combo chains
+  const _attacking = heroAnim.name==='attack' || heroAnim.name==='throw';
+  if(p.hitCD>0 && !_attacking && Math.floor(p.hitCD/4)%2===0 && p.hitCD<35) return;
   // Pick the right animation frame based on player state (ticked in _loopUpdate)
   const f = HERO_FRAMES[heroAnim.name]?.[heroAnim.frame];
   if(!f || !heroLoaded || !heroCanvas){ drawPlayerFallback(p); return; }
@@ -7639,6 +7682,222 @@ const _bossAnimImages={};
     img.src=def.src;
   });
 })();
+
+// ── ENEMY SPRITE SYSTEM ─────────────────────────────────────────────────────
+// Mirrors BOSS_ANIM_DEFS. Keys are enemy type names ('grunt','pirate',…).
+// Populated from the editor or by adding entries here before game start.
+// Sheet layout rows: idle / move / charge / attack (same convention as bosses).
+const ENEMY_ANIM_DEFS = {};
+const _enemyAnimImages = {};
+
+// ── Pirate sprite sheet — GFX/Pirate.png  384×384  (4 cols × 4 rows, 96×96 per frame)
+// Row 0: idle  (2 frames)   Row 1: walk  (3 frames)
+// Row 2: charge (4 frames)  Row 3: attack (4 frames)
+ENEMY_ANIM_DEFS['pirate'] = {
+  "src": "GFX/Pirate.png",
+  "frameW": 96,
+  "frameH": 96,
+  "drawW": 96,
+  "drawH": 120,
+  "offsetX": 0,
+  "offsetY": 30,
+  "hitOffsetX": null,
+  "hitOffsetY": 30,
+  "hitW": 28,
+  "hitH": 120,
+  "anims": {
+    "idle": {
+      "row": 0,
+      "frames": 2,
+      "fps": 4
+    },
+    "move": {
+      "row": 1,
+      "frames": 3,
+      "fps": 10
+    },
+    "charge": {
+      "row": 2,
+      "frames": 1,
+      "fps": 12
+    },
+    "attack": {
+      "row": 3,
+      "frames": 4,
+      "fps": 12,
+      "loops": 1
+    },
+    "hurt": {
+      "row": 0,
+      "frameOffset": 2,
+      "frames": 1,
+      "fps": 4,
+      "threshold": 8
+    }
+  }
+};
+
+// ── Drunkard sprite sheet — GFX/Drunkard.png
+// Row 0: idle (frame 1) + hurt (frame 2)
+// Row 1: walk  (4 frames)
+// Row 2: charge / windup  (2 frames)
+// Row 3: attack / throw bottle  (3 frames)
+ENEMY_ANIM_DEFS['drunkard'] = {
+  "src": "GFX/Drunkard.png",
+  "frameW": 96,
+  "frameH": 96,
+  "drawW": 96,
+  "drawH": 96,
+  "offsetX": 0,
+  "offsetY": 30,
+  "hitOffsetX": null,
+  "hitOffsetY": null,
+  "hitW": 96,
+  "hitH": 96,
+  "anims": {
+    "idle": {
+      "row": 0,
+      "frames": 1,
+      "fps": 4
+    },
+    "move": {
+      "row": 1,
+      "frames": 4,
+      "fps": 10
+    },
+    "charge": {
+      "row": 2,
+      "frames": 2,
+      "fps": 10
+    },
+    "attack": {
+      "row": 3,
+      "frames": 3,
+      "fps": 12,
+      "loops": 1
+    },
+    "hurt": {
+      "row": 0,
+      "frameOffset": 1,
+      "frames": 1,
+      "fps": 4,
+      "threshold": 8
+    }
+  }
+};
+
+
+// Preload all enemy sprites that have a src defined at startup
+(function _loadEnemyImgs(){
+  Object.keys(ENEMY_ANIM_DEFS).forEach(type => {
+    const def = ENEMY_ANIM_DEFS[type];
+    if(!def.src) return;
+    const img = new Image();
+    img.onload = () => { _enemyAnimImages[type] = stripMagenta(img); };
+    img.src = def.src;
+  });
+})();
+
+function _loadEnemyAnim(type){
+  const def=ENEMY_ANIM_DEFS[type]; if(!def||!def.src) return;
+  const img=new Image();
+  img.onload=()=>{ _enemyAnimImages[type]=stripMagenta(img); };
+  img.src=def.src;
+}
+
+function _getEnemyAnimState(e){
+  if(e.windupTimer>0) return 'charge';
+  if(e.atk || e.throwAnim>0) return 'attack';
+  const _hurtThr=ENEMY_ANIM_DEFS[e.type]?.anims?.hurt?.threshold??8;
+  if(e.hitCD>_hurtThr) return 'hurt';
+  if(Math.abs(e.vx)>0.3) return 'move';
+  return 'idle';
+}
+
+function _tickEnemyAnim(e){
+  if(e.boss) return;
+  const def=ENEMY_ANIM_DEFS[e.type]; if(!def||!def.anims) return;
+  const ns=_getEnemyAnimState(e);
+  if(e.animState!==ns){e.animState=ns;e.animFrame=0;e.animTick=0;}
+  const anim=def.anims[ns]||def.anims.idle; if(!anim) return;
+  if(ns==='charge'&&e.windupTimer>0){
+    const total=(e.type==='knight'&&e.comboPhase===1)?KNIGHT_COMBO_GAP
+              : e.type==='drunkard'?DRUNKARD_THROW_WINDUP
+              : ENEMY_WINDUP_FRAMES;
+    const prog=Math.max(0,1-e.windupTimer/total);
+    e.animFrame=Math.min(anim.frames-1,Math.floor(prog*anim.frames));
+  } else if(ns==='attack'){
+    if(e.type==='drunkard' && (e.throwAnim||0)>0){
+      // Drive throw follow-through off throwAnim countdown (28→0 = release→follow-through end)
+      const prog=Math.min(1, 1-(e.throwAnim/DRUNKARD_THROW_ANIM));
+      e.animFrame=Math.min(anim.frames-1, Math.floor(prog*anim.frames));
+    } else {
+      // loops = how many full animation cycles to play per single atkF window (one physical swing).
+      // loops:1 → frames play once (hold last frame at end).
+      // loops:2 → frames cycle twice within one swing window (e.g. rapid double-slash).
+      const loops = anim.loops || 1;
+      const prog  = Math.min(1, (e.atkF||0) / ENEMY_SWING_FRAMES);
+      const raw   = prog * anim.frames * loops;
+      e.animFrame = loops > 1
+        ? Math.floor(raw) % anim.frames
+        : Math.min(anim.frames - 1, Math.floor(raw));
+    }
+  } else {
+    const tpf=Math.max(1,Math.round(60/anim.fps));
+    e.animTick=(e.animTick||0)+1;
+    if(e.animTick>=tpf){e.animTick=0;e.animFrame=(e.animFrame+1)%anim.frames;}
+  }
+}
+
+// Tries to draw the enemy using a sprite sheet defined in ENEMY_ANIM_DEFS.
+// Returns true if a sprite was drawn (caller should skip procedural body).
+function _drawEnemySprite(e,sx,sy){
+  const def=ENEMY_ANIM_DEFS[e.type]; if(!def||!def.src) return false;
+  const img=_enemyAnimImages[e.type]; if(!img||!img.width) return false;
+  const state=e.animState||'idle';
+  const anim=(def.anims&&(def.anims[state]||def.anims.idle)); if(!anim) return false;
+  const frame=Math.min(e.animFrame||0,anim.frames-1);
+  const srcX=((anim.frameOffset||0)+frame)*def.frameW, srcY=anim.row*def.frameH;
+  const dw=def.drawW||def.frameW, dh=def.drawH||def.frameH;
+  const ox=def.offsetX||0, oy=def.offsetY||0;
+  ctx.save();
+  ctx.translate(sx+eW(e)/2,sy+eH(e));
+  ctx.scale(e.facing,1);
+  ctx.shadowColor=e.windupTimer>0?'rgba(255,100,0,0.85)':'rgba(0,0,0,0.1)';
+  ctx.shadowBlur=e.windupTimer>0?20:4;
+  if(e.hitCD>10) ctx.filter='brightness(2.5) saturate(0)';
+  ctx.drawImage(img,srcX,srcY,def.frameW,def.frameH,-dw/2+ox,-dh+oy,dw,dh);
+  ctx.filter='none';
+  ctx.restore();
+  return true;
+}
+
+// Windup telegraph overlay — used over sprites (procedural draw functions do this inline)
+function _drawEnemyWindupTelegraph(e,sx,sy){
+  if(!e.windupTimer) return;
+  if(e.type==='drunkard') return; // ranged thrower — floor shadow doesn't apply
+  const t=Date.now()/1000;
+  const _wRef=(e.type==='knight'&&e.comboPhase===1)?KNIGHT_COMBO_GAP:ENEMY_WINDUP_FRAMES;
+  const windProg=1-e.windupTimer/_wRef;
+  const gPulse=0.10+0.08*Math.sin(t*10);
+  ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
+  ctx.fillStyle='#ff2200';
+  ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  const sym=(e.type==='knight'&&e.comboPhase===0)?'◆◆':'◆';
+  const exSize=Math.round(18+5*windProg);
+  ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
+  ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
+  ctx.shadowColor='#ff3300';ctx.shadowBlur=18+10*windProg;
+  ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
+  ctx.strokeText(sym,sx+eW(e)/2,sy-50);
+  ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
+  ctx.fillText(sym,sx+eW(e)/2,sy-50);
+  ctx.restore();
+}
+
+const _ETYPE_NAMES={grunt:'Marauder',knight:'Knight',pirate:'Pirate',drunkard:'Drunkard',guard:'Guard',royal_guard:'Royal Guard',heavy:'Heavy'};
+// ────────────────────────────────────────────────────────────────────────────
 
 function _getBossAnimState(e){
   if(e.windupTimer>0||(e.bossName==='GRONK'&&e.spinning)){
@@ -7833,6 +8092,78 @@ function _drawBossSwingTrail(e, sx, sy){
   ctx.globalAlpha = 1.0;
   ctx.fillStyle = '#ffffff';
   ctx.beginPath(); ctx.arc(tip.x, tip.y, 4, 0, Math.PI*2); ctx.fill();
+
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+// ── REGULAR ENEMY SWING ORB ──────────────────────────────────────────────────
+// Shows a small glowing orb + short arc trail at the weapon tip while an enemy
+// is swinging. Subtle blue-white, same color for all enemy types.
+// Uses the same geometry as hit detection (eSX/eSY, atkReach, atkPivY) so
+// the orb traces exactly the dangerous arc.
+function _drawEnemySwingOrb(e, sx, sy){
+  if(!e.atk) return;
+  const _isGuard = e.type==='guard', _isRG = e.type==='royal_guard';
+  const _wa = _isGuard
+    ? 0.05 + 0.55*Math.min(e.atkF/ENEMY_SWING_FRAMES, 1)
+    : -0.9 + 2.2*Math.min(e.atkF/ENEMY_SWING_FRAMES, 1);
+  // Only show once the weapon starts coming forward
+  if(_wa < (_isGuard ? 0.07 : -0.55)) return;
+
+  const _defReach = _isRG?68 : e.type==='knight'?58 : _isGuard?44 : e.type==='pirate'?44 : 34;
+  const _adef = ENEMY_ANIM_DEFS[e.type];
+  const _reach = (_adef?.atkReach!=null) ? _adef.atkReach : _defReach;
+  const _pivX  = _isGuard ? eW(e)*0.55 : eW(e)*0.9;
+  const _pivY  = (_adef?.atkPivY!=null) ? _adef.atkPivY : (_isGuard ? -EH*0.18 : -EH*0.3);
+
+  // Hitbox-centre in screen space (offset-corrected, same as hit detection)
+  const _hcx = eSX(e) - camX + eW(e)/2;
+  const _hcy = eSY(e) + eH(e)/2;
+
+  const tx = _hcx + e.facing*(_pivX + _reach*Math.sin(_wa));
+  const ty = _hcy + _pivY - _reach*Math.cos(_wa);
+
+  // Arc trail — last ~1.1 rad of the sweep
+  const _waStart = _isGuard ? 0.05 : -0.9;
+  const trailSpan = Math.min(_wa - _waStart, 1.1);
+
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+  if(trailSpan > 0.05){
+    const STEPS = 10;
+    const aStart = _wa - trailSpan;
+    // Two passes: wide dim outer glow + narrow bright core
+    const passes = [
+      { lw: 9,  am: 0.09, blur: 16 },
+      { lw: 3,  am: 0.32, blur: 4  },
+    ];
+    for(const p of passes){
+      ctx.lineWidth   = p.lw;
+      ctx.strokeStyle = '#b8cfff';
+      ctx.shadowColor = 'rgba(150,185,255,0.85)';
+      ctx.shadowBlur  = p.blur;
+      for(let i=1; i<=STEPS; i++){
+        const t0=(i-1)/STEPS, t1=i/STEPS;
+        const wa0=aStart+trailSpan*t0, wa1=aStart+trailSpan*t1;
+        const x0=_hcx+e.facing*(_pivX+_reach*Math.sin(wa0)), y0=_hcy+_pivY-_reach*Math.cos(wa0);
+        const x1=_hcx+e.facing*(_pivX+_reach*Math.sin(wa1)), y1=_hcy+_pivY-_reach*Math.cos(wa1);
+        ctx.globalAlpha = p.am * (t1*t1); // quadratic fade: bright at tip, gone at tail
+        ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+      }
+    }
+  }
+
+  // Tip orb — small outer glow + bright white core
+  ctx.shadowColor = 'rgba(150,185,255,0.9)'; ctx.shadowBlur = 14;
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle   = '#b8cfff';
+  ctx.beginPath(); ctx.arc(tx, ty, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur  = 5;
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle   = '#ffffff';
+  ctx.beginPath(); ctx.arc(tx, ty, 1.8, 0, Math.PI*2); ctx.fill();
 
   ctx.globalAlpha = 1; ctx.shadowBlur = 0;
   ctx.restore();
@@ -8286,13 +8617,29 @@ function _drawSlamStunIndicator(e){
 // ── ENEMY SPRITE ─────────────────────────
 function drawEnemy(e){
   if(e.boss){ drawBoss(e); return; }
-  if(e.type==='pirate')      { drawPirate(e);     return; }
-  if(e.type==='drunkard')    { drawDrunkard(e);   return; }
-  if(e.type==='guard')       { drawGuard(e);      return; }
-  if(e.type==='royal_guard') { drawRoyalGuard(e); return; }
   const sx=e.x-camX;
   if(sx<-100||sx>canvas.width+100) return;
-  const sy=e.y,flash=e.hitCD>10;
+  const sy=e.y;
+  // Sprite sheet — replaces procedural body; overlays drawn below
+  if(_drawEnemySprite(e,sx,sy)){
+    // Overlay anchors use the sprite-offset screen position so HP bar, telegraph
+    // and indicators track the visible sprite, not the raw physics position.
+    const _def=ENEMY_ANIM_DEFS[e.type];
+    const _osx=sx+(_def?(_def.offsetX||0)*e.facing:0);
+    const _osy=sy+(_def?(_def.offsetY||0):0);
+    _drawEnemyWindupTelegraph(e,_osx,_osy);
+    _drawEnemyHpBar(e,_osx+eW(e)/2-41,_osy-30,82,9,1,_ETYPE_NAMES[e.type]||(e.type||'Enemy'));
+    _drawTargetIndicator(e,_osx,_osy);
+    _drawStunStars(e,_osx,_osy);
+    _drawEnemySwingOrb(e,sx,sy);
+    return;
+  }
+  if(e.type==='pirate')      { drawPirate(e);      _drawEnemySwingOrb(e,sx,sy); return; }
+  if(e.type==='drunkard')    { drawDrunkard(e);    _drawEnemySwingOrb(e,sx,sy); return; }
+  if(e.type==='guard')       { drawGuard(e);       _drawEnemySwingOrb(e,sx,sy); return; }
+  if(e.type==='royal_guard') { drawRoyalGuard(e);  _drawEnemySwingOrb(e,sx,sy); return; }
+  // default grunt/knight procedural path
+  const flash=e.hitCD>10;
   const windingUp=e.windupTimer>0;
   const windPulse=windingUp&&Math.floor(e.windupTimer/5)%2===0;
   // Type-based body colours (no tiers)
@@ -8492,6 +8839,8 @@ function drawEnemy(e){
     ctx.fillStyle='#ffffff'; ctx.fillText('TARGET',ix,iy-22);
     ctx.restore();
   }
+  // Swing orb drawn last so it sits on top of everything
+  _drawEnemySwingOrb(e, sx, sy);
 }
 
 // ── DRAW PIRATE ─────────────────────────────────────────────
@@ -9407,6 +9756,7 @@ function _bossHitPlayer(e, dmg, knockVx, knockVy){
   player.vx=knockVx; player.vy=knockVy;
   setHpBar(player.hp,player.maxHp);
   const bx=player.x+PW/2, by=player.y+PH*0.35;
+  floatText(bx, by-22, `-${dmg}`, '#ff4040', false);
   for(let i=0;i<22;i++){
     const spread=(Math.random()-.5)*1.8, spd=3+Math.random()*7;
     particles.push({type:'blood',x:bx,y:by,
@@ -9437,7 +9787,7 @@ function onDeflectSuccess(attacker, {skipStun=false, fastReady=false, reflectPar
         e.bossStunProgress=(e.bossStunProgress||0)+1;
         if(e.bossStunProgress>=(e.bossStunMax||1)){
           // Bar filled → full stagger only
-          e.stunTimer=220;
+          e.stunTimer=e.bossStunDur||220;
           e.bossStunProgress=0;
           floatText(e.x+EW/2-36,e.y-54,'STAGGERED!','#ffd060',true);
           triggerShake(32); rumble(420,1.0,0.85); setTimeout(()=>rumble(280,0.6,0.3),180);
@@ -10146,7 +10496,7 @@ function _loopUpdate(){
       if(e.boss) e.comboFirstDeflected=false;
       else { e.comboPhase=0; e.comboFirstDeflected=false; }
       if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
-      if(e.boss) _tickBossAnim(e);
+      if(e.boss) _tickBossAnim(e); else _tickEnemyAnim(e);
       // GARTU: juggled during stun uses juggle gravity; bossSlamStunned uses normal
       // gravity so it falls/stays on the floor; otherwise 0 so spring stays in control
       const _gm = (e.boss&&e.bossName==='GARTU')
@@ -10272,8 +10622,8 @@ function _loopUpdate(){
         }
         if(!e.atkHit){
           // Hitbox overlap — spin hurts if the player touches GRONK's body
-          const _sox=player.x+PW>e.x && player.x<e.x+eW(e);
-          const _soy=player.y+PH>e.y && player.y<e.y+eH(e);
+          const _sox=pHitX()+PW>e.x && pHitX()<e.x+eW(e);
+          const _soy=pHitY()+PH>e.y && pHitY()<e.y+eH(e);
           if(_sox&&_soy){
             if(player.deflectTimer>0){e.atkHit=true;onDeflectSuccess(e);}
             else if(!player.invuln&&!(player.evadeTimer>(EVADE_DURATION-EVADE_INVULN_FRAMES))){
@@ -10341,11 +10691,12 @@ function _loopUpdate(){
       if(e.state==='chase'){
         e.facing=dx>0?1:-1;
         // Range by type
-        const _atkRange = e.type==='knight'?90
-                        : e.type==='drunkard'?DRUNKARD_THROW_RANGE
-                        : e.type==='guard'?GUARD_THRUST_RANGE
-                        : e.type==='royal_guard'?ROYAL_GUARD_ATK_RANGE
-                        : ENEMY_ATK_RANGE;
+        const _defAtkRange = e.type==='knight'?90
+                           : e.type==='drunkard'?DRUNKARD_THROW_RANGE
+                           : e.type==='guard'?GUARD_THRUST_RANGE
+                           : e.type==='royal_guard'?ROYAL_GUARD_ATK_RANGE
+                           : ENEMY_ATK_RANGE;
+        const _atkRange = ENEMY_ANIM_DEFS[e.type]?.atkRange ?? _defAtkRange;
         if(e.windupTimer>0){
           e.vx *= (e.type==='knight'||e.type==='royal_guard')?0.40:0.70;
           e.windupTimer--;
@@ -10433,8 +10784,8 @@ function _loopUpdate(){
         // sprite, making the entire arc swing over the player's head.
         const _tipX=e.x+eW(e)/2+e.facing*(SHAMAZ_HOOK_PIVOT_X+SHAMAZ_HOOK_REACH*Math.sin(_wa));
         const _tipY=e.y+eH(e)/2+SHAMAZ_HOOK_PIVOT_Y-SHAMAZ_HOOK_REACH*Math.cos(_wa);
-        const _hitX=Math.abs(_tipX-(player.x+PW/2))<80;
-        const _hitY=_tipY>player.y-20&&_tipY<player.y+PH+20;
+        const _hitX=Math.abs(_tipX-(pHitX()+PW/2))<80;
+        const _hitY=_tipY>pHitY()-20&&_tipY<pHitY()+PH+20;
         if(!e.atkHit){
           if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
@@ -10480,8 +10831,8 @@ function _loopUpdate(){
         const _swingActive = _wa > -0.2;
         const _tipX = e.x+eW(e)/2 + e.facing*(BOSS_PIVOT_X + BOSS_ARM_LEN*Math.sin(_wa));
         const _tipY = e.y+eH(e)/2 + BOSS_PIVOT_Y - BOSS_ARM_LEN*Math.cos(_wa);
-        const _hitX = _swingActive && Math.abs(_tipX-(player.x+PW/2)) < BOSS_REACH+PW/2;
-        const _hitY = _tipY > player.y-BOSS_REACH && _tipY < player.y+PH+BOSS_REACH;
+        const _hitX = _swingActive && Math.abs(_tipX-(pHitX()+PW/2)) < BOSS_REACH+PW/2;
+        const _hitY = _tipY > pHitY()-BOSS_REACH && _tipY < pHitY()+PH+BOSS_REACH;
         if(!e.atkHit){
           if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
@@ -10515,14 +10866,16 @@ function _loopUpdate(){
           const _wa=_isGuard
             ? 0.05+0.55*Math.min(e.atkF/ENEMY_SWING_FRAMES,1)   // forward stab
             : -0.9+2.2*Math.min(e.atkF/ENEMY_SWING_FRAMES,1);   // overhead chop
-          const _reach=_isRG?68:e.type==='knight'?58:_isGuard?44:e.type==='pirate'?44:34;
-          const _pivX=_isGuard?EW*0.55:EW*0.9;
-          const _pivY=_isGuard?-EH*0.18:-EH*0.3;
-          const _tipX=e.x+EW/2+e.facing*(_pivX+_reach*Math.sin(_wa));
-          const _tipY=e.y+EH/2+_pivY-_reach*Math.cos(_wa);
+          const _defReach=_isRG?68:e.type==='knight'?58:_isGuard?44:e.type==='pirate'?44:34;
+          const _adef = ENEMY_ANIM_DEFS[e.type];
+          const _reach = (_adef?.atkReach!=null) ? _adef.atkReach : _defReach;
+          const _pivX  = _isGuard ? eW(e)*0.55 : eW(e)*0.9;
+          const _pivY  = (_adef?.atkPivY!=null) ? _adef.atkPivY : (_isGuard ? -EH*0.18 : -EH*0.3);
+          const _tipX=eSX(e)+eW(e)/2+e.facing*(_pivX+_reach*Math.sin(_wa));
+          const _tipY=eSY(e)+eH(e)/2+_pivY-_reach*Math.cos(_wa);
           const _hxTol=_isGuard?28:40;
-          const _hitX=Math.abs(_tipX-(player.x+PW/2))<_hxTol;
-          const _hitY=_tipY>player.y-15&&_tipY<player.y+PH+15;
+          const _hitX=Math.abs(_tipX-(pHitX()+PW/2))<_hxTol;
+          const _hitY=_tipY>pHitY()-15&&_tipY<pHitY()+PH+15;
           if(_hitX&&_hitY&&player.deflectTimer>0){
             e.atkHit=true;
             if(_isGuard){
@@ -10567,6 +10920,7 @@ function _loopUpdate(){
             player.vx-=e.facing*10; player.vy-=3;
             setHpBar(player.hp,player.maxHp);
             const bx=player.x+PW/2, by=player.y+PH*0.35;
+            floatText(bx, by-22, `-${dmg}`, '#ff4040', false);
             for(let i=0;i<22;i++){
               const spread=(Math.random()-.5)*1.8, spd=3+Math.random()*7;
               particles.push({type:'blood',x:bx,y:by,
@@ -10593,7 +10947,7 @@ function _loopUpdate(){
       }
     }
     if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
-    if(e.boss) _tickBossAnim(e);
+    if(e.boss) _tickBossAnim(e); else _tickEnemyAnim(e);
     if(e.juggled&&e.onGround) e.juggled=false;
     // Air-freeze: hold enemy in place after aerial grapple arrival
     if(e.airFreezeTimer>0){
@@ -10782,12 +11136,22 @@ function _drawDebugHitboxes(){
     if(e.dead) return;
     const sx=e.x-camX, sy=e.y;
     const ew=eW(e), eh=eH(e);
+    // Hit-detection position (sprite-offset)
+    const hsx=eSX(e)-camX, hsy=eSY(e);
 
-    // Body hitbox — red outline
+    // Physics anchor — faint grey outline
+    if(hsx!==sx || hsy!==sy){
+      ctx.strokeStyle='rgba(180,180,180,0.35)';
+      ctx.lineWidth=1;
+      ctx.setLineDash([2,4]);
+      ctx.strokeRect(sx, sy, ew, eh);
+      ctx.setLineDash([]);
+    }
+    // Hit box — red outline (offset position)
     ctx.strokeStyle='rgba(255,60,60,0.85)';
     ctx.lineWidth=1.5;
     ctx.setLineDash([4,3]);
-    ctx.strokeRect(sx, sy, ew, eh);
+    ctx.strokeRect(hsx, hsy, ew, eh);
     ctx.setLineDash([]);
 
     if(e.boss){
@@ -10851,25 +11215,55 @@ function _drawDebugHitboxes(){
       }
 
     } else {
-      // Regular enemy melee range — cyan line forward
-      const _atkRange = e.type==='knight'?90
-                      : e.type==='guard'?75
-                      : e.type==='royal_guard'?100
-                      : e.type==='drunkard'?DRUNKARD_THROW_RANGE
-                      : ENEMY_ATK_RANGE;
+      // Regular enemy — azure trigger-range line + weapon-arc sweep preview
+      const _defAtkRangeD = e.type==='knight'?90
+                          : e.type==='guard'?75
+                          : e.type==='royal_guard'?100
+                          : e.type==='drunkard'?DRUNKARD_THROW_RANGE
+                          : ENEMY_ATK_RANGE;
+      const _adefD = ENEMY_ANIM_DEFS[e.type];
+      const _atkRange = _adefD?.atkRange ?? _defAtkRangeD;
+      const _acx=hsx+ew/2, _acy=hsy+eh/2; // hitbox centre (screen)
+      // Trigger-range line
       ctx.strokeStyle='rgba(60,220,255,0.6)';
       ctx.lineWidth=1;
       ctx.setLineDash([4,3]);
       ctx.beginPath();
-      ctx.moveTo(sx+ew/2, sy+eh/2);
-      ctx.lineTo(sx+ew/2+e.facing*_atkRange, sy+eh/2);
+      ctx.moveTo(_acx, _acy);
+      ctx.lineTo(_acx+e.facing*_atkRange, _acy);
       ctx.stroke();
       ctx.setLineDash([]);
       // Range endpoint dot
       ctx.fillStyle='rgba(60,220,255,0.7)';
       ctx.beginPath();
-      ctx.arc(sx+ew/2+e.facing*_atkRange, sy+eh/2, 3, 0, Math.PI*2);
+      ctx.arc(_acx+e.facing*_atkRange, _acy, 3, 0, Math.PI*2);
       ctx.fill();
+      // Weapon-arc sweep preview — uses same values as actual hit detection
+      const _isGuardD=e.type==='guard', _isRGD=e.type==='royal_guard';
+      const _defReachD=_isRGD?68:e.type==='knight'?58:_isGuardD?44:e.type==='pirate'?44:34;
+      const _reach = (_adefD?.atkReach!=null) ? _adefD.atkReach : _defReachD;
+      const _pivX  = _isGuardD ? ew*0.55 : ew*0.9;
+      const _pivY  = (_adefD?.atkPivY!=null) ? _adefD.atkPivY : (_isGuardD ? -EH*0.18 : -EH*0.3);
+      const _waStart=_isGuardD?0.05:-0.9, _waEnd=_isGuardD?0.60:1.3;
+      const _txS=_acx+e.facing*(_pivX+_reach*Math.sin(_waStart)), _tyS=_acy+_pivY-_reach*Math.cos(_waStart);
+      const _txE=_acx+e.facing*(_pivX+_reach*Math.sin(_waEnd)),   _tyE=_acy+_pivY-_reach*Math.cos(_waEnd);
+      // Arc path
+      ctx.strokeStyle='rgba(255,160,40,0.7)';
+      ctx.lineWidth=1;
+      ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      ctx.moveTo(_txS, _tyS);
+      ctx.lineTo(_acx+e.facing*_pivX, _acy+_pivY);
+      ctx.lineTo(_txE, _tyE);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Pivot dot
+      ctx.fillStyle='rgba(255,200,0,0.8)';
+      ctx.beginPath(); ctx.arc(_acx+e.facing*_pivX,_acy+_pivY,3,0,Math.PI*2); ctx.fill();
+      // Tip dots
+      ctx.fillStyle='rgba(255,100,0,0.85)';
+      ctx.beginPath(); ctx.arc(_txS,_tyS,3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(_txE,_tyE,3,0,Math.PI*2); ctx.fill();
     }
 
     // Entity label
@@ -10878,16 +11272,24 @@ function _drawDebugHitboxes(){
     ctx.fillText(`${e.type||e.bossName||'?'} hp:${e.hp|0}`, sx, sy-3);
   });
 
-  // ── PLAYER HITBOX — green ─────────────────────────────────
+  // ── PLAYER HITBOX ─────────────────────────────────────────
   const px=player.x-camX, py=player.y;
-  ctx.strokeStyle='rgba(60,255,120,0.8)';
+  // Physics anchor — faint grey
+  ctx.strokeStyle='rgba(180,180,180,0.35)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([2,4]);
+  ctx.strokeRect(px, py, PW, PH);
+  ctx.setLineDash([]);
+  // Hit box — green (offset)
+  const phx=pHitX()-camX, phy=pHitY();
+  ctx.strokeStyle='rgba(60,255,120,0.85)';
   ctx.lineWidth=1.5;
   ctx.setLineDash([4,3]);
-  ctx.strokeRect(px, py, PW, PH);
+  ctx.strokeRect(phx, phy, PW, PH);
   ctx.setLineDash([]);
   ctx.fillStyle='rgba(60,255,120,0.7)';
   ctx.font='9px monospace';
-  ctx.fillText(`player hp:${player.hp|0}`, px, py-3);
+  ctx.fillText(`player hp:${player.hp|0} hitOX:${_pHitOX} hitOY:${_pHitOY}`, px, py-3);
 
   ctx.restore();
 }
@@ -12186,8 +12588,7 @@ document.addEventListener('touchstart',function _ft(){
   <div id="we-tabs">
     <button class="we-tab active" data-tab="weapon">⚔ Weapon</button>
     <button class="we-tab" data-tab="player">🧍 Player</button>
-    <button class="we-tab" data-tab="boss">💀 Boss</button>
-    <button class="we-tab" data-tab="enemy">👹 Enemy</button>
+    <button class="we-tab" data-tab="entities">👹 Entities</button>
   </div>
   <button id="we-hitbox-btn" title="Toggle hitbox overlay on canvas" style="font-size:10px;padding:3px 8px;background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.25);border-radius:4px;cursor:pointer;color:#cc8080;">👁 Hitboxes</button>
   <span style="font-size:10px;color:#706050">[ \` ] to toggle</span>
@@ -12230,6 +12631,8 @@ document.addEventListener('touchstart',function _ft(){
     <div class="we-row"><label>pivotX</label><input id="wf-pivotX" type="number" step="1"></div>
     <div class="we-row"><label>pivotY</label><input id="wf-pivotY" type="number" step="0.01" min="0" max="1"></div>
     <div class="we-row"><label>swingH</label><input id="wf-swingH" type="number" step="2"></div>
+    <div class="we-row"><label title="Visual sprite height (px). 0 = auto (uses swingH; 104 for strike). Hitbox unaffected.">displayH</label><input id="wf-displayH" type="number" step="2" min="0" max="300" placeholder="0 = auto"></div>
+    <div class="we-row"><label title="Extra rotation offset (°) added on top of swing angle. 0 = default.">displayRot</label><input id="wf-displayRot" type="number" step="1" min="-180" max="180" placeholder="0"></div>
     <div class="we-row"><label>duration (frames)</label><input id="wf-duration" type="number" step="1" min="1"></div>
     <div class="we-row"><label>dmgMult</label><input id="wf-dmgMult" type="number" step="0.05" min="0.1"></div>
     <div class="we-row"><label>stamCost</label><input id="wf-stamCost" type="number" step="1" min="0"></div>
@@ -12276,6 +12679,8 @@ document.addEventListener('touchstart',function _ft(){
     <div class="we-section-title">Physics Hitbox</div>
     <div class="we-row"><label title="Player hitbox width (PW)">Hitbox W</label><input id="pf-pw" type="number" step="1" min="8" max="80"></div>
     <div class="we-row"><label title="Player hitbox height (PH)">Hitbox H</label><input id="pf-ph" type="number" step="1" min="16" max="120"></div>
+    <div class="we-row"><label title="Shifts the hit-detection box left/right relative to physics anchor (shown as green rect in debug)">Hit Offset X</label><input id="pf-hitOX" type="number" step="1" value="0"></div>
+    <div class="we-row"><label title="Shifts the hit-detection box up/down relative to physics anchor (shown as green rect in debug)">Hit Offset Y</label><input id="pf-hitOY" type="number" step="1" value="0"></div>
   </div>
   <div style="display:flex;gap:8px;margin-top:4px;">
     <button id="pe-apply-btn">▶ Apply Live</button>
@@ -12288,63 +12693,96 @@ document.addEventListener('touchstart',function _ft(){
 </div>
 
 <!-- ── ENEMY TAB ── -->
-<div id="ee-body" data-panel="enemy" style="display:none">
+<!-- ── ENTITIES TAB (enemies + bosses unified) ── -->
+<div id="ente-body" data-panel="entities" style="display:none">
+  <!-- Entity selector -->
   <div class="we-section">
-    <div class="we-section-title">Enemy Type</div>
-    <div class="we-row"><label>Type</label>
-      <select id="ef-type">
-        <option value="grunt">Grunt</option>
-        <option value="knight">Knight</option>
-        <option value="guard">Guard</option>
-        <option value="royal_guard">Royal Guard</option>
-        <option value="drunkard">Drunkard</option>
-        <option value="heavy">Heavy</option>
+    <div class="we-section-title">Entity</div>
+    <div class="we-row"><label>Select</label>
+      <select id="ent-sel" style="flex:1;max-width:140px;">
+        <optgroup label="── Enemies ──">
+          <option value="e:grunt">Grunt (Marauder)</option>
+          <option value="e:knight">Knight</option>
+          <option value="e:pirate">Pirate</option>
+          <option value="e:drunkard">Drunkard</option>
+          <option value="e:guard">Guard</option>
+          <option value="e:royal_guard">Royal Guard</option>
+          <option value="e:heavy">Heavy</option>
+        </optgroup>
+        <optgroup label="── Bosses ──">
+          <option value="b:GRONK">⚔ Gronk</option>
+          <option value="b:SHAMAZ">⚓ Shamaz</option>
+          <option value="b:GARTU">✦ Gartu</option>
+        </optgroup>
       </select>
     </div>
   </div>
+
+  <!-- Sprite & Hitbox (shared) -->
   <div class="we-section">
+    <div class="we-section-title">Sprite & Hitbox</div>
+    <div class="we-row"><label title="Path to sprite sheet PNG (leave blank for procedural)">Sheet src</label><input id="ent-src" type="text" placeholder="GFX/enemy.png" style="flex:1;min-width:0;font-size:10px;"></div>
+    <div class="we-row"><label title="Source frame width in sprite sheet">frameW</label><input id="ent-fW" type="number" step="2" min="1" value="64"></div>
+    <div class="we-row"><label title="Source frame height in sprite sheet">frameH</label><input id="ent-fH" type="number" step="2" min="1" value="64"></div>
+    <div class="we-row"><label title="Rendered width on screen">drawW</label><input id="ent-dW" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Rendered height on screen">drawH</label><input id="ent-dH" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Horizontal draw offset from sprite anchor (visual only)">offsetX</label><input id="ent-oX" type="number" step="2" value="0"></div>
+    <div class="we-row"><label title="Vertical draw offset from sprite anchor (visual only)">offsetY</label><input id="ent-oY" type="number" step="2" value="0"></div>
+    <div class="we-row"><label title="Hitbox X offset — shifts hit detection box independently of sprite art (blank = use offsetX)">hitOfsX</label><input id="ent-hitOX" type="number" step="1" placeholder="= offsetX"></div>
+    <div class="we-row"><label title="Hitbox Y offset — shifts hit detection box independently of sprite art (blank = use offsetY)">hitOfsY</label><input id="ent-hitOY" type="number" step="1" placeholder="= offsetY"></div>
+    <div class="we-row"><label title="Hitbox width (physics/collision)">hitW</label><input id="ent-hW" type="number" step="4" min="4"></div>
+    <div class="we-row"><label title="Hitbox height (physics/collision)">hitH</label><input id="ent-hH" type="number" step="4" min="4"></div>
+  </div>
+
+  <!-- Anim rows (shared) -->
+  <div class="we-section">
+    <div class="we-section-title">Animations <span style="font-size:9px;opacity:0.55">(row / frames / fps)</span></div>
+    <div class="we-row"><label>idle</label>
+      <input id="ent-ai-row" type="number" step="1" min="0" value="0" style="width:36px;">
+      <input id="ent-ai-frames" type="number" step="1" min="1" value="4" style="width:36px;">
+      <input id="ent-ai-fps" type="number" step="1" min="1" value="6" style="width:36px;">
+    </div>
+    <div class="we-row"><label>move</label>
+      <input id="ent-am-row" type="number" step="1" min="0" value="1" style="width:36px;">
+      <input id="ent-am-frames" type="number" step="1" min="1" value="4" style="width:36px;">
+      <input id="ent-am-fps" type="number" step="1" min="1" value="10" style="width:36px;">
+    </div>
+    <div class="we-row"><label>charge</label>
+      <input id="ent-ac-row" type="number" step="1" min="0" value="2" style="width:36px;">
+      <input id="ent-ac-frames" type="number" step="1" min="1" value="4" style="width:36px;">
+      <input id="ent-ac-fps" type="number" step="1" min="1" value="8" style="width:36px;">
+    </div>
+    <div class="we-row"><label>attack</label>
+      <input id="ent-aa-row" type="number" step="1" min="0" value="3" style="width:36px;">
+      <input id="ent-aa-frames" type="number" step="1" min="1" value="4" style="width:36px;">
+      <input id="ent-aa-fps" type="number" step="1" min="1" value="10" style="width:36px;">
+    </div>
+    <div class="we-row" title="Hurt: single frame shown when hitCD exceeds threshold"><label>hurt</label>
+      <input id="ent-ah-row" type="number" step="1" min="0" value="0" style="width:36px;" title="Sheet row">
+      <input id="ent-ah-col" type="number" step="1" min="0" value="0" style="width:36px;" title="Frame column (frameOffset)">
+      <input id="ent-ah-thr" type="number" step="1" min="0" value="8" style="width:36px;" title="Min hitCD to show hurt">
+    </div>
+  </div>
+  <div style="font-size:9px;opacity:0.45;padding:0 4px 4px;">hurt: row / col / hitCD threshold</div>
+
+  <!-- Enemy stats (hidden for bosses) -->
+  <div class="we-section" id="ent-enemy-section">
     <div class="we-section-title">Stats</div>
     <div class="we-row"><label>HP</label><input id="ef-hp" type="number" step="10" min="10"></div>
     <div class="we-row"><label>DMG</label><input id="ef-dmg" type="number" step="1" min="1"></div>
     <div class="we-row"><label>Speed</label><input id="ef-speed" type="number" step="0.05" min="0.1" max="6"></div>
     <div class="we-row"><label>EXP</label><input id="ef-exp" type="number" step="5" min="0"></div>
     <div class="we-row"><label>Gold</label><input id="ef-gold" type="number" step="5" min="0"></div>
-  </div>
-  <div class="we-section">
-    <div class="we-section-title">Attack</div>
     <div class="we-row"><label title="Frames between attacks">atkCD</label><input id="ef-atkCD" type="number" step="5" min="10"></div>
-    <div class="we-row"><label title="Horizontal melee reach in pixels">Atk range (px)</label><input id="ef-atkRange" type="number" step="4" min="20"></div>
+    <div class="we-row"><label title="Distance enemy enters windup — shown as cyan line in debug">Atk range (px)</label><input id="ef-atkRange" type="number" step="4" min="20"></div>
+    <div class="we-row"><label title="Weapon tip distance from pivot — how far the swing reaches — shown as orange arc in debug">Atk reach (px)</label><input id="ef-atkReach" type="number" step="2" min="8"></div>
+    <div class="we-row"><label title="Arc pivot Y offset from hitbox centre. Negative = higher up. Moves the orange arc up or down in debug.">Arc pivot Y</label><input id="ef-atkPivY" type="number" step="2"></div>
     <div class="we-row"><label title="Windup frames before swing">Windup frames</label><input id="ef-windup" type="number" step="1" min="1"></div>
     <div class="we-row"><label title="Damage per hit">Hit DMG</label><input id="ef-hitDmg" type="number" step="1" min="1"></div>
   </div>
-  <div style="display:flex;gap:8px;margin-top:4px;">
-    <button id="ee-apply-btn">▶ Apply to All Live</button>
-  </div>
-  <div class="we-hint">Applies to all living enemies of selected type immediately.</div>
-</div>
 
-<!-- ── BOSS TAB ── -->
-<div id="be-body" data-panel="boss" style="display:none">
-  <div class="we-section">
-    <div class="we-section-title">Boss</div>
-    <div class="we-row"><label>Boss</label>
-      <select id="be-bsel">
-        <option value="GRONK">⚔ Gronk</option>
-        <option value="SHAMAZ">⚓ Shamaz</option>
-        <option value="GARTU">✦ Gartu</option>
-      </select>
-    </div>
-  </div>
-  <div class="we-section">
-    <div class="we-section-title">Sprite & Hitbox</div>
-    <div class="we-row"><label title="Rendered width in pixels">drawW</label><input id="bf-drawW" type="number" step="4" min="8"></div>
-    <div class="we-row"><label title="Rendered height in pixels">drawH</label><input id="bf-drawH" type="number" step="4" min="8"></div>
-    <div class="we-row"><label title="Horizontal draw offset from entity x">offsetX</label><input id="bf-offsetX" type="number" step="2"></div>
-    <div class="we-row"><label title="Vertical draw offset from entity y">offsetY</label><input id="bf-offsetY" type="number" step="2"></div>
-    <div class="we-row"><label title="Hitbox width (collision detection)">hitW</label><input id="bf-hitW" type="number" step="4" min="8"></div>
-    <div class="we-row"><label title="Hitbox height (collision detection)">hitH</label><input id="bf-hitH" type="number" step="4" min="8"></div>
-  </div>
-  <div class="we-section">
+  <!-- Boss stats (hidden for enemies) -->
+  <div class="we-section" id="ent-boss-section" style="display:none">
     <div class="we-section-title">Stats</div>
     <div class="we-row"><label>HP (base)</label><input id="bf-hp" type="number" step="50" min="100"></div>
     <div class="we-row"><label>DMG</label><input id="bf-dmg" type="number" step="1" min="1"></div>
@@ -12353,14 +12791,18 @@ document.addEventListener('touchstart',function _ft(){
     <div class="we-row"><label>EXP reward</label><input id="bf-exp" type="number" step="10" min="0"></div>
     <div class="we-row"><label>Gold reward</label><input id="bf-gold" type="number" step="10" min="0"></div>
   </div>
-  <div class="we-section">
+
+  <!-- Boss stagger (hidden for enemies) -->
+  <div class="we-section" id="ent-stagger-section" style="display:none">
     <div class="we-section-title">Stagger</div>
-    <div class="we-row"><label title="Hits required to break boss guard and open stun window">Stun threshold</label><input id="bf-stunMax" type="number" step="1" min="1" max="20"></div>
-    <div class="we-row"><label title="How many frames the boss stays stunned after threshold is reached">Stun duration</label><input id="bf-stunDur" type="number" step="5" min="1"></div>
-    <div class="we-row"><label title="How long between attacks before boss can start a new attack (ENEMY_WINDUP_FRAMES)">Windup frames</label><input id="bf-windup" type="number" step="1" min="1"></div>
+    <div class="we-row"><label title="Hits to fill stagger bar">Stun threshold</label><input id="bf-stunMax" type="number" step="1" min="1" max="20"></div>
+    <div class="we-row"><label title="Frames boss stays stunned once bar fills">Stun duration</label><input id="bf-stunDur" type="number" step="5" min="1"></div>
+    <div class="we-row"><label title="Windup frames before each boss attack">Windup frames</label><input id="bf-windup" type="number" step="1" min="1"></div>
   </div>
-  <div class="we-section">
-    <div class="we-section-title">Attack Hitbox</div>
+
+  <!-- Boss attack hitbox globals (hidden for enemies) -->
+  <div class="we-section" id="ent-bhitbox-section" style="display:none">
+    <div class="we-section-title">Attack Hitbox Globals</div>
     <div class="we-section-title" style="font-size:9px;opacity:0.6;margin-bottom:2px;">GRONK (club arc)</div>
     <div class="we-row"><label title="Distance boss enters windup within">Atk range</label><input id="bf-atkRange" type="number" step="4" min="20"></div>
     <div class="we-row"><label title="Club head collision radius">Reach (radius)</label><input id="bf-reach" type="number" step="2" min="4"></div>
@@ -12371,23 +12813,27 @@ document.addEventListener('touchstart',function _ft(){
     <div class="we-row"><label title="Hook sweep radius">Hook reach</label><input id="bf-hookReach" type="number" step="4" min="4"></div>
     <div class="we-row"><label title="Hook pivot X from boss centre">Hook pivot X</label><input id="bf-hookPivX" type="number" step="2"></div>
     <div class="we-row"><label title="Hook pivot Y from boss centre (positive = down)">Hook pivot Y</label><input id="bf-hookPivY" type="number" step="2"></div>
-  </div>
-  <div class="we-section">
-    <div class="we-section-title">GRONK only</div>
-    <div class="we-row"><label>Spin duration (frames)</label><input id="bf-spinDur" type="number" step="1" min="1"></div>
-    <div class="we-section-title" style="margin-top:6px;">SHAMAZ only</div>
+    <!-- GRONK specific -->
+    <div class="we-row" id="ent-gronk-row"><label>Spin duration (frames)</label><input id="bf-spinDur" type="number" step="1" min="1"></div>
+    <!-- SHAMAZ specific -->
+    <div class="we-row" id="ent-shamaz-rows"><label style="opacity:0">placeholder</label></div>
     <div class="we-row"><label>Cannon speed</label><input id="bf-cannonSpd" type="number" step="0.5" min="1"></div>
     <div class="we-row"><label>Cannon radius</label><input id="bf-cannonRad" type="number" step="2" min="4"></div>
     <div class="we-row"><label>Cannon windup (frames)</label><input id="bf-cannonWindup" type="number" step="1" min="1"></div>
   </div>
-  <div style="display:flex;gap:8px;margin-top:4px;">
-    <button id="be-apply-btn">▶ Apply Live</button>
-    <button id="be-spawn-btn">⚡ Respawn Boss</button>
+
+  <!-- Buttons -->
+  <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+    <button id="ent-apply-btn" style="flex:1;">▶ Apply Live</button>
+    <button id="ent-spawn-btn" style="flex:1;">⚡ Spawn / Respawn</button>
   </div>
   <div style="margin-top:4px;">
-    <button id="be-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export Patch to Clipboard</button>
+    <button id="ee-clear-btn" style="width:100%;background:rgba(255,60,60,0.14);border:1px solid rgba(255,60,60,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#ff9090;">🗑 Clear Stage</button>
   </div>
-  <div class="we-hint">Apply Live = runtime only. Export Patch = copy into the source file.</div>
+  <div style="margin-top:4px;">
+    <button id="ent-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export to Clipboard</button>
+  </div>
+  <div class="we-hint">Apply Live = runtime only. Changes sprite src reloads the sheet live.</div>
 </div>
 `;
   document.body.appendChild(el);
@@ -12457,6 +12903,8 @@ document.addEventListener('touchstart',function _ft(){
     _get('wf-sweepSteps').value=s.sweepSteps??4;
     _get('wf-hitCD').value    = s.hitCD??20;
     _get('wf-frameIdx').value = s.frameIdx??0;
+    _get('wf-displayH').value   = s.displayH??0;
+    _get('wf-displayRot').value = s.displayRot??0;
     _get('wf-dashDist').value = s.dashDist??60;
     _get('wf-throwSpeed').value  = s.throwSpeed??10;
     _get('wf-throwRange').value  = s.throwRange??340;
@@ -12486,6 +12934,8 @@ document.addEventListener('touchstart',function _ft(){
     s.sweepSteps = _num('wf-sweepSteps');
     s.hitCD      = _num('wf-hitCD');
     s.frameIdx   = _num('wf-frameIdx');
+    s.displayH   = _num('wf-displayH')   || 0;
+    s.displayRot = _num('wf-displayRot') || 0;
     s.dashDist   = _num('wf-dashDist');
     s.throwSpeed = _num('wf-throwSpeed');
     s.throwRange = _num('wf-throwRange');
@@ -12571,7 +13021,7 @@ document.addEventListener('touchstart',function _ft(){
   document.getElementById('we-del-step').onclick=_delStep;
 
   // ── TAB SWITCHING ────────────────────────
-  const _panels={'weapon':'we-body','player':'pe-body','boss':'be-body','enemy':'ee-body'};
+  const _panels={'weapon':'we-body','player':'pe-body','entities':'ente-body'};
   el.querySelectorAll('.we-tab').forEach(btn=>{
     btn.onclick=()=>{
       el.querySelectorAll('.we-tab').forEach(b=>b.classList.remove('active'));
@@ -12580,13 +13030,13 @@ document.addEventListener('touchstart',function _ft(){
       Object.entries(_panels).forEach(([k,id])=>{
         document.getElementById(id).style.display = k===tab ? '' : 'none';
       });
-      if(tab==='player') _pFill();
-      if(tab==='enemy')  _eFill();
+      if(tab==='player')   _pFill();
+      if(tab==='entities') _entFill();
     };
   });
 
   // ── PLAYER EDITOR ────────────────────────
-  const _playerDefaults = { drawW:110, drawH:110, offsetX:55, offsetY:80, pw:30, ph:58 };
+  const _playerDefaults = { drawW:110, drawH:110, offsetX:55, offsetY:80, pw:30, ph:58, hitOX:0, hitOY:0 };
 
   function _pFill(){
     document.getElementById('pf-drawW').value   = HERO_DRAW_W;
@@ -12595,6 +13045,8 @@ document.addEventListener('touchstart',function _ft(){
     document.getElementById('pf-offsetY').value = HERO_OFFSET_Y;
     document.getElementById('pf-pw').value      = PW;
     document.getElementById('pf-ph').value      = PH;
+    document.getElementById('pf-hitOX').value   = _pHitOX;
+    document.getElementById('pf-hitOY').value   = _pHitOY;
   }
 
   function _pApply(){
@@ -12602,8 +13054,10 @@ document.addEventListener('touchstart',function _ft(){
     HERO_DRAW_H   = parseFloat(document.getElementById('pf-drawH').value)  || 110;
     HERO_OFFSET_X = parseFloat(document.getElementById('pf-offsetX').value)|| 55;
     HERO_OFFSET_Y = parseFloat(document.getElementById('pf-offsetY').value)|| 80;
-    PW            = parseFloat(document.getElementById('pf-pw').value)     || 30;
-    PH            = parseFloat(document.getElementById('pf-ph').value)     || 58;
+    PW      = parseFloat(document.getElementById('pf-pw').value)     || 30;
+    PH      = parseFloat(document.getElementById('pf-ph').value)     || 58;
+    _pHitOX = parseFloat(document.getElementById('pf-hitOX').value)  || 0;
+    _pHitOY = parseFloat(document.getElementById('pf-hitOY').value)  || 0;
     // Invalidate dash ghost cache so it rebuilds at new size
     _dashGhostCanvas = null;
     const btn=document.getElementById('pe-apply-btn');
@@ -12615,6 +13069,7 @@ document.addEventListener('touchstart',function _ft(){
     HERO_DRAW_W=_playerDefaults.drawW; HERO_DRAW_H=_playerDefaults.drawH;
     HERO_OFFSET_X=_playerDefaults.offsetX; HERO_OFFSET_Y=_playerDefaults.offsetY;
     PW=_playerDefaults.pw; PH=_playerDefaults.ph;
+    _pHitOX=_playerDefaults.hitOX; _pHitOY=_playerDefaults.hitOY;
     _dashGhostCanvas=null;
     _pFill();
   }
@@ -12627,6 +13082,7 @@ document.addEventListener('touchstart',function _ft(){
       `let HERO_OFFSET_X = ${HERO_OFFSET_X};`,
       `let HERO_OFFSET_Y = ${HERO_OFFSET_Y};`,
       `let PW=${PW}, PH=${PH};`,
+      `let _pHitOX=${_pHitOX}, _pHitOY=${_pHitOY};`,
     ].join('\n');
     navigator.clipboard.writeText(lines)
       .then(()=>{ const b=document.getElementById('pe-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export to Clipboard',1500); })
@@ -12637,215 +13093,423 @@ document.addEventListener('touchstart',function _ft(){
   document.getElementById('pe-reset-btn').onclick=_pReset;
   document.getElementById('pe-export-btn').onclick=_pExport;
 
-  // ── ENEMY EDITOR ─────────────────────────
-  // Per-type defaults seeded from ENEMY_DEFS if available, else hardcoded
+  // ── ENTITIES EDITOR (unified enemy + boss) ───────────────────────────────
   const _enemyTypes = {
-    grunt:      { hp:120, dmg:18, speed:1.1, exp:30,  gold:12, atkCD:70,  atkRange:60, windup:28, hitDmg:18 },
-    knight:     { hp:280, dmg:26, speed:0.9, exp:70,  gold:28, atkCD:90,  atkRange:90, windup:40, hitDmg:26 },
-    guard:      { hp:200, dmg:22, speed:1.0, exp:50,  gold:20, atkCD:80,  atkRange:75, windup:34, hitDmg:22 },
-    royal_guard:{ hp:340, dmg:32, speed:0.8, exp:90,  gold:36, atkCD:100, atkRange:100,windup:44, hitDmg:32 },
-    drunkard:   { hp:160, dmg:20, speed:1.2, exp:40,  gold:16, atkCD:120, atkRange:340,windup:55, hitDmg:20 },
-    heavy:      { hp:420, dmg:38, speed:0.6, exp:110, gold:44, atkCD:110, atkRange:80, windup:50, hitDmg:38 },
+    // atkReach = weapon tip distance from pivot (px). atkPivY = pivot height relative to hitbox centre (negative = up).
+    grunt:      { hp:120, dmg:18, speed:1.1, exp:30,  gold:12, atkCD:70,  atkRange:60, windup:28, hitDmg:18, atkReach:34, atkPivY:-16 },
+    knight:     { hp:280, dmg:26, speed:0.9, exp:70,  gold:28, atkCD:90,  atkRange:90, windup:40, hitDmg:26, atkReach:58, atkPivY:-16 },
+    pirate:     { hp:160, dmg:20, speed:1.1, exp:45,  gold:18, atkCD:80,  atkRange:65, windup:30, hitDmg:20, atkReach:44, atkPivY:-16 },
+    drunkard:   { hp:160, dmg:20, speed:1.2, exp:40,  gold:16, atkCD:120, atkRange:340,windup:55, hitDmg:20, atkReach:34, atkPivY:-16 },
+    guard:      { hp:200, dmg:22, speed:1.0, exp:50,  gold:20, atkCD:80,  atkRange:75, windup:34, hitDmg:22, atkReach:44, atkPivY:-9  },
+    royal_guard:{ hp:340, dmg:32, speed:0.8, exp:90,  gold:36, atkCD:100, atkRange:100,windup:44, hitDmg:32, atkReach:68, atkPivY:-16 },
+    heavy:      { hp:420, dmg:38, speed:0.6, exp:110, gold:44, atkCD:110, atkRange:80, windup:50, hitDmg:38, atkReach:34, atkPivY:-16 },
   };
+  // ── ENTITIES EDITOR JS ───────────────────────────────────────────────────
   const _enemyOverrides = JSON.parse(JSON.stringify(_enemyTypes));
-  let _eType = 'grunt';
 
-  function _eFill(){
-    const o=_enemyOverrides[_eType]||_enemyTypes[_eType]||{};
-    document.getElementById('ef-hp').value       = o.hp??120;
-    document.getElementById('ef-dmg').value      = o.dmg??18;
-    document.getElementById('ef-speed').value    = o.speed??1.0;
-    document.getElementById('ef-exp').value      = o.exp??30;
-    document.getElementById('ef-gold').value     = o.gold??12;
-    document.getElementById('ef-atkCD').value    = o.atkCD??70;
-    document.getElementById('ef-atkRange').value = o.atkRange??60;
-    document.getElementById('ef-windup').value   = o.windup??28;
-    document.getElementById('ef-hitDmg').value   = o.hitDmg??18;
-  }
+  // Seed ENEMY_ANIM_DEFS with arc values from _enemyTypes as authoritative defaults.
+  // This ensures gameplay/debug always reads from one source even before the editor is used.
+  Object.keys(_enemyTypes).forEach(t => {
+    if(!ENEMY_ANIM_DEFS[t]) ENEMY_ANIM_DEFS[t] = {};
+    const _et = _enemyTypes[t];
+    if(ENEMY_ANIM_DEFS[t].atkRange == null) ENEMY_ANIM_DEFS[t].atkRange = _et.atkRange;
+    if(ENEMY_ANIM_DEFS[t].atkReach == null) ENEMY_ANIM_DEFS[t].atkReach = _et.atkReach;
+    if(ENEMY_ANIM_DEFS[t].atkPivY  == null) ENEMY_ANIM_DEFS[t].atkPivY  = _et.atkPivY;
+  });
 
-  function _eApply(){
-    const o=_enemyOverrides[_eType];
-    o.hp       = parseFloat(document.getElementById('ef-hp').value)||120;
-    o.dmg      = parseFloat(document.getElementById('ef-dmg').value)||18;
-    o.speed    = parseFloat(document.getElementById('ef-speed').value)||1.0;
-    o.exp      = parseFloat(document.getElementById('ef-exp').value)||30;
-    o.gold     = parseFloat(document.getElementById('ef-gold').value)||12;
-    o.atkCD    = parseFloat(document.getElementById('ef-atkCD').value)||70;
-    o.atkRange = parseFloat(document.getElementById('ef-atkRange').value)||60;
-    o.windup   = parseFloat(document.getElementById('ef-windup').value)||28;
-    o.hitDmg   = parseFloat(document.getElementById('ef-hitDmg').value)||18;
-    // Apply to all live enemies of this type
-    let count=0;
-    enemies.forEach(e=>{
-      if(e.dead||e.boss||e.type!==_eType) return;
-      e.hp    = Math.min(e.hp, o.hp); // don't heal above new max
-      e.maxHp = o.hp;
-      e.dmg   = o.dmg;
-      e.speed = o.speed;
-      e.exp   = o.exp;
-      e.gold  = o.gold;
-      e.atkCD = Math.min(e.atkCD, o.atkCD);
-      count++;
-    });
-    const btn=document.getElementById('ee-apply-btn');
-    btn.textContent=`✔ Applied to ${count} enemy${count!==1?'s':''}!`;
-    setTimeout(()=>btn.textContent='▶ Apply to All Live',1200);
-  }
-
-  document.getElementById('ef-type').onchange=e=>{ _eType=e.target.value; _eFill(); };
-  document.getElementById('ee-apply-btn').onclick=_eApply;
-
-  // ── BOSS EDITOR ──────────────────────────
-  // Per-boss tunable data — all fields that can be edited live
+  // Per-boss tunable data
   const _bossDefaults = {
-    GRONK:  { hp:1800, dmg:42, speed:1.3, atkCD:70, exp:400, gold:90,  stunMax:4, stunDur:180, windup:42, spinDur:43,
-               drawW:220, drawH:220, offsetX:0, offsetY:30, hitW:220, hitH:220 },
-    SHAMAZ: { hp:1500, dmg:46, speed:1.0, atkCD:80, exp:600, gold:150, stunMax:2, stunDur:180, windup:42, cannonSpd:7, cannonRad:28, cannonWindup:80,
-               drawW:160, drawH:160, offsetX:0, offsetY:30, hitW:100, hitH:125 },
-    GARTU:  { hp:5000, dmg:68, speed:0.7, atkCD:90, exp:1800,gold:500, stunMax:6, stunDur:180, windup:42,
-               drawW:220, drawH:240, offsetX:0, offsetY:0,  hitW:220, hitH:220 },
+    GRONK:  { hp:1800, dmg:42, speed:1.3, atkCD:70, exp:400, gold:90,  stunMax:4, stunDur:220, windup:42, spinDur:43,
+               drawW:220, drawH:220, offsetX:0, offsetY:30, hitW:220, hitH:220,
+               src:'', frameW:220, frameH:220, anims:{idle:{row:0,frames:4,fps:5},move:{row:1,frames:4,fps:8},charge:{row:2,frames:4,fps:8},attack:{row:3,frames:4,fps:10}} },
+    SHAMAZ: { hp:1500, dmg:46, speed:1.0, atkCD:80, exp:600, gold:150, stunMax:2, stunDur:220, windup:42, cannonSpd:7, cannonRad:28, cannonWindup:80,
+               drawW:160, drawH:160, offsetX:0, offsetY:30, hitW:100, hitH:125,
+               src:'', frameW:180, frameH:160, anims:{idle:{row:0,frames:4,fps:6},move:{row:1,frames:4,fps:10},charge:{row:2,frames:4,fps:8},attack:{row:3,frames:4,fps:8}} },
+    GARTU:  { hp:5000, dmg:68, speed:0.7, atkCD:90, exp:1800,gold:500, stunMax:6, stunDur:220, windup:42,
+               drawW:220, drawH:240, offsetX:0, offsetY:0,  hitW:220, hitH:220,
+               src:'', frameW:220, frameH:240, anims:{idle:{row:0,frames:4,fps:2},move:{row:1,frames:2,fps:12},charge:{row:2,frames:2,fps:6},attack:{row:3,frames:2,fps:2}} },
   };
-  // Live overrides — seed from BOSS_ANIM_DEFS so file values show immediately
   const _bossOverrides = {};
   ['GRONK','SHAMAZ','GARTU'].forEach(k=>{
     const def=BOSS_ANIM_DEFS[k]||{};
     _bossOverrides[k]=Object.assign({},_bossDefaults[k],{
-      drawW:def.drawW??_bossDefaults[k].drawW,
-      drawH:def.drawH??_bossDefaults[k].drawH,
-      offsetX:def.offsetX??_bossDefaults[k].offsetX,
-      offsetY:def.offsetY??_bossDefaults[k].offsetY,
-      hitW:def.hitW??_bossDefaults[k].hitW,
-      hitH:def.hitH??_bossDefaults[k].hitH,
+      src:    def.src    ?? '',
+      drawW:  def.drawW  ?? _bossDefaults[k].drawW,
+      drawH:  def.drawH  ?? _bossDefaults[k].drawH,
+      frameW: def.frameW ?? _bossDefaults[k].frameW,
+      frameH: def.frameH ?? _bossDefaults[k].frameH,
+      offsetX:def.offsetX?? _bossDefaults[k].offsetX,
+      offsetY:def.offsetY?? _bossDefaults[k].offsetY,
+      hitW:   def.hitW   ?? _bossDefaults[k].hitW,
+      hitH:   def.hitH   ?? _bossDefaults[k].hitH,
     });
   });
 
-  function _bget(id){ return document.getElementById(id); }
-  function _bnum(id){ return parseFloat(_bget(id).value)||0; }
-  function _bstr(id){ return _bget(id).value; }
-  let _bKey = 'GRONK';
+  // Enemy sprite defaults — seeded from ENEMY_ANIM_DEFS when available, otherwise blank.
+  // Mirrors the _bossOverrides initialisation pattern so hardcoded sprite definitions
+  // (e.g. ENEMY_ANIM_DEFS['pirate']) appear in the editor immediately on first open.
+  const _enemySpriteDefaults = {};
+  Object.keys(_enemyTypes).forEach(t => {
+    const def = ENEMY_ANIM_DEFS[t] || {};
+    _enemySpriteDefaults[t] = {
+      src:    def.src     ?? '',
+      frameW: def.frameW  ?? 64,
+      frameH: def.frameH  ?? 64,
+      drawW:  def.drawW   ?? (def.frameW  ?? 64),
+      drawH:  def.drawH   ?? (def.frameH  ?? 64),
+      offsetX:    def.offsetX    ?? 0,
+      offsetY:    def.offsetY    ?? 0,
+      hitOffsetX: def.hitOffsetX ?? null,  // null = inherit sprite offsetX
+      hitOffsetY: def.hitOffsetY ?? null,  // null = inherit sprite offsetY
+      hitW:   def.hitW    ?? EW,
+      hitH:   def.hitH    ?? EH,
+      anims: {
+        idle:   Object.assign({row:0,frames:4,fps:6},                    def.anims?.idle),
+        move:   Object.assign({row:1,frames:4,fps:10},                   def.anims?.move),
+        charge: Object.assign({row:2,frames:4,fps:8},                    def.anims?.charge),
+        attack: Object.assign({row:3,frames:4,fps:10},                   def.anims?.attack),
+        hurt:   Object.assign({row:0,frameOffset:0,frames:1,fps:4,threshold:8}, def.anims?.hurt),
+      },
+    };
+  });
+  const _enemySpriteOverrides = JSON.parse(JSON.stringify(_enemySpriteDefaults));
 
-  // Populate fields from override object
-  function _bFill(){
-    const o=_bossOverrides[_bKey]||{};
-    _bget('bf-atkRange').value = BOSS_ATK_RANGE;
-    _bget('bf-reach').value    = BOSS_REACH;
-    _bget('bf-armLen').value   = BOSS_ARM_LEN;
-    _bget('bf-pivotX').value   = BOSS_PIVOT_X;
-    _bget('bf-pivotY').value   = BOSS_PIVOT_Y;
-    _bget('bf-hookReach').value  = SHAMAZ_HOOK_REACH;
-    _bget('bf-hookPivX').value   = SHAMAZ_HOOK_PIVOT_X;
-    _bget('bf-hookPivY').value   = SHAMAZ_HOOK_PIVOT_Y;
-    _bget('bf-hp').value       = o.hp??1800;
-    _bget('bf-drawW').value    = o.drawW??220;
-    _bget('bf-drawH').value    = o.drawH??220;
-    _bget('bf-offsetX').value  = o.offsetX??0;
-    _bget('bf-offsetY').value  = o.offsetY??0;
-    _bget('bf-hitW').value     = o.hitW??220;
-    _bget('bf-hitH').value     = o.hitH??220;
-    _bget('bf-dmg').value      = o.dmg??42;
-    _bget('bf-speed').value    = o.speed??1.0;
-    _bget('bf-atkCD').value    = o.atkCD??80;
-    _bget('bf-exp').value      = o.exp??400;
-    _bget('bf-gold').value     = o.gold??90;
-    _bget('bf-stunMax').value  = o.stunMax??4;
-    _bget('bf-stunDur').value  = o.stunDur??180;
-    _bget('bf-windup').value   = o.windup??42;
-    _bget('bf-spinDur').value  = o.spinDur??43;
-    _bget('bf-cannonSpd').value   = o.cannonSpd??7;
-    _bget('bf-cannonRad').value   = o.cannonRad??28;
-    _bget('bf-cannonWindup').value= o.cannonWindup??80;
-    // Show/hide boss-specific sections
-    _bget('bf-spinDur').closest('.we-row').style.opacity = _bKey==='GRONK'?'1':'0.3';
-    ['bf-cannonSpd','bf-cannonRad','bf-cannonWindup'].forEach(id=>{
-      _bget(id).closest('.we-row').style.opacity = _bKey==='SHAMAZ'?'1':'0.3';
-    });
+  function _entget(id){ return document.getElementById(id); }
+  function _entnum(id){ return parseFloat(_entget(id).value)||0; }
+  let _entKey = 'e:grunt'; // e:type or b:BOSSNAME
+
+  function _isBossEnt(){ return _entKey.startsWith('b:'); }
+  function _entBossKey(){ return _entKey.slice(2); }
+  function _entEnemyType(){ return _entKey.slice(2); }
+
+  // Show/hide sections based on entity type
+  function _entUpdateSections(){
+    const isBoss = _isBossEnt();
+    _entget('ent-enemy-section').style.display  = isBoss ? 'none' : '';
+    _entget('ent-boss-section').style.display   = isBoss ? '' : 'none';
+    _entget('ent-stagger-section').style.display= isBoss ? '' : 'none';
+    _entget('ent-bhitbox-section').style.display= isBoss ? '' : 'none';
+    if(isBoss){
+      const bk=_entBossKey();
+      _entget('ent-gronk-row').style.display   = bk==='GRONK'   ? '' : 'none';
+      const shamazRows = document.querySelectorAll('#ent-shamaz-rows ~ .we-row');
+      const shVis = bk==='SHAMAZ' ? '' : 'none';
+      document.getElementById('ent-shamaz-rows').style.display = shVis;
+      ['bf-cannonSpd','bf-cannonRad','bf-cannonWindup'].forEach(id=>{
+        const row=_entget(id)?.closest('.we-row'); if(row) row.style.display=shVis;
+      });
+    }
+    _entget('ent-spawn-btn').textContent = isBoss ? '⚡ Respawn Boss' : '+ Spawn Enemy';
   }
 
-  function _bApply(){
-    const o=_bossOverrides[_bKey];
-    // Attack hitbox globals — write directly since they're now `let`
-    BOSS_ATK_RANGE    = _bnum('bf-atkRange');
-    BOSS_REACH        = _bnum('bf-reach');
-    BOSS_ARM_LEN      = _bnum('bf-armLen');
-    BOSS_PIVOT_X      = _bnum('bf-pivotX');
-    BOSS_PIVOT_Y      = _bnum('bf-pivotY');
-    SHAMAZ_HOOK_REACH  = _bnum('bf-hookReach');
-    SHAMAZ_HOOK_PIVOT_X= _bnum('bf-hookPivX');
-    SHAMAZ_HOOK_PIVOT_Y= _bnum('bf-hookPivY');
-    o.hp         = _bnum('bf-hp');
-    o.drawW      = _bnum('bf-drawW');
-    o.drawH      = _bnum('bf-drawH');
-    o.offsetX    = _bnum('bf-offsetX');
-    o.offsetY    = _bnum('bf-offsetY');
-    o.hitW       = _bnum('bf-hitW');
-    o.hitH       = _bnum('bf-hitH');
-    o.dmg        = _bnum('bf-dmg');
-    o.speed      = _bnum('bf-speed');
-    o.atkCD      = _bnum('bf-atkCD');
-    o.exp        = _bnum('bf-exp');
-    o.gold       = _bnum('bf-gold');
-    o.stunMax    = _bnum('bf-stunMax');
-    o.stunDur    = _bnum('bf-stunDur');
-    o.windup     = _bnum('bf-windup');
-    o.spinDur    = _bnum('bf-spinDur');
-    o.cannonSpd  = _bnum('bf-cannonSpd');
-    o.cannonRad  = _bnum('bf-cannonRad');
-    o.cannonWindup=_bnum('bf-cannonWindup');
-    // Apply sprite/hitbox to BOSS_ANIM_DEFS immediately (renderer reads this each frame)
-    if(BOSS_ANIM_DEFS[_bKey]){
-      const bd=BOSS_ANIM_DEFS[_bKey];
-      bd.drawW=o.drawW; bd.drawH=o.drawH;
-      bd.offsetX=o.offsetX; bd.offsetY=o.offsetY;
-      bd.hitW=o.hitW; bd.hitH=o.hitH;
+  function _entFillSprite(def){
+    _entget('ent-src').value    = def.src    ?? '';
+    _entget('ent-fW').value     = def.frameW ?? 64;
+    _entget('ent-fH').value     = def.frameH ?? 64;
+    _entget('ent-dW').value     = def.drawW  ?? 64;
+    _entget('ent-dH').value     = def.drawH  ?? 64;
+    _entget('ent-oX').value     = def.offsetX   ?? 0;
+    _entget('ent-oY').value     = def.offsetY   ?? 0;
+    // hitOffsetX/Y — null means "inherit sprite offset" → show empty placeholder
+    _entget('ent-hitOX').value  = (def.hitOffsetX!=null) ? def.hitOffsetX : '';
+    _entget('ent-hitOY').value  = (def.hitOffsetY!=null) ? def.hitOffsetY : '';
+    _entget('ent-hW').value     = def.hitW   ?? EW;
+    _entget('ent-hH').value     = def.hitH   ?? EH;
+    const ai=def.anims?.idle   ||{row:0,frames:4,fps:6};
+    const am=def.anims?.move   ||{row:1,frames:4,fps:10};
+    const ac=def.anims?.charge ||{row:2,frames:4,fps:8};
+    const aa=def.anims?.attack ||{row:3,frames:4,fps:10};
+    const ah=def.anims?.hurt   ||{row:0,frameOffset:0,threshold:8};
+    _entget('ent-ai-row').value=ai.row;_entget('ent-ai-frames').value=ai.frames;_entget('ent-ai-fps').value=ai.fps;
+    _entget('ent-am-row').value=am.row;_entget('ent-am-frames').value=am.frames;_entget('ent-am-fps').value=am.fps;
+    _entget('ent-ac-row').value=ac.row;_entget('ent-ac-frames').value=ac.frames;_entget('ent-ac-fps').value=ac.fps;
+    _entget('ent-aa-row').value=aa.row;_entget('ent-aa-frames').value=aa.frames;_entget('ent-aa-fps').value=aa.fps;
+    _entget('ent-ah-row').value=ah.row??0;_entget('ent-ah-col').value=ah.frameOffset??0;_entget('ent-ah-thr').value=ah.threshold??8;
+  }
+
+  function _entFill(){
+    _entUpdateSections();
+    if(_isBossEnt()){
+      const bk=_entBossKey(), o=_bossOverrides[bk]||{};
+      _entFillSprite(o);
+      _entget('bf-atkRange').value = BOSS_ATK_RANGE;
+      _entget('bf-reach').value    = BOSS_REACH;
+      _entget('bf-armLen').value   = BOSS_ARM_LEN;
+      _entget('bf-pivotX').value   = BOSS_PIVOT_X;
+      _entget('bf-pivotY').value   = BOSS_PIVOT_Y;
+      _entget('bf-hookReach').value  = SHAMAZ_HOOK_REACH;
+      _entget('bf-hookPivX').value   = SHAMAZ_HOOK_PIVOT_X;
+      _entget('bf-hookPivY').value   = SHAMAZ_HOOK_PIVOT_Y;
+      _entget('bf-hp').value     = o.hp??1800;
+      _entget('bf-dmg').value    = o.dmg??42;
+      _entget('bf-speed').value  = o.speed??1.0;
+      _entget('bf-atkCD').value  = o.atkCD??80;
+      _entget('bf-exp').value    = o.exp??400;
+      _entget('bf-gold').value   = o.gold??90;
+      _entget('bf-stunMax').value= o.stunMax??4;
+      _entget('bf-stunDur').value= o.stunDur??220;
+      _entget('bf-windup').value = o.windup??42;
+      _entget('bf-spinDur').value= o.spinDur??43;
+      _entget('bf-cannonSpd').value   = o.cannonSpd??7;
+      _entget('bf-cannonRad').value   = o.cannonRad??28;
+      _entget('bf-cannonWindup').value= o.cannonWindup??80;
+    } else {
+      const et=_entEnemyType(), o=_enemyOverrides[et]||{}, sp=_enemySpriteOverrides[et]||{};
+      _entFillSprite(sp);
+      _entget('ef-hp').value      = o.hp??120;
+      _entget('ef-dmg').value     = o.dmg??18;
+      _entget('ef-speed').value   = o.speed??1.0;
+      _entget('ef-exp').value     = o.exp??30;
+      _entget('ef-gold').value    = o.gold??12;
+      _entget('ef-atkCD').value   = o.atkCD??70;
+      _entget('ef-atkRange').value = o.atkRange??60;
+      _entget('ef-atkReach').value = o.atkReach??34;
+      _entget('ef-atkPivY').value  = o.atkPivY??-16;
+      _entget('ef-windup').value   = o.windup??28;
+      _entget('ef-hitDmg').value  = o.hitDmg??18;
     }
-    // Apply live to any matching spawned boss
-    enemies.forEach(e=>{
-      if(!e.boss||e.bossName!==_bKey) return;
-      e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
-      e.exp=o.exp; e.gold=o.gold;
-      e.bossStunMax=o.stunMax;
-      e.hitW=o.hitW; e.hitH=o.hitH;
+  }
+
+  // Read sprite fields into a def object.
+  // Spreads existing anim properties first so extra fields (e.g. loops) aren't stripped.
+  function _entReadSprite(){
+    // Grab current anim objects to preserve any extra fields not shown in the UI
+    const _cur = _isBossEnt()
+      ? (_bossOverrides[_entBossKey()]||{}).anims || {}
+      : (_enemySpriteOverrides[_entEnemyType()]||{}).anims || {};
+    const ai=Object.assign({}, _cur.idle   ||{}, {row:parseInt(_entget('ent-ai-row').value)||0, frames:parseInt(_entget('ent-ai-frames').value)||4, fps:parseInt(_entget('ent-ai-fps').value)||6});
+    const am=Object.assign({}, _cur.move   ||{}, {row:parseInt(_entget('ent-am-row').value)||1, frames:parseInt(_entget('ent-am-frames').value)||4, fps:parseInt(_entget('ent-am-fps').value)||10});
+    const ac=Object.assign({}, _cur.charge ||{}, {row:parseInt(_entget('ent-ac-row').value)||2, frames:parseInt(_entget('ent-ac-frames').value)||4, fps:parseInt(_entget('ent-ac-fps').value)||8});
+    const aa=Object.assign({}, _cur.attack ||{}, {row:parseInt(_entget('ent-aa-row').value)||3, frames:parseInt(_entget('ent-aa-frames').value)||4, fps:parseInt(_entget('ent-aa-fps').value)||10});
+    const ah=Object.assign({}, _cur.hurt   ||{}, {
+      row:         parseInt(_entget('ent-ah-row').value)||0,
+      frameOffset: parseInt(_entget('ent-ah-col').value)||0,
+      frames: 1, fps: 4,
+      threshold:   parseInt(_entget('ent-ah-thr').value)||8,
     });
-    const btn=_bget('be-apply-btn');
+    return {
+      src:    _entget('ent-src').value.trim(),
+      frameW: _entnum('ent-fW')||64,
+      frameH: _entnum('ent-fH')||64,
+      drawW:  _entnum('ent-dW')||64,
+      drawH:  _entnum('ent-dH')||64,
+      offsetX:    _entnum('ent-oX'),
+      offsetY:    _entnum('ent-oY'),
+      // Empty input = inherit sprite offset (null); any value = override
+      hitOffsetX: _entget('ent-hitOX').value.trim()==='' ? null : _entnum('ent-hitOX'),
+      hitOffsetY: _entget('ent-hitOY').value.trim()==='' ? null : _entnum('ent-hitOY'),
+      hitW:   _entnum('ent-hW')||EW,
+      hitH:   _entnum('ent-hH')||EH,
+      anims:{idle:ai,move:am,charge:ac,attack:aa,hurt:ah},
+    };
+  }
+
+  function _entApply(){
+    const sp=_entReadSprite();
+    if(_isBossEnt()){
+      const bk=_entBossKey(), o=_bossOverrides[bk];
+      Object.assign(o,sp);
+      BOSS_ATK_RANGE    = _entnum('bf-atkRange');
+      BOSS_REACH        = _entnum('bf-reach');
+      BOSS_ARM_LEN      = _entnum('bf-armLen');
+      BOSS_PIVOT_X      = _entnum('bf-pivotX');
+      BOSS_PIVOT_Y      = _entnum('bf-pivotY');
+      SHAMAZ_HOOK_REACH   = _entnum('bf-hookReach');
+      SHAMAZ_HOOK_PIVOT_X = _entnum('bf-hookPivX');
+      SHAMAZ_HOOK_PIVOT_Y = _entnum('bf-hookPivY');
+      o.hp       = _entnum('bf-hp');
+      o.dmg      = _entnum('bf-dmg');
+      o.speed    = _entnum('bf-speed');
+      o.atkCD    = _entnum('bf-atkCD');
+      o.exp      = _entnum('bf-exp');
+      o.gold     = _entnum('bf-gold');
+      o.stunMax  = _entnum('bf-stunMax');
+      o.stunDur  = _entnum('bf-stunDur');
+      o.windup   = _entnum('bf-windup');
+      o.spinDur  = _entnum('bf-spinDur');
+      o.cannonSpd    = _entnum('bf-cannonSpd');
+      o.cannonRad    = _entnum('bf-cannonRad');
+      o.cannonWindup = _entnum('bf-cannonWindup');
+      // Push to BOSS_ANIM_DEFS so renderer picks it up live
+      if(!BOSS_ANIM_DEFS[bk]) BOSS_ANIM_DEFS[bk]={};
+      const bd=BOSS_ANIM_DEFS[bk];
+      bd.drawW=o.drawW; bd.drawH=o.drawH; bd.offsetX=o.offsetX; bd.offsetY=o.offsetY;
+      bd.hitW=o.hitW; bd.hitH=o.hitH; bd.frameW=o.frameW; bd.frameH=o.frameH;
+      bd.anims=o.anims;
+      // Reload sprite image if src changed
+      if(o.src && o.src!==bd.src){
+        bd.src=o.src;
+        const img=new Image();
+        img.onload=()=>{ _bossAnimImages[bk]=stripMagenta(img); };
+        img.src=o.src;
+      }
+      // Apply live to spawned boss
+      enemies.forEach(e=>{
+        if(!e.boss||e.bossName!==bk) return;
+        e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
+        e.exp=o.exp; e.gold=o.gold; e.bossStunMax=o.stunMax; e.bossStunDur=o.stunDur;
+        e.hitW=o.hitW; e.hitH=o.hitH;
+      });
+    } else {
+      const et=_entEnemyType();
+      Object.assign(_enemySpriteOverrides[et], sp);
+      // Push to ENEMY_ANIM_DEFS
+      if(sp.src){
+        const prevSrc = ENEMY_ANIM_DEFS[et]?.src;
+        ENEMY_ANIM_DEFS[et] = Object.assign({}, sp);
+        if(sp.src !== prevSrc){
+          // Reload image
+          const img=new Image();
+          img.onload=()=>{ _enemyAnimImages[et]=stripMagenta(img); };
+          img.src=sp.src;
+        }
+      } else {
+        // No sprite — remove image, fall back to procedural draw.
+        // Preserve hitOffsetX/Y so hitbox positioning still works without art.
+        delete _enemyAnimImages[et];
+        if(sp.hitOffsetX!=null || sp.hitOffsetY!=null){
+          if(!ENEMY_ANIM_DEFS[et]) ENEMY_ANIM_DEFS[et]={};
+          ENEMY_ANIM_DEFS[et].hitOffsetX = sp.hitOffsetX;
+          ENEMY_ANIM_DEFS[et].hitOffsetY = sp.hitOffsetY;
+          delete ENEMY_ANIM_DEFS[et].src; // no sprite
+        } else {
+          delete ENEMY_ANIM_DEFS[et];
+        }
+      }
+      const o=_enemyOverrides[et];
+      o.hp       = _entnum('ef-hp')||120;
+      o.dmg      = _entnum('ef-dmg')||18;
+      o.speed    = _entnum('ef-speed')||1.0;
+      o.exp      = _entnum('ef-exp')||30;
+      o.gold     = _entnum('ef-gold')||12;
+      o.atkCD    = _entnum('ef-atkCD')||70;
+      o.atkRange = _entnum('ef-atkRange')||60;
+      o.atkReach = _entnum('ef-atkReach')||34;
+      o.atkPivY  = parseFloat(_entget('ef-atkPivY').value) || 0;
+      o.windup   = _entnum('ef-windup')||28;
+      o.hitDmg   = _entnum('ef-hitDmg')||18;
+      // Write arc stats to ENEMY_ANIM_DEFS — single source of truth for all gameplay/debug reads.
+      // This means entity objects no longer carry atkRange/atkReach/atkPivY; all code reads the def.
+      if(!ENEMY_ANIM_DEFS[et]) ENEMY_ANIM_DEFS[et] = {};
+      ENEMY_ANIM_DEFS[et].atkRange = o.atkRange;
+      ENEMY_ANIM_DEFS[et].atkReach = o.atkReach;
+      ENEMY_ANIM_DEFS[et].atkPivY  = o.atkPivY;
+      // Apply to all live enemies of this type
+      let count=0;
+      enemies.forEach(e=>{
+        if(e.dead||e.boss||e.type!==et) return;
+        e.hp=Math.min(e.hp,o.hp); e.maxHp=o.hp;
+        e.dmg=o.dmg; e.speed=o.speed; e.exp=o.exp; e.gold=o.gold;
+        e.atkCD=Math.min(e.atkCD,o.atkCD);
+        if(ENEMY_ANIM_DEFS[et]){ e.hitW=sp.hitW; e.hitH=sp.hitH; }
+        count++;
+      });
+      const btn=_entget('ent-apply-btn');
+      btn.textContent=`✔ Applied to ${count}!`;
+      setTimeout(()=>btn.textContent='▶ Apply Live',1200);
+      return;
+    }
+    const btn=_entget('ent-apply-btn');
     btn.textContent='✔ Applied!';
     setTimeout(()=>btn.textContent='▶ Apply Live',900);
   }
 
-  function _bRespawn(){
-    _bApply();
-    // Kill existing boss
-    enemies.forEach(e=>{if(e.boss&&e.bossName===_bKey)e.dead=true;});
-    document.getElementById('bossBar').classList.remove('show');
-    document.body.classList.remove('boss-fighting');
-    bossSpawned=false;
-    const o=_bossOverrides[_bKey];
-    // Patch hp before spawn (spawn functions read difficulty from save)
-    const origDiff=save.difficulty;
-    save.difficulty=Math.round((o.hp / _bossDefaults[_bKey].hp)*100);
-    if     (_bKey==='GRONK')  spawnGronk(false);
-    else if(_bKey==='SHAMAZ') spawnShamaz(false);
-    else if(_bKey==='GARTU')  spawnGartu(false);
-    save.difficulty=origDiff;
-    // Apply remaining fields
-    enemies.forEach(e=>{
-      if(!e.boss||e.bossName!==_bKey) return;
-      e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
-      e.exp=o.exp; e.gold=o.gold; e.bossStunMax=o.stunMax;
-    });
-    const btn=_bget('be-spawn-btn');
-    btn.textContent='✔ Spawned!';
-    setTimeout(()=>btn.textContent='⚡ Respawn Boss',1200);
+  function _entSpawn(){
+    _entApply();
+    if(_isBossEnt()){
+      const bk=_entBossKey(), o=_bossOverrides[bk];
+      enemies.forEach(e=>{if(e.boss&&e.bossName===bk)e.dead=true;});
+      document.getElementById('bossBar').classList.remove('show');
+      document.body.classList.remove('boss-fighting');
+      bossSpawned=false;
+      const origDiff=save.difficulty;
+      save.difficulty=Math.round((o.hp/_bossDefaults[bk].hp)*100);
+      if(bk==='GRONK')  spawnGronk(false);
+      else if(bk==='SHAMAZ') spawnShamaz(false);
+      else if(bk==='GARTU')  spawnGartu(false);
+      save.difficulty=origDiff;
+      enemies.forEach(e=>{
+        if(!e.boss||e.bossName!==bk) return;
+        e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
+        e.exp=o.exp; e.gold=o.gold; e.bossStunMax=o.stunMax; e.bossStunDur=o.stunDur;
+      });
+      const btn=_entget('ent-spawn-btn');
+      btn.textContent='✔ Spawned!';
+      setTimeout(()=>btn.textContent='⚡ Respawn Boss',1200);
+    } else {
+      // Spawn one enemy of the selected type at mid-stage
+      const et=_entEnemyType(), o=_enemyOverrides[et]||_enemyTypes[et];
+      const cx=camX+canvas.width*0.6;
+      enemies.push({
+        id:eid++, x:cx, y:0, vx:0, vy:0, onGround:false,
+        hp:o.hp, maxHp:o.hp, ghostHp:o.hp, ghostDrainDelay:0,
+        dmg:o.dmg, speed:o.speed, exp:o.exp, gold:o.gold,
+        facing:-1, dead:false,
+        hitCD:0, atkCD:o.atkCD, atkF:0, atk:false, windupTimer:0, atkHit:false,
+        juggled:false, juggleTimer:0, airFreezeTimer:0,
+        legF:0, legT:0, state:'chase',
+        pDir:-1, pTimer:80,
+        type:et, tier:1,
+        slowTimer:0, stunTimer:0,
+        comboPhase:0, comboFirstDeflected:false,
+        throwAnim:0,
+      });
+      const btn=_entget('ent-spawn-btn');
+      btn.textContent='✔ Spawned!';
+      setTimeout(()=>btn.textContent='+ Spawn Enemy',1200);
+    }
   }
 
-  _bget('be-bsel').onchange=e=>{_bKey=e.target.value;_bFill();};
+  function _entExport(){
+    _entApply();
+    let txt='';
+    if(_isBossEnt()){
+      const bk=_entBossKey(), o=_bossOverrides[bk];
+      const bossLabel={GRONK:'spawnGronk',SHAMAZ:'spawnShamaz',GARTU:'spawnGartu'}[bk];
+      const lines=[
+        `// ── ${bk} — exported from Entities editor ──`,
+        `// 1. In ${bossLabel}(), update enemies.push({...}):`,
+        `//    dmg:${o.dmg}, speed:${o.speed}, atkCD:${o.atkCD}, exp:${o.exp}, gold:${o.gold},`,
+        `//    bossStunMax:${o.stunMax}, bossStunDur:${o.stunDur},`,
+        `// 2. BOSS_ANIM_DEFS.${bk}:`,
+        o.src ? `//    src:'${o.src}',` : '',
+        `//    frameW:${o.frameW}, frameH:${o.frameH},`,
+        `//    drawW:${o.drawW}, drawH:${o.drawH},`,
+        `//    offsetX:${o.offsetX}, offsetY:${o.offsetY},`,
+        `//    hitW:${o.hitW}, hitH:${o.hitH},`,
+        bk==='GRONK'  ? `let BOSS_ATK_RANGE=${BOSS_ATK_RANGE}; let BOSS_REACH=${BOSS_REACH}; let BOSS_ARM_LEN=${BOSS_ARM_LEN}; let BOSS_PIVOT_X=${BOSS_PIVOT_X}; let BOSS_PIVOT_Y=${BOSS_PIVOT_Y};` : '',
+        bk==='SHAMAZ' ? `let SHAMAZ_HOOK_REACH=${SHAMAZ_HOOK_REACH}; let SHAMAZ_HOOK_PIVOT_X=${SHAMAZ_HOOK_PIVOT_X}; let SHAMAZ_HOOK_PIVOT_Y=${SHAMAZ_HOOK_PIVOT_Y};` : '',
+      ].filter(l=>l!==undefined&&l!=='').join('\n');
+      txt=lines;
+    } else {
+      const et=_entEnemyType(), o=_enemyOverrides[et], sp=_enemySpriteOverrides[et];
+      const def=sp.src?`ENEMY_ANIM_DEFS['${et}'] = ${JSON.stringify(sp,null,2)};`:`// No sprite for ${et}`;
+      txt=`// ── ${et} — exported from Entities editor ──\n${def}\n// Stats overrides: hp:${o.hp}, dmg:${o.dmg}, speed:${o.speed}`;
+    }
+    navigator.clipboard.writeText(txt)
+      .then(()=>{ const b=_entget('ent-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export to Clipboard',1500); })
+      .catch(()=>prompt('Copy this into the source file:',txt));
+  }
+
+  _entget('ent-sel').onchange=e=>{ _entKey=e.target.value; _entFill(); };
+  _entget('ent-apply-btn').onclick=_entApply;
+  _entget('ent-spawn-btn').onclick=_entSpawn;
+  _entget('ent-export-btn').onclick=_entExport;
+  document.getElementById('ee-clear-btn').onclick=function(){
+    enemies.length=0; staggeredEnemies.length=0; enemyProjectiles.length=0;
+    bossSpawned=false;
+    document.getElementById('bossBar').classList.remove('show');
+    document.body.classList.remove('boss-fighting');
+    document.getElementById('waveLabel').textContent='';
+    const btn=this;
+    btn.textContent='✔ Stage cleared!';
+    setTimeout(()=>btn.textContent='🗑 Clear Stage',1200);
+  };
+
   // ── WEAPON EXPORT ────────────────────────
   function _exportWeapon(){
     const w=_getWeapon(); if(!w) return;
-    const steps=w.steps.map(s=>{
-      // Deep copy, remove function refs, format cleanly
-      const c=Object.assign({},s);
-      return c;
-    });
+    const steps=w.steps.map(s=>Object.assign({},s));
     const lines=[
       `// ── ${w.name} — exported from live editor ──`,
       `atkSpeed: ${w.atkSpeed},`,
@@ -12858,59 +13522,8 @@ document.addEventListener('touchstart',function _ft(){
       .catch(()=>prompt('Copy this into WEAPONS[key] in the source file:',lines));
   }
 
-  // ── BOSS EXPORT ──────────────────────────
-  function _exportBoss(){
-    _bApply(); // make sure overrides are current
-    const o=_bossOverrides[_bKey];
-    const bossLabel={GRONK:'spawnGronk',SHAMAZ:'spawnShamaz',GARTU:'spawnGartu'}[_bKey];
-    const lines=[
-      `// ── ${_bKey} — exported from live editor ──`,
-      ``,
-      `// 1. In ${bossLabel}(), update the enemies.push({...}) object:`,
-      `//    hp: Math.round(${o.hp}*((save.difficulty||100)/100)),`,
-      `//    dmg: ${o.dmg}, speed: ${o.speed}, atkCD: ${o.atkCD},`,
-      `//    exp: ${o.exp}, gold: ${o.gold},`,
-      `//    bossStunMax: ${o.stunMax},`,
-      ``,
-      `// 2. In BOSS_ANIM_DEFS.${_bKey}, update:`,
-      `//    drawW:${o.drawW}, drawH:${o.drawH},`,
-      `//    offsetX:${o.offsetX}, offsetY:${o.offsetY},`,
-      `//    hitW:${o.hitW}, hitH:${o.hitH},`,
-      ``,
-    ];
-    if(_bKey==='GRONK'||_bKey==='SHAMAZ'){
-      lines.push(`// 3. Update the relevant let constants near the BOSS CONSTANTS block:`);
-      if(_bKey==='GRONK'){
-        lines.push(`let BOSS_ATK_RANGE   = ${BOSS_ATK_RANGE};`);
-        lines.push(`let BOSS_REACH       = ${BOSS_REACH};`);
-        lines.push(`let BOSS_ARM_LEN     = ${BOSS_ARM_LEN};`);
-        lines.push(`let BOSS_PIVOT_X     = ${BOSS_PIVOT_X};`);
-        lines.push(`let BOSS_PIVOT_Y     = ${BOSS_PIVOT_Y};`);
-        lines.push(`let BOSS_SPIN_DURATION = ${BOSS_SPIN_DURATION};`);
-      }
-      if(_bKey==='SHAMAZ'){
-        lines.push(`let SHAMAZ_HOOK_REACH     = ${SHAMAZ_HOOK_REACH};`);
-        lines.push(`let SHAMAZ_HOOK_PIVOT_X   = ${SHAMAZ_HOOK_PIVOT_X};`);
-        lines.push(`let SHAMAZ_HOOK_PIVOT_Y   = ${SHAMAZ_HOOK_PIVOT_Y};`);
-        if(o.cannonSpd)  lines.push(`// SHAMAZ_CANNON_SPEED: ${o.cannonSpd} (update SHAMAZ_CANNON_SPEED const)`);
-        if(o.cannonRad)  lines.push(`// SHAMAZ_CANNON_RADIUS: ${o.cannonRad} (update SHAMAZ_CANNON_RADIUS const)`);
-        if(o.cannonWindup) lines.push(`// SHAMAZ_CANNON_WINDUP: ${o.cannonWindup} (update SHAMAZ_CANNON_WINDUP const)`);
-      }
-    }
-    const txt=lines.join('\n');
-    navigator.clipboard.writeText(txt)
-      .then(()=>{ const b=_bget('be-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export Patch to Clipboard',1500); })
-      .catch(()=>prompt('Copy this patch into the source file:',txt));
-  }
-
-  _bget('be-apply-btn').onclick=_bApply;
-  _bget('be-spawn-btn').onclick=_bRespawn;
-  _bget('be-export-btn').onclick=_exportBoss;
   document.getElementById('we-export-btn').onclick=_exportWeapon;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ _buildWeaSelect(); _bFill(); }));
-
-  // Init weapon list when DOM+WEAPONS are ready
-  // (moved into rAF above)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ _buildWeaSelect(); _entFill(); }));
 })();
 
 // Backtick = toggle weapon editor
