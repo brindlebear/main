@@ -1599,7 +1599,7 @@ const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
-let PW=44, PH=110;; // player physics hitbox (px) — edit in Player tab of editor
+let PW=30, PH=90;; // player physics hitbox (px) — edit in Player tab of editor
 let _pHitOX=0, _pHitOY=30;; // player hitbox offset (px) — edit in Player tab; shifts the vulnerable box relative to physics position
 const EW=28, EH=52;
 // Helpers that return per-enemy hitbox dimensions, falling back to the shared EW/EH.
@@ -1671,20 +1671,19 @@ const SWORD_RANGE = 85; // used in trail rendering (drawSwordTrail)
 let _audioCtx=null, _audioUnlocked=false;
 const _audioBuffers={};
 const _ALL_SFX=[
-  'Audio/sword.wav','Audio/sword_hit.wav','Audio/sword_sp.wav',
-  'Audio/daggerhit.wav','Audio/dagger_sp.wav',
-  'Audio/greatsword_hit.wav','Audio/greatsword_sp.wav',
-  'Audio/katana.wav','Audio/katana_sp.wav',
+  'Audio/swordslash.wav','Audio/sword_hit.wav','Audio/sword_sp.wav',
+  'Audio/dagger_hit.wav','Audio/dagger_sp.wav',
+  'Audio/katana_hit.wav','Audio/katana_sp.wav',
   'Audio/cestus_sp.wav','Audio/cestus_sp_hit.wav',
   'Audio/fireball.wav','Audio/fireball_hit.wav',
   'Audio/frostbolt.wav','Audio/frostbolt_hit.wav',
-  'Audio/arcane.wav','Audio/arcane_explosion.wav','Audio/arcane_explosion_hit.wav',
   'Audio/enemy_death.wav',
   'Audio/juggle.wav','Audio/slam_land.wav',
-  'Audio/grapple_fire.wav','Audio/grapple_pull.wav',
-  'Audio/grapple_zip.wav','Audio/grapple_arrive.wav',
+  'Audio/grapple_fire.wav',
   'Audio/deflect.wav','Audio/deflect2.wav',
   'Audio/magic_missile.wav','Audio/magic_missile_hit.wav',
+  'Audio/PDK.wav',
+  'Audio/main_menusound_effect.wav',
 ];
 function _getAudioCtx(){
   if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -1713,7 +1712,7 @@ function preloadAllSfx(){ _unlockAudio(); }
 function playSfx(file,volume=1.0){
   if(!file||!_audioUnlocked) return;
   const ctx=_getAudioCtx();
-  if(ctx.state==='suspended'){ctx.resume();return;}
+  if(ctx.state==='suspended'){ctx.resume().then(()=>playSfx(file,volume)).catch(()=>{});return;}
   const buf=_audioBuffers[file]; if(!buf) return;
   const src=ctx.createBufferSource(),gain=ctx.createGain();
   src.buffer=buf;gain.gain.value=Math.max(0,Math.min(1,volume));
@@ -1738,6 +1737,7 @@ function weaponStats(w){
 }
 
 let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
+let _pdkBoulders = []; // PDK boulder-drop AOE projectiles
 
 // ATK_FRAMES is recomputed by equipWeapon() from weapon.steps
 let ATK_FRAMES = [19,19,19];
@@ -1857,7 +1857,7 @@ const WEAPONS = {
   sword: {
     name: 'Iron Sword', icon: '⚔',
     sprites: { weapon: null, trail: null, hit: null},
-    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Bladestorm — AOE burst in both directions
@@ -1887,8 +1887,8 @@ const WEAPONS = {
   dagger: {
     name: 'Dagger', icon: '🗡',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: null, hitSound: 'Audio/daggerhit.wav',
-    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/daggerhit.wav',
+    swingSound: null, hitSound: 'Audio/dagger_hit.wav',
+    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/dagger_hit.wav',
     special(p){
       const alive=enemies.filter(e=>!e.dead);
       if(!alive.length)return;
@@ -1914,8 +1914,8 @@ const WEAPONS = {
   greatsword: {
     name: 'Greatsword', icon: '🏹',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
-    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -1974,7 +1974,7 @@ const WEAPONS = {
   katana: {
     name: 'Katana', icon: '🔪',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/katana_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       const dmg=Math.round(calcBaseDmg()*activeWeapon.steps[0].dmgMult*0.5+(Math.random()*8|0));
@@ -2047,7 +2047,7 @@ const WEAPONS = {
     name: 'Spear', icon: '🔱',
     sprites: { weapon: null, trail: null, hit: null },
     swingSound: null, hitSound: 'Audio/sword_hit.wav',
-    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       let hit=false;
       enemies.forEach(e=>{
@@ -2081,8 +2081,8 @@ const WEAPONS = {
   scythe: {
     name: 'Scythe', icon: '💀',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
-    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Soul Vortex — dark spiral that pulls and shreds all enemies
       let hit=false;
@@ -2123,7 +2123,7 @@ const WEAPONS = {
   twinblades: {
     name: 'Twin Blades', icon: '⚔',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Blazing Rush — dash through all enemies with a fire tornado
@@ -2166,8 +2166,8 @@ const WEAPONS = {
   hammer: {
     name: 'War Hammer', icon: '🔨',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: null, hitSound: 'Audio/greatsword_hit.wav',
-    spSound: 'Audio/greatsword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    swingSound: null, hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Ground Slam — floor shockwave launches all grounded enemies
       let hit=false;
@@ -2293,7 +2293,7 @@ const WEAPONS = {
     name: 'Thunder Lance', icon: '⚡',
     sprites: { weapon: null, trail: null, hit: null },
     swingSound: null, hitSound: 'Audio/sword_hit.wav',
-    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Chain Lightning — arcs through all enemies in order of distance
       const alive=enemies.filter(e=>!e.dead);
@@ -2340,8 +2340,8 @@ const WEAPONS = {
   shadowblade: {
     name: 'Shadow Blade', icon: '🌑',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
-    spSound: 'Audio/katana_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/katana_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Shadow Step — blink behind nearest enemy, deliver four lethal slashes
       const alive=enemies.filter(e=>!e.dead);
@@ -2383,7 +2383,7 @@ const WEAPONS = {
   flamesword: {
     name: 'Flame Sword', icon: '🌋',
     sprites: { weapon: null, trail: null, hit: null },
-    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Fire Wave — rolling wall of flame sent forward
@@ -2418,8 +2418,8 @@ const WEAPONS = {
   venomclaws: {
     name: 'Venom Claws', icon: '☠',
     sprites: { weapon: { src: 'GFX/venomclaw.png', cell: 256, anchorX: 0.420, anchorY: 0.320 }, trail: null, hit: null },
-    swingSound: null, hitSound: 'Audio/daggerhit.wav',
-    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/daggerhit.wav',
+    swingSound: null, hitSound: 'Audio/dagger_hit.wav',
+    spSound: 'Audio/dagger_sp.wav', spHitSound: 'Audio/dagger_hit.wav',
     special(p){
       // Poison Nova — toxic cloud that damages and lingers
       let hit=false;
@@ -2459,8 +2459,8 @@ const WEAPONS = {
   excalibur: {
     name: 'Excalibur', icon: '✨',
     sprites: { weapon: { src: 'GFX/excalibur.png', cell: 256, anchorX: 0.500, anchorY: 0.850 }, trail: null, hit: null },
-    swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
-    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/greatsword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
+    spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
       // Begin windup — beam fires at end of timer
       p.excaliburWindup = true;
@@ -2480,7 +2480,7 @@ const WEAPONS = {
   tenrai: {
     key: 'tenrai', name: 'Tenrai', icon: '⚡',
     sprites: { weapon: { src: 'GFX/tenrai.png', cell: 256, anchorX: 0.500, anchorY: 0.850 }, trail: null, hit: null },
-    swingSound: 'Audio/katana.wav', hitSound: 'Audio/sword_hit.wav',
+    swingSound: 'Audio/swordslash.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/juggle.wav',
     special(p){
       // Called by _fireTenraiCut — p.tenraiRadius is set from the charge duration.
@@ -2565,7 +2565,35 @@ const WEAPONS = {
     elemental: 'lightning',
     unlocked: true, cost: 580,
   },
+  myweapon: {
+    name: 'PDK', icon: {src: 'GFX/PDK.png'},
+    sprites: { weapon: { src: 'GFX/PDK.png', cell: 256, anchorX: 0.500, anchorY: 0.850 }, trail: null, hit: null },
+    swingSound: 'Audio/PDK.wav', hitSound: null,
+    spSound: 'Audio/juggle.wav', spHitSound: 'Audio/sword_hit.wav',
+    special(p){
+      // 3 boulders dropped from above at staggered X positions, 18-frame delay each
+      for(let _i = 0; _i < 3; _i++){
+        const _lx = p.x + PW/2 + (_i - 1) * 52 + (Math.random()-0.5)*22;
+        const _r  = 26 + Math.random()*11;
+        _pdkBoulders.push({
+          x: _lx, y: -_r - 55,
+          vy: 0, r: _r,
+          delay: _i * 18,
+          landed: false, landF: 0, done: false,
+          hitSet: new Set(),
+        });
+      }
+    },
+    atkSpeed: 1.00,
+    steps: [
+    { motion:'lunge-thrust', startAngle:0, endAngle:0, easing:'out', pivotX:0, pivotY:0.60, swingH:110, frameIdx:0, duration:50, dmgMult:1.00, dashDist:48, displayH:109, displayRot:-90, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:16, hitCount:6, knockback:[4,5,12] }
+    ],
+    desc: 'The powerdrillakillah - BzzzZ!',
+    elemental: null,
+    unlocked: true, cost: 0,
+  },
 };
+
 activeWeapon = WEAPONS.sword;
 
 function equipWeapon(key){
@@ -2656,7 +2684,7 @@ function renderWeaponSelect(){
     const iconWrap = document.createElement('div');
     iconWrap.className = 'wcard-icon-wrap';
     const cvs = document.createElement('canvas');
-    cvs.width = 36; cvs.height = 36;
+    cvs.width = 44; cvs.height = 44;
     iconWrap.appendChild(cvs);
     const nameWrap = document.createElement('div');
     nameWrap.className = 'wcard-name-wrap';
@@ -2709,24 +2737,37 @@ function renderWeaponSelect(){
     card.appendChild(bottom);
     list.appendChild(card);
 
-    // sprite — prefer sprites.weapon PNG (new system), fall back to w.sheet (legacy), then emoji
-    const _iconSrc = (typeof w.sprites?.weapon === 'string') ? w.sprites.weapon
+    // sprite — prefer sprites.weapon PNG (object or string), fall back to w.sheet (legacy), then emoji
+    const _sprW    = w.sprites?.weapon;
+    const _iconSrc = (_sprW?.src)                            ? _sprW.src
+                   : (typeof _sprW === 'string')             ? _sprW
                    : (typeof w.sheet === 'string')           ? w.sheet
                    : null;
+    const _iconCell = _sprW?.cell || 96; // cell size in the sprite sheet
     if(_iconSrc){
       const img = new Image();
       img.onload = () => {
         const c = cvs.getContext('2d');
-        c.clearRect(0, 0, 36, 36);
-        // Draw frame 0 of the attack row (top-left 96×96 cell of the sheet)
-        c.drawImage(img, 0, 0, 96, 96, 0, 0, 36, 36);
+        c.clearRect(0, 0, 44, 44);
+        // Zoom into the weapon at 3× so it fills the icon instead of showing the whole cell
+        // Centre the view on the anchor point, biased upward toward the blade
+        const _ax = (_sprW?.anchorX ?? 0.5);
+        const _ay = (_sprW?.anchorY != null) ? _sprW.anchorY * 0.62 : 0.5;
+        const _sc = 3.0;
+        const _ds = 44 * _sc;          // destination draw size
+        const _dx = 22 - _ax * _ds;    // offset so anchor lands at canvas centre
+        const _dy = 22 - _ay * _ds;
+        c.save();
+        c.beginPath(); c.rect(0, 0, 44, 44); c.clip();
+        c.drawImage(img, 0, 0, _iconCell, _iconCell, _dx, _dy, _ds, _ds);
+        c.restore();
       };
       img.src = _iconSrc;
     } else {
       const c = cvs.getContext('2d');
-      c.clearRect(0, 0, 36, 36);
-      c.font = '22px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(w.icon || '?', 18, 18);
+      c.clearRect(0, 0, 44, 44);
+      c.font = '26px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(w.icon || '?', 22, 22);
     }
   });
   list.scrollTop = _savedScroll;
@@ -2890,8 +2931,8 @@ const SPELLS={
     cooldown:120,
     knockback:22, knockbackUp:14,
     windupFrames:50,
-    castSound:'Audio/arcane_explosion.wav',
-    impactSound:'Audio/arcane_explosion_hit.wav',
+    castSound:'Audio/fireball.wav',
+    impactSound:'Audio/fireball_hit.wav',
     desc:'Channels arcane energy then erupts outward, obliterating all nearby enemies.',
     stats:['DMG 90+INT×10','AOE 200px','MP 65'],
     color:'#cc88ff', glowColor:'#8020ff',
@@ -2929,7 +2970,7 @@ const SPELLS={
     elemental:'dark', elemental2:'wind',
     mpCost:40, damage:30, dmgPerInt:3,
     cooldown:80,
-    castSound:'Audio/arcane_explosion.wav', impactSound:'Audio/arcane_explosion_hit.wav',
+    castSound:'Audio/fireball.wav', impactSound:'Audio/fireball_hit.wav',
     desc:'Warp gravity — all enemies are yanked to your position and damaged.',
     stats:['DMG 30+INT×3','Pulls ALL','MP 40'],
     color:'#9966ff', glowColor:'#5500cc', trailHue:270,
@@ -3016,7 +3057,7 @@ const SPELLS={
     elemental:'dark',
     mpCost:35, damage:28, dmgPerInt:3,
     cooldown:80,
-    castSound:'Audio/arcane_explosion.wav', impactSound:'Audio/arcane_explosion_hit.wav',
+    castSound:'Audio/fireball.wav', impactSound:'Audio/fireball_hit.wav',
     desc:'Calls down five spectral lances from the sky — each strikes an AOE on impact.',
     stats:['5× Sky Lances','AOE each','MP 35'],
     color:'#cc66ff', glowColor:'#8800cc', trailHue:280,
@@ -3291,9 +3332,9 @@ const GRAPPLE_COOLDOWN_MAX = 55;                        // frames between grappl
 const GRAPPLE_PULL_SPEED   = 15.4;                      // px/frame — enemy yanked to player (+10%)
 const GRAPPLE_ZIP_SPEED    = 11.9;                      // px/frame — player zips to enemy (+10% from previous)
 const GRAPPLE_FIRE_SOUND   = 'Audio/grapple_fire.wav';  // ← plays the instant hook is launched (both tap & hold)
-const GRAPPLE_PULL_SOUND   = 'Audio/grapple_pull.wav';  // ← tap: enemy yanked toward player
-const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_zip.wav';   // ← hold: player launches toward enemy
-const GRAPPLE_ARRIVE_SOUND = 'Audio/grapple_arrive.wav';// ← impact on arrival
+const GRAPPLE_PULL_SOUND   = 'Audio/grapple_fire.wav';  // ← tap: enemy yanked toward player
+const GRAPPLE_ZIP_SOUND    = 'Audio/grapple_fire.wav';   // ← hold: player launches toward enemy
+const GRAPPLE_ARRIVE_SOUND = null;// ← impact on arrival
 const JUGGLE_GRAV=0.10;  // gravity applied to both player and enemy during juggle
 // Enemy launches at full VY; player follows at 90% so enemy is always ~10% higher
 const JUGGLE_VY=-8.8;    // slightly lower arc than before
@@ -4054,8 +4095,8 @@ function swordAngle(prog,step){
 }
 function comboPiv(step){
   const s = getStep(step);
-  return { px: player.x+PW/2 + player.facing*s.pivotX,
-           py: player.y + s.pivotY * PH };
+  return { px: pHitX()+PW/2 + player.facing*s.pivotX,
+           py: pHitY() + s.pivotY * PH };
 }
 
 // ══════════════════════════════════════════
@@ -4092,8 +4133,8 @@ function launchAttack(step){
     const dmg = Math.round(calcBaseDmg() * (stepData.dmgMult ?? 2.0) * (activeWeapon.dmgMult ?? 1.0));
     const wKey = Object.keys(WEAPONS).find(k=>WEAPONS[k]===activeWeapon)||'axe';
     throws.push({
-      x: player.x + PW/2 + player.facing * 20,
-      y: player.y + PH * (stepData.pivotY ?? 0.25),
+      x: pHitX() + PW/2 + player.facing * 20,
+      y: pHitY() + PH * (stepData.pivotY ?? 0.25),
       vx: player.facing * (stepData.throwSpeed ?? 10),
       vy: -(stepData.throwRiseVy ?? 1.5),
       angle: 0,
@@ -4163,8 +4204,8 @@ function getBladeSegment(p, prog){
   const motion = s.motion || 'arc';
 
   // Base pivot — same formula as drawSwordSprite (world space, no camX)
-  const pivX = p.x + PW/2 + p.facing * s.pivotX;
-  const pivY = p.y + PH * s.pivotY;
+  const pivX = pHitX() + PW/2 + p.facing * s.pivotX;
+  const pivY = pHitY() + PH * s.pivotY;
 
   if(motion === 'thrust' || motion === 'lunge-thrust'){
     // Horizontal stab. lunge-thrust also shifts pivot forward matching the game-loop body lurch (10%–74% window).
@@ -4314,7 +4355,7 @@ function tickThrows(){
 
     // Home toward player on return
     if(t.returning){
-      const px=player.x+PW/2, py=player.y+PH*0.35;
+      const px=pHitX()+PW/2, py=pHitY()+PH*0.35;
       const dx=px-t.x, dy=py-t.y;
       const dist=Math.sqrt(dx*dx+dy*dy);
       if(dist < 55){
@@ -4730,7 +4771,7 @@ function _decayElemAccum(e){
 // margin fattens the enemy box (same convention as tickAttackHits).
 function _spInRange(p, e, range, halfH, margin=12, bothSides=false){
   if(e.dead) return false;
-  const px=p.x+PW/2, py=p.y+PH*0.45;
+  const px=pHitX()+PW/2, py=pHitY()+PH*0.45;
   const _sex=eSX(e), _sey=eSY(e);
   const ex0=_sex-margin, ex1=_sex+eW(e)+margin;
   const ey0=_sey-margin, ey1=_sey+eH(e)+margin;
@@ -7317,8 +7358,8 @@ function drawSwordSprite(p, trailOnly=false){
   if(p.rsWindup){
     if(trailOnly) return;
     const pct  = p.rsF / RS_WINDUP_FRAMES;
-    const fx = p.x + PW/2 - camX + p.facing * -(18 + pct * 22);
-    const fy = p.y + PH * (0.25 - pct * 0.08);
+    const fx = pHitX() + PW/2 - camX + p.facing * -(18 + pct * 22);
+    const fy = pHitY() + PH * (0.25 - pct * 0.08);
     // Glow halo (always procedural)
     const glowR = 18 + pct * 32;
     const grad = ctx.createRadialGradient(fx, fy, 2, fx, fy, glowR);
@@ -7346,8 +7387,8 @@ function drawSwordSprite(p, trailOnly=false){
   if(trailOnly){
     const trailStep = step;
     const trailData = getStep(trailStep);
-    const pivX = p.x + PW/2 - camX + p.facing * trailData.pivotX;
-    const pivY = p.y + PH * trailData.pivotY;
+    const pivX = pHitX() + PW/2 - camX + p.facing * trailData.pivotX;
+    const pivY = pHitY() + PH * trailData.pivotY;
     const tImg = _slotImg('trail');
 
     if(tImg){
@@ -9828,8 +9869,8 @@ function onDeflectSuccess(attacker, {skipStun=false, fastReady=false, reflectPar
   setTimeout(() => rumble(240, 1.0, 0.5), 110);  // heavy sustained thud
   setTimeout(() => rumble(160, 0.55, 0.2), 360); // tail-off resonance
 
-  deflectBurst(player.x+PW/2, player.y+PH*0.45);
-  floatText(player.x+PW/2-28, player.y-28, 'DEFLECT!', '#ff8030', true);
+  deflectBurst(pHitX()+PW/2, pHitY()+PH*0.45);
+  floatText(pHitX()+PW/2-28, pHitY()-28, 'DEFLECT!', '#ff8030', true);
 
   // Deflect counts as a hit in the combo streak
   hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
@@ -9869,8 +9910,8 @@ function deflectBurst(cx, cy){
 // Drawn while player.deflectTimer > 0 — orbiting shield shards + glow ring
 function drawDeflectShield(p){
   if(p.deflectTimer<=0) return;
-  const cx=p.x+PW/2-camX;
-  const cy=p.y+PH*0.45;
+  const cx=pHitX()+PW/2-camX;
+  const cy=pHitY()+PH*0.45;
   const life=p.deflectTimer/DEFLECT_WINDOW; // 1→0
   const t=Date.now()/1000;
 
@@ -10373,8 +10414,8 @@ function _loopUpdate(){
     const _spStep = getMaxSteps()-1;
     const _spS = getStep(_spStep);
     const _spAngle = (_spS.startAngle + (_spS.endAngle-_spS.startAngle)*Math.pow(Math.min(1,prog),0.4)) * Math.PI/180;
-    const pivX = player.x+PW/2 + player.facing*(_spS.pivotX||16);
-    const pivY = player.y + PH*(_spS.pivotY||0.30);
+    const pivX = pHitX()+PW/2 + player.facing*(_spS.pivotX||16);
+    const pivY = pHitY() + PH*(_spS.pivotY||0.30);
     const tipX = pivX+player.facing*Math.cos(_spAngle)*(SWORD_RANGE*1.5);
     const tipY = pivY+player.facing*Math.sin(_spAngle)*(SWORD_RANGE*1.5);
     swordTrail.push({bx:pivX, by:pivY, tx:tipX, ty:tipY, age:0, step:_spStep, sp:true});
@@ -11121,6 +11162,73 @@ function _loopUpdate(){
   if(shakeMag>0.3){shakeX=(Math.random()-.5)*shakeMag*2;shakeY=(Math.random()-.5)*shakeMag*2;shakeMag*=0.7;}
   else{shakeX=0;shakeY=0;shakeMag=0;}
 
+  // ── PDK BOULDER DROP TICK ───────────────────────────────────────────────────
+  for(let _bi = _pdkBoulders.length-1; _bi >= 0; _bi--){
+    const _b = _pdkBoulders[_bi];
+    if(_b.done){ _pdkBoulders.splice(_bi,1); continue; }
+    if(_b.delay > 0){ _b.delay--; continue; }
+    _b.vy = Math.min(_b.vy + 1.2, 28);
+    _b.y += _b.vy;
+    const _bFy = floorY();
+    // In-flight hit — direct collision with enemy body while falling
+    if(!_b.landed){
+      enemies.forEach(_be=>{
+        if(_be.dead || _b.hitSet.has(_be.id)) return;
+        const _fcx = _be.x + eW(_be)/2, _fcy = _be.y + eH(_be)/2;
+        const _fdx = _fcx - _b.x, _fdy = _fcy - _b.y;
+        const _fR  = _b.r + eW(_be)*0.5;
+        if(_fdx*_fdx + _fdy*_fdy > _fR*_fR) return;
+        _b.hitSet.add(_be.id);
+        _spHit(_be, Math.round(calcBaseDmg() * 1.8));
+        if(!_groundLocked(_be)){ _be.vx += (_fdx>0?1:-1)*14; _be.vy = Math.min(_be.vy,-9); }
+      });
+    }
+    if(!_b.landed && _b.y + _b.r >= _bFy){
+      _b.y = _bFy - _b.r;
+      _b.landed = true; _b.vy = 0;
+      playSfx('Audio/slam_land.wav', 1.1);
+      triggerShake(22); triggerFreeze(6);
+      // Debris sparks
+      for(let _j = 0; _j < 24; _j++){
+        const _ba = Math.PI + (Math.random()-0.5)*Math.PI*1.4;
+        const _bs = 3 + Math.random()*10;
+        particles.push({type:'spark',
+          x:_b.x, y:_bFy,
+          vx:Math.cos(_ba)*_bs, vy:-(1+Math.random()*7),
+          life:0.95, decay:0.020+Math.random()*0.018, r:3+Math.random()*7,
+          color:`hsl(${18+Math.random()*22|0},58%,${30+Math.random()*24|0}%)`});
+      }
+      // Rocky chunks
+      for(let _j = 0; _j < 14; _j++){
+        const _s = (_j%2===0)?1:-1;
+        particles.push({type:'gore',
+          x:_b.x+(Math.random()-.5)*22, y:_bFy-5,
+          vx:_s*(3+Math.random()*11), vy:-(2.5+Math.random()*7),
+          life:1, decay:0.016+Math.random()*0.014,
+          w:5+Math.random()*13, h:4+Math.random()*10,
+          rot:Math.random()*360, rotV:(Math.random()-.5)*18,
+          color:`hsl(${10+Math.random()*24|0},${40+Math.random()*24|0}%,${24+Math.random()*18|0}%)`});
+      }
+      bloodDecals.push({x:_b.x, y:_bFy, rx:_b.r*1.5, ry:_b.r*0.5, alpha:0.68, decay:0.003});
+      // Landing AOE — enemies within 2.8× boulder radius; use enemy centre for Y so airborne enemies are caught
+      const _aoeR = _b.r * 2.8;
+      const _bdmg = Math.round(calcBaseDmg() * 1.8);
+      enemies.forEach(_be=>{
+        if(_be.dead || _b.hitSet.has(_be.id)) return;
+        const _bcx = _be.x + eW(_be)/2, _bcy = _be.y + eH(_be)/2;
+        const _bdx = _bcx - _b.x, _bdy = _bcy - _bFy;
+        if(_bdx*_bdx + _bdy*_bdy > _aoeR*_aoeR) return;
+        _b.hitSet.add(_be.id);
+        _spHit(_be, _bdmg);
+        if(!_groundLocked(_be)){
+          _be.vx += (_bdx > 0 ? 1 : -1) * 14;
+          _be.vy  = Math.min(_be.vy, -9);
+        }
+      });
+    }
+    if(_b.landed){ _b.landF++; if(_b.landF > 52) _b.done = true; }
+  }
+
   // ANIMATION TICKS — must run at fixed 60 Hz, not at render rate
   tickHeroAnim(player);
   _tickImpactAnim();
@@ -11513,6 +11621,103 @@ function _loopDraw(){
   });
   drawGrappleIndicator();
   drawGrappleLine();
+
+  // ── PDK BOULDER DRAW ────────────────────────────────────────────────────────
+  if(_pdkBoulders.length){
+    _pdkBoulders.forEach(_b=>{
+      if(_b.done) return;
+      const _bsx = _b.x - camX;
+      const _bfy = floorY();
+      const _bFallDist = Math.max(0, _bfy - _b.r - _b.y);
+      // Ground shadow — grows as boulder nears the floor
+      const _bShA = 0.10 + 0.58 * Math.max(0, 1 - _bFallDist/320);
+      const _bShR = _b.r * Math.max(0.22, 1 - _bFallDist/270);
+      ctx.save();
+      ctx.globalAlpha = _bShA;
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.beginPath();
+      ctx.ellipse(_bsx, _bfy, _bShR*1.65, _bShR*0.44, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1; ctx.restore();
+      // Warning reticle on the ground while airborne
+      if(!_b.landed && _bFallDist > 35){
+        ctx.save();
+        const _bWarnA = Math.max(0.18, Math.min(0.78, 0.22+0.56*(1-_bFallDist/270)));
+        ctx.globalAlpha = _bWarnA;
+        ctx.strokeStyle = '#ff3300'; ctx.lineWidth = 2;
+        ctx.setLineDash([5,4]);
+        ctx.beginPath();
+        ctx.ellipse(_bsx, _bfy, _b.r*1.18, _b.r*0.36, 0, 0, Math.PI*2);
+        ctx.stroke(); ctx.setLineDash([]);
+        ctx.globalAlpha = Math.max(0.28, 1-_bFallDist/190);
+        ctx.fillStyle = 'rgba(255,55,0,0.72)';
+        ctx.beginPath(); ctx.arc(_bsx, _bfy, 3.5, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+      // Boulder body alpha (fades out after landing)
+      const _bAlpha = _b.landed ? Math.max(0, 1 - _b.landF/18) : 1;
+      if(_bAlpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = _bAlpha;
+      // Motion-blur streak when falling fast
+      if(!_b.landed && _b.vy > 7){
+        ctx.globalAlpha = _bAlpha * 0.26;
+        ctx.fillStyle = '#6b3c18';
+        ctx.shadowColor = '#401a06'; ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.ellipse(_bsx, _b.y - _b.vy*0.52, _b.r*0.68, _b.r*1.52, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = _bAlpha;
+      }
+      // Main rocky body
+      const _bgrd = ctx.createRadialGradient(
+        _bsx-_b.r*0.28, _b.y-_b.r*0.32, _b.r*0.05,
+        _bsx, _b.y, _b.r);
+      _bgrd.addColorStop(0,   '#c9a068');
+      _bgrd.addColorStop(0.36,'#8a5c2c');
+      _bgrd.addColorStop(0.70,'#522c0e');
+      _bgrd.addColorStop(1,   '#2b1505');
+      ctx.fillStyle = _bgrd;
+      ctx.shadowColor = '#140700'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(_bsx, _b.y, _b.r, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Surface cracks
+      ctx.strokeStyle = 'rgba(16,7,2,0.62)'; ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(_bsx-_b.r*0.07, _b.y-_b.r*0.53);
+      ctx.lineTo(_bsx+_b.r*0.22, _b.y+_b.r*0.06);
+      ctx.lineTo(_bsx-_b.r*0.12, _b.y+_b.r*0.46);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(_bsx+_b.r*0.34, _b.y-_b.r*0.24);
+      ctx.lineTo(_bsx-_b.r*0.20, _b.y+_b.r*0.20);
+      ctx.stroke();
+      // Highlight
+      ctx.globalAlpha = _bAlpha * 0.42;
+      ctx.fillStyle = 'rgba(210,175,110,0.44)';
+      ctx.beginPath();
+      ctx.arc(_bsx-_b.r*0.27, _b.y-_b.r*0.28, _b.r*0.35, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+      // Impact shockwave ring
+      if(_b.landed && _b.landF <= 16){
+        const _bP = _b.landF/16;
+        const _bWR = _b.r*0.5 + _bP*92;
+        ctx.save();
+        ctx.globalAlpha = (1-_bP)*0.72;
+        ctx.strokeStyle = '#c07030';
+        ctx.shadowColor = '#ff7010'; ctx.shadowBlur = 22;
+        ctx.lineWidth = 4+(1-_bP)*7;
+        ctx.beginPath();
+        ctx.ellipse(_bsx, _bfy, _bWR, _bWR*0.28, 0, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    });
+  }
+
   // Arcane explosion charge ring
   if(player.arcaneWindup>0){
     const sp=player.arcaneWindupSpell;
@@ -12537,10 +12742,11 @@ document.addEventListener('touchstart',function _ft(){
 .we-row{display:flex;align-items:center;gap:8px;}
 .we-row label{width:112px;flex-shrink:0;color:#a09070;font-size:12px;}
 .we-row input,.we-row select{
-  flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(180,140,60,0.22);
+  flex:1;background:#1a1610;border:1px solid rgba(180,140,60,0.22);
   border-radius:4px;color:#f0e8d0;padding:3px 7px;font-size:12px;outline:none;
 }
 .we-row input:focus,.we-row select:focus{border-color:rgba(255,200,60,0.55);}
+.we-row select option{background:#1a1610;color:#f0e8d0;}
 .we-section{background:rgba(255,255,255,0.04);border-radius:6px;padding:10px 12px;}
 .we-section-title{font-size:11px;font-weight:600;color:#ffca50;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
 .we-step-tabs{display:flex;gap:4px;flex-wrap:wrap;}
@@ -12852,7 +13058,7 @@ document.addEventListener('touchstart',function _ft(){
     sel.innerHTML='';
     _allWeaKeys().forEach(k=>{
       const o=document.createElement('option');
-      o.value=k; o.textContent=`${WEAPONS[k].icon||''} ${WEAPONS[k].name||k}`;
+      o.value=k; o.textContent=WEAPONS[k].name||k;
       sel.appendChild(o);
     });
     _weaKey = sel.value;
