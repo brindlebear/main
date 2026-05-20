@@ -1636,26 +1636,7 @@ function _bossVisualAnchor(e, sx){
   };
 }
 
-const SWORD_RANGE = 85; // kept for trail math — actual hit detection uses getSwordTip()
-// Hit range is derived from sword visual size — edit SWORD_H and SWING_* in drawSwordSprite
-function getSwordTip(p){
-  const SWORD_H    = 100;
-  const SWING_START = -110;
-  const SWING_END   =  70;
-  const HAND_OUT    =  18;
-  const HAND_DOWN   = 0.22;
-  const t    = swingAnim.prog || 0;
-  const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-  const angleRad = (SWING_START + (SWING_END - SWING_START) * ease) * Math.PI / 180;
-  // Pivot (hand position in world coords)
-  const px = p.x + PW/2 + p.facing * HAND_OUT;
-  const py = p.y + PH * HAND_DOWN;
-  // Tip = pivot + sword length along swing angle (facing flips X)
-  const bladeLen = SWORD_H * 0.85;
-  const tipX = px + p.facing * Math.cos(angleRad) * bladeLen;
-  const tipY = py + p.facing * Math.sin(angleRad) * bladeLen;
-  return { tipX, tipY, bladeLen };
-}
+const SWORD_RANGE = 85; // used in trail rendering (drawSwordTrail)
 // ══════════════════════════════════════════
 //  AUDIO
 // ══════════════════════════════════════════
@@ -1734,7 +1715,7 @@ let activeWeapon = null; // set by equipWeapon() once WEAPONS is defined
 // ATK_FRAMES is recomputed by equipWeapon() from weapon.steps
 let ATK_FRAMES = [19,19,19];
 
-const COMBO_WINDOW=42;
+const COMBO_WINDOW=60; // idle frames before combo chain resets (1 second at 60Hz)
 const FREEZE_FRAMES=[4,5,8,9,11,12,13,14,15,16,17];
 const SHAKE_MAGS  =[6,8,18,19,20,21,22,23,24,25,26];
 // Combo: [swingStart, swingEnd, pivotX, pivotY]
@@ -1852,9 +1833,10 @@ const WEAPONS = {
     swingSound: 'Audio/sword.wav', hitSound: 'Audio/sword_hit.wav',
     spSound: 'Audio/sword_sp.wav', spHitSound: 'Audio/sword_hit.wav',
     special(p){
-      const {bladeLen}=getSwordTip(p); const range=bladeLen*1.8; let hit=false;
+      // Bladestorm — AOE burst in both directions
+      let hit=false;
       enemies.forEach(e=>{
-        if(!_spInRange(p,e,range,90,14,true)) return;
+        if(!_spInRange(p,e,160,90,14,true)) return;
         _spHit(e,Math.round(calcBaseDmg()*2.5+(Math.random()*20|0))); hit=true;
         e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy-=6;
       });
@@ -4123,13 +4105,13 @@ function _segSeg(ax,ay,bx,by,cx,cy,dx,dy){
   return false;
 }
 // Returns true if segment (ax,ay)→(bx,by) intersects AABB expanded by margin.
-// Triangle–AABB overlap test (SAT: 3 triangle edges + 2 box axes).
+// Triangle–AABB overlap (SAT: vertex-in-box, box-corner-in-triangle, edge-crossing).
 function _triAABB(ax,ay,bx,by,cx,cy,x0,y0,x1,y1){
   if(ax>=x0&&ax<=x1&&ay>=y0&&ay<=y1) return true;
   if(bx>=x0&&bx<=x1&&by>=y0&&by<=y1) return true;
   if(cx>=x0&&cx<=x1&&cy>=y0&&cy<=y1) return true;
-  function _s(px,py,ax,ay,bx,by){return(px-bx)*(ay-by)-(ax-bx)*(py-by);}
-  function _pt(px,py){const d1=_s(px,py,ax,ay,bx,by),d2=_s(px,py,bx,by,cx,cy),d3=_s(px,py,cx,cy,ax,ay);return!((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0));}
+  const _s=(px,py,ax,ay,bx,by)=>(px-bx)*(ay-by)-(ax-bx)*(py-by);
+  const _pt=(px,py)=>{const d1=_s(px,py,ax,ay,bx,by),d2=_s(px,py,bx,by,cx,cy),d3=_s(px,py,cx,cy,ax,ay);return!((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0));};
   if(_pt(x0,y0)||_pt(x1,y0)||_pt(x1,y1)||_pt(x0,y1)) return true;
   return _segAABB(ax,ay,bx,by,x0,y0,x1,y1,0)||_segAABB(bx,by,cx,cy,x0,y0,x1,y1,0)||_segAABB(cx,cy,ax,ay,x0,y0,x1,y1,0);
 }
@@ -10229,7 +10211,6 @@ function _loopUpdate(){
         }
       } else if(e.bossName==='GARTU'){
       // ── GARTU AI ──────────────────────────
-      // (Hover spring runs unconditionally above the stun block — no duplicate here)
       e.facing=dx>0?1:-1;
       // Horizontal repositioning — wider preferred range + active strafing
       if(adx>240){
@@ -10621,7 +10602,6 @@ function _loopUpdate(){
     }
     if(e.onGround&&Math.abs(e.vx)>.3){e.legT++;if(e.legT%3===0)e.legF++;}
     if(e.boss) _tickBossAnim(e);
-    // Slam landing is now handled before the stun block above — no duplicate needed here.
     if(e.juggled&&e.onGround) e.juggled=false;
     // Air-freeze: hold enemy in place after aerial grapple arrival
     if(e.airFreezeTimer>0){
