@@ -3292,23 +3292,21 @@ const ENEMY_ATK_RANGE     = 62;  // px — enemy enters swing when player is wit
 const ENEMY_ATK_COOLDOWN  = 35;  // rest frames AFTER the swing before next attack
 const KNIGHT_COMBO_GAP    = 12;  // 2× then +10%
 // Boss constants
-const BOSS_WINDUP      = 32;   // 2× then +10%
-const BOSS_SWING       = 50;   // 2× then +10%
-const BOSS_ATK_RANGE   = 100;  // px distance to trigger boss windup
-const BOSS_ATK_COOLDOWN= 95;   // post-swing cooldown frames
-const BOSS_REACH       = 48;   // club-head collision radius (ball size)
-const BOSS_ARM_LEN     = 78;   // pivot → ball-centre distance (arc radius)
-const BOSS_PIVOT_X     = 58;   // club pivot x from boss centre (local) — further out for wide arc
-const BOSS_PIVOT_Y     = -10;  // club pivot y from boss centre (local)
-// Boss attack pattern 1 — two-hit combo
+let BOSS_WINDUP      = 32;
+let BOSS_SWING       = 50;
+let BOSS_ATK_RANGE   = 100;  // px distance to trigger boss windup
+let BOSS_ATK_COOLDOWN= 95;
+let BOSS_REACH       = 48;   // club-head collision radius
+let BOSS_ARM_LEN     = 78;   // pivot → ball-centre distance (arc radius)
+let BOSS_PIVOT_X     = 58;   // club pivot x from boss centre
+let BOSS_PIVOT_Y     = -10;  // club pivot y from boss centre
 const BOSS_COMBO_WINDUP1 = 20;
 const BOSS_COMBO_SWING1  = 23;
 const BOSS_COMBO_GAP     = 25;
 const BOSS_COMBO_SWING2  = 25;
-// Boss attack pattern 2 — spin charge
 const BOSS_SPIN_WINDUP   = 82;
 const BOSS_SPIN_SPEED    = 11;
-const BOSS_SPIN_DURATION = 43;
+let BOSS_SPIN_DURATION = 43;
 
 // ── STAGE 1 ENEMY CONSTANTS ──────────────────────────────────
 const DRUNKARD_THROW_RANGE  = 340;  // px — drunkard opens fire within this dist
@@ -3331,9 +3329,9 @@ const SHAMAZ_WINDUP         = 25;
 const SHAMAZ_SWING          = 41;
 const SHAMAZ_ATK_RANGE      = 110;
 const SHAMAZ_ATK_COOLDOWN   = 90;
-const SHAMAZ_HOOK_REACH     = 72;   // wider sweep (was 52)
-const SHAMAZ_HOOK_PIVOT_X   = 36;
-const SHAMAZ_HOOK_PIVOT_Y   = 20;   // positive = below body centre; places arm at player-body height (was -16 which was wrong: used EH/2 not eH(e)/2)
+let SHAMAZ_HOOK_REACH     = 72;
+let SHAMAZ_HOOK_PIVOT_X   = 36;
+let SHAMAZ_HOOK_PIVOT_Y   = 20;
 const SHAMAZ_COMBO_WINDUP1  = 19;
 const SHAMAZ_COMBO_SWING1   = 21;
 const SHAMAZ_COMBO_GAP1     = 22;
@@ -12053,6 +12051,11 @@ document.addEventListener('touchstart',function _ft(){
 #we-copy-btn{background:rgba(80,140,255,0.18);border:1px solid rgba(80,140,255,0.40);color:#88aaff;}
 #we-copy-btn:hover{background:rgba(80,140,255,0.30);}
 .we-hint{font-size:10px;color:#706050;text-align:center;margin-top:4px;}
+#we-tabs{display:flex;gap:4px;margin:0 auto;}
+.we-tab{background:rgba(255,200,60,0.08);border:1px solid rgba(255,200,60,0.18);
+  border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:#9a8060;font-weight:700;}
+.we-tab:hover{background:rgba(255,200,60,0.18);}
+.we-tab.active{background:rgba(255,200,60,0.22);color:#ffd060;border-color:rgba(255,200,60,0.5);}
 `;
   const style=document.createElement('style');
   style.textContent=WECSS;
@@ -12063,11 +12066,17 @@ document.addEventListener('touchstart',function _ft(){
   el.id='weaponEditor';
   el.innerHTML=`
 <div id="we-header">
-  <h2>⚔ Weapon Editor</h2>
+  <h2 id="we-title">⚔ Weapon Editor</h2>
+  <div id="we-tabs">
+    <button class="we-tab active" data-tab="weapon">⚔ Weapon</button>
+    <button class="we-tab" data-tab="boss">💀 Boss</button>
+  </div>
   <span style="font-size:10px;color:#706050">[ \` ] to toggle</span>
   <button id="we-close">✕</button>
 </div>
-<div id="we-body">
+
+<!-- ── WEAPON TAB ── -->
+<div id="we-body" data-panel="weapon">
   <div class="we-section">
     <div class="we-section-title">Weapon</div>
     <div class="we-row"><label>Weapon</label><select id="we-wsel"></select></div>
@@ -12117,13 +12126,91 @@ document.addEventListener('touchstart',function _ft(){
     <div class="we-row"><label>throwSpeed</label><input id="wf-throwSpeed" type="number" step="0.5" min="1"></div>
     <div class="we-row"><label>throwRange</label><input id="wf-throwRange" type="number" step="10" min="50"></div>
     <div class="we-row"><label>throwRiseVy</label><input id="wf-throwRiseVy" type="number" step="0.1" min="0"></div>
+    <div class="we-section-title" style="margin-top:6px;">Hit Behaviour</div>
+    <div class="we-row"><label>hitCount</label><input id="wf-hitCount" type="number" step="1" min="1" max="10"></div>
+    <div class="we-row"><label>knockback [s1,s2,fin]</label><input id="wf-knockback" type="text" placeholder="4,5,12"></div>
+    <div class="we-section-title" style="margin-top:6px;">Motion Extras</div>
+    <div class="we-row"><label>launchPower (uppercut)</label><input id="wf-launchPower" type="number" step="1" min="0"></div>
+    <div class="we-row"><label>shockRadius (slam)</label><input id="wf-shockRadius" type="number" step="4" min="0"></div>
+    <div class="we-row"><label>slamVx (slam)</label><input id="wf-slamVx" type="number" step="1" min="0"></div>
   </div>
   <div style="display:flex;gap:8px;margin-top:4px;">
     <button id="we-apply-btn">▶ Apply Live</button>
     <button id="we-copy-btn">⧉ Copy JSON</button>
   </div>
-  <div class="we-hint">Changes apply to the active weapon immediately</div>
-</div>`;
+  <div style="margin-top:4px;">
+    <button id="we-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export steps[] to Clipboard</button>
+  </div>
+  <div class="we-hint">Apply Live = runtime only. Export = paste into WEAPONS[key].steps in source.</div>
+</div>
+
+<!-- ── BOSS TAB ── -->
+<div id="be-body" data-panel="boss" style="display:none">
+  <div class="we-section">
+    <div class="we-section-title">Boss</div>
+    <div class="we-row"><label>Boss</label>
+      <select id="be-bsel">
+        <option value="GRONK">⚔ Gronk</option>
+        <option value="SHAMAZ">⚓ Shamaz</option>
+        <option value="GARTU">✦ Gartu</option>
+      </select>
+    </div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Sprite & Hitbox</div>
+    <div class="we-row"><label title="Rendered width in pixels">drawW</label><input id="bf-drawW" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Rendered height in pixels">drawH</label><input id="bf-drawH" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Horizontal draw offset from entity x">offsetX</label><input id="bf-offsetX" type="number" step="2"></div>
+    <div class="we-row"><label title="Vertical draw offset from entity y">offsetY</label><input id="bf-offsetY" type="number" step="2"></div>
+    <div class="we-row"><label title="Hitbox width (collision detection)">hitW</label><input id="bf-hitW" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Hitbox height (collision detection)">hitH</label><input id="bf-hitH" type="number" step="4" min="8"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Stats</div>
+    <div class="we-row"><label>HP (base)</label><input id="bf-hp" type="number" step="50" min="100"></div>
+    <div class="we-row"><label>DMG</label><input id="bf-dmg" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>Speed</label><input id="bf-speed" type="number" step="0.05" min="0.1" max="6"></div>
+    <div class="we-row"><label>atkCD (frames)</label><input id="bf-atkCD" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>EXP reward</label><input id="bf-exp" type="number" step="10" min="0"></div>
+    <div class="we-row"><label>Gold reward</label><input id="bf-gold" type="number" step="10" min="0"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Stagger</div>
+    <div class="we-row"><label title="Hits required to break boss guard and open stun window">Stun threshold</label><input id="bf-stunMax" type="number" step="1" min="1" max="20"></div>
+    <div class="we-row"><label title="How many frames the boss stays stunned after threshold is reached">Stun duration</label><input id="bf-stunDur" type="number" step="5" min="1"></div>
+    <div class="we-row"><label title="How long between attacks before boss can start a new attack (ENEMY_WINDUP_FRAMES)">Windup frames</label><input id="bf-windup" type="number" step="1" min="1"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Attack Hitbox</div>
+    <div class="we-section-title" style="font-size:9px;opacity:0.6;margin-bottom:2px;">GRONK (club arc)</div>
+    <div class="we-row"><label title="Distance boss enters windup within">Atk range</label><input id="bf-atkRange" type="number" step="4" min="20"></div>
+    <div class="we-row"><label title="Club head collision radius">Reach (radius)</label><input id="bf-reach" type="number" step="2" min="4"></div>
+    <div class="we-row"><label title="Arm length — arc radius from pivot to ball">Arm length</label><input id="bf-armLen" type="number" step="4" min="8"></div>
+    <div class="we-row"><label title="Pivot X offset from boss centre">Pivot X</label><input id="bf-pivotX" type="number" step="2"></div>
+    <div class="we-row"><label title="Pivot Y offset from boss centre (negative = up)">Pivot Y</label><input id="bf-pivotY" type="number" step="2"></div>
+    <div class="we-section-title" style="font-size:9px;opacity:0.6;margin:4px 0 2px">SHAMAZ (hook arc)</div>
+    <div class="we-row"><label title="Hook sweep radius">Hook reach</label><input id="bf-hookReach" type="number" step="4" min="4"></div>
+    <div class="we-row"><label title="Hook pivot X from boss centre">Hook pivot X</label><input id="bf-hookPivX" type="number" step="2"></div>
+    <div class="we-row"><label title="Hook pivot Y from boss centre (positive = down)">Hook pivot Y</label><input id="bf-hookPivY" type="number" step="2"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">GRONK only</div>
+    <div class="we-row"><label>Spin duration (frames)</label><input id="bf-spinDur" type="number" step="1" min="1"></div>
+    <div class="we-section-title" style="margin-top:6px;">SHAMAZ only</div>
+    <div class="we-row"><label>Cannon speed</label><input id="bf-cannonSpd" type="number" step="0.5" min="1"></div>
+    <div class="we-row"><label>Cannon radius</label><input id="bf-cannonRad" type="number" step="2" min="4"></div>
+    <div class="we-row"><label>Cannon windup (frames)</label><input id="bf-cannonWindup" type="number" step="1" min="1"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button id="be-apply-btn">▶ Apply Live</button>
+    <button id="be-spawn-btn">⚡ Respawn Boss</button>
+  </div>
+  <div style="margin-top:4px;">
+    <button id="be-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export Patch to Clipboard</button>
+  </div>
+  <div class="we-hint">Apply Live = runtime only. Export Patch = copy into the source file.</div>
+</div>
+`;
   document.body.appendChild(el);
 
   // ── STATE ────────────────────────────────
@@ -12195,6 +12282,11 @@ document.addEventListener('touchstart',function _ft(){
     _get('wf-throwSpeed').value  = s.throwSpeed??10;
     _get('wf-throwRange').value  = s.throwRange??340;
     _get('wf-throwRiseVy').value = s.throwRiseVy??1.5;
+    _get('wf-hitCount').value    = s.hitCount??1;
+    _get('wf-knockback').value   = Array.isArray(s.knockback) ? s.knockback.join(',') : '4,5,12';
+    _get('wf-launchPower').value = s.launchPower??10;
+    _get('wf-shockRadius').value = s.shockRadius??60;
+    _get('wf-slamVx').value      = s.slamVx??8;
   }
 
   function _applyStep(){
@@ -12219,6 +12311,11 @@ document.addEventListener('touchstart',function _ft(){
     s.throwSpeed = _num('wf-throwSpeed');
     s.throwRange = _num('wf-throwRange');
     s.throwRiseVy= _num('wf-throwRiseVy');
+    s.hitCount   = _num('wf-hitCount');
+    s.knockback  = (_str('wf-knockback')||'4,5,12').split(',').map(v=>parseFloat(v.trim())||0);
+    s.launchPower= _num('wf-launchPower');
+    s.shockRadius= _num('wf-shockRadius');
+    s.slamVx     = _num('wf-slamVx');
     w.atkSpeed   = parseFloat(document.getElementById('we-atkSpeed').value)||1.0;
     // Re-equip to rebuild ATK_FRAMES
     if(activeWeapon===w) equipWeapon(_weaKey);
@@ -12288,8 +12385,241 @@ document.addEventListener('touchstart',function _ft(){
   document.getElementById('we-add-step').onclick=_addStep;
   document.getElementById('we-del-step').onclick=_delStep;
 
+  // ── EVENT WIRING ─────────────────────────
+  document.getElementById('we-close').onclick=()=>el.classList.remove('we-open');
+  document.getElementById('we-wsel').onchange=e=>{_weaKey=e.target.value;_stepIdx=0;_loadWeaponFields();};
+  document.getElementById('we-apply-btn').onclick=_applyStep;
+  document.getElementById('we-copy-btn').onclick=_copyJSON;
+  document.getElementById('we-add-step').onclick=_addStep;
+  document.getElementById('we-del-step').onclick=_delStep;
+
+  // ── TAB SWITCHING ────────────────────────
+  el.querySelectorAll('.we-tab').forEach(btn=>{
+    btn.onclick=()=>{
+      el.querySelectorAll('.we-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab=btn.dataset.tab;
+      document.getElementById('we-body').style.display  = tab==='weapon'?'':'none';
+      document.getElementById('be-body').style.display  = tab==='boss'  ?'':'none';
+    };
+  });
+
+  // ── BOSS EDITOR ──────────────────────────
+  // Per-boss tunable data — all fields that can be edited live
+  const _bossDefaults = {
+    GRONK:  { hp:1800, dmg:42, speed:1.3, atkCD:70, exp:400, gold:90,  stunMax:4, stunDur:180, windup:42, spinDur:43,
+               drawW:220, drawH:220, offsetX:0, offsetY:30, hitW:220, hitH:220 },
+    SHAMAZ: { hp:1500, dmg:46, speed:1.0, atkCD:80, exp:600, gold:150, stunMax:2, stunDur:180, windup:42, cannonSpd:7, cannonRad:28, cannonWindup:80,
+               drawW:160, drawH:160, offsetX:0, offsetY:30, hitW:100, hitH:125 },
+    GARTU:  { hp:5000, dmg:68, speed:0.7, atkCD:90, exp:1800,gold:500, stunMax:6, stunDur:180, windup:42,
+               drawW:220, drawH:240, offsetX:0, offsetY:0,  hitW:220, hitH:220 },
+  };
+  // Live overrides — seed from BOSS_ANIM_DEFS so file values show immediately
+  const _bossOverrides = {};
+  ['GRONK','SHAMAZ','GARTU'].forEach(k=>{
+    const def=BOSS_ANIM_DEFS[k]||{};
+    _bossOverrides[k]=Object.assign({},_bossDefaults[k],{
+      drawW:def.drawW??_bossDefaults[k].drawW,
+      drawH:def.drawH??_bossDefaults[k].drawH,
+      offsetX:def.offsetX??_bossDefaults[k].offsetX,
+      offsetY:def.offsetY??_bossDefaults[k].offsetY,
+      hitW:def.hitW??_bossDefaults[k].hitW,
+      hitH:def.hitH??_bossDefaults[k].hitH,
+    });
+  });
+
+  function _bget(id){ return document.getElementById(id); }
+  function _bnum(id){ return parseFloat(_bget(id).value)||0; }
+  function _bstr(id){ return _bget(id).value; }
+  let _bKey = 'GRONK';
+
+  // Populate fields from override object
+  function _bFill(){
+    const o=_bossOverrides[_bKey]||{};
+    _bget('bf-atkRange').value = BOSS_ATK_RANGE;
+    _bget('bf-reach').value    = BOSS_REACH;
+    _bget('bf-armLen').value   = BOSS_ARM_LEN;
+    _bget('bf-pivotX').value   = BOSS_PIVOT_X;
+    _bget('bf-pivotY').value   = BOSS_PIVOT_Y;
+    _bget('bf-hookReach').value  = SHAMAZ_HOOK_REACH;
+    _bget('bf-hookPivX').value   = SHAMAZ_HOOK_PIVOT_X;
+    _bget('bf-hookPivY').value   = SHAMAZ_HOOK_PIVOT_Y;
+    _bget('bf-hp').value       = o.hp??1800;
+    _bget('bf-drawW').value    = o.drawW??220;
+    _bget('bf-drawH').value    = o.drawH??220;
+    _bget('bf-offsetX').value  = o.offsetX??0;
+    _bget('bf-offsetY').value  = o.offsetY??0;
+    _bget('bf-hitW').value     = o.hitW??220;
+    _bget('bf-hitH').value     = o.hitH??220;
+    _bget('bf-dmg').value      = o.dmg??42;
+    _bget('bf-speed').value    = o.speed??1.0;
+    _bget('bf-atkCD').value    = o.atkCD??80;
+    _bget('bf-exp').value      = o.exp??400;
+    _bget('bf-gold').value     = o.gold??90;
+    _bget('bf-stunMax').value  = o.stunMax??4;
+    _bget('bf-stunDur').value  = o.stunDur??180;
+    _bget('bf-windup').value   = o.windup??42;
+    _bget('bf-spinDur').value  = o.spinDur??43;
+    _bget('bf-cannonSpd').value   = o.cannonSpd??7;
+    _bget('bf-cannonRad').value   = o.cannonRad??28;
+    _bget('bf-cannonWindup').value= o.cannonWindup??80;
+    // Show/hide boss-specific sections
+    _bget('bf-spinDur').closest('.we-row').style.opacity = _bKey==='GRONK'?'1':'0.3';
+    ['bf-cannonSpd','bf-cannonRad','bf-cannonWindup'].forEach(id=>{
+      _bget(id).closest('.we-row').style.opacity = _bKey==='SHAMAZ'?'1':'0.3';
+    });
+  }
+
+  function _bApply(){
+    const o=_bossOverrides[_bKey];
+    // Attack hitbox globals — write directly since they're now `let`
+    BOSS_ATK_RANGE    = _bnum('bf-atkRange');
+    BOSS_REACH        = _bnum('bf-reach');
+    BOSS_ARM_LEN      = _bnum('bf-armLen');
+    BOSS_PIVOT_X      = _bnum('bf-pivotX');
+    BOSS_PIVOT_Y      = _bnum('bf-pivotY');
+    SHAMAZ_HOOK_REACH  = _bnum('bf-hookReach');
+    SHAMAZ_HOOK_PIVOT_X= _bnum('bf-hookPivX');
+    SHAMAZ_HOOK_PIVOT_Y= _bnum('bf-hookPivY');
+    o.hp         = _bnum('bf-hp');
+    o.drawW      = _bnum('bf-drawW');
+    o.drawH      = _bnum('bf-drawH');
+    o.offsetX    = _bnum('bf-offsetX');
+    o.offsetY    = _bnum('bf-offsetY');
+    o.hitW       = _bnum('bf-hitW');
+    o.hitH       = _bnum('bf-hitH');
+    o.dmg        = _bnum('bf-dmg');
+    o.speed      = _bnum('bf-speed');
+    o.atkCD      = _bnum('bf-atkCD');
+    o.exp        = _bnum('bf-exp');
+    o.gold       = _bnum('bf-gold');
+    o.stunMax    = _bnum('bf-stunMax');
+    o.stunDur    = _bnum('bf-stunDur');
+    o.windup     = _bnum('bf-windup');
+    o.spinDur    = _bnum('bf-spinDur');
+    o.cannonSpd  = _bnum('bf-cannonSpd');
+    o.cannonRad  = _bnum('bf-cannonRad');
+    o.cannonWindup=_bnum('bf-cannonWindup');
+    // Apply sprite/hitbox to BOSS_ANIM_DEFS immediately (renderer reads this each frame)
+    if(BOSS_ANIM_DEFS[_bKey]){
+      const bd=BOSS_ANIM_DEFS[_bKey];
+      bd.drawW=o.drawW; bd.drawH=o.drawH;
+      bd.offsetX=o.offsetX; bd.offsetY=o.offsetY;
+      bd.hitW=o.hitW; bd.hitH=o.hitH;
+    }
+    // Apply live to any matching spawned boss
+    enemies.forEach(e=>{
+      if(!e.boss||e.bossName!==_bKey) return;
+      e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
+      e.exp=o.exp; e.gold=o.gold;
+      e.bossStunMax=o.stunMax;
+      e.hitW=o.hitW; e.hitH=o.hitH;
+    });
+    const btn=_bget('be-apply-btn');
+    btn.textContent='✔ Applied!';
+    setTimeout(()=>btn.textContent='▶ Apply Live',900);
+  }
+
+  function _bRespawn(){
+    _bApply();
+    // Kill existing boss
+    enemies.forEach(e=>{if(e.boss&&e.bossName===_bKey)e.dead=true;});
+    document.getElementById('bossBar').classList.remove('show');
+    document.body.classList.remove('boss-fighting');
+    bossSpawned=false;
+    const o=_bossOverrides[_bKey];
+    // Patch hp before spawn (spawn functions read difficulty from save)
+    const origDiff=save.difficulty;
+    save.difficulty=Math.round((o.hp / _bossDefaults[_bKey].hp)*100);
+    if     (_bKey==='GRONK')  spawnGronk(false);
+    else if(_bKey==='SHAMAZ') spawnShamaz(false);
+    else if(_bKey==='GARTU')  spawnGartu(false);
+    save.difficulty=origDiff;
+    // Apply remaining fields
+    enemies.forEach(e=>{
+      if(!e.boss||e.bossName!==_bKey) return;
+      e.dmg=o.dmg; e.speed=o.speed; e.atkCD=o.atkCD;
+      e.exp=o.exp; e.gold=o.gold; e.bossStunMax=o.stunMax;
+    });
+    const btn=_bget('be-spawn-btn');
+    btn.textContent='✔ Spawned!';
+    setTimeout(()=>btn.textContent='⚡ Respawn Boss',1200);
+  }
+
+  _bget('be-bsel').onchange=e=>{_bKey=e.target.value;_bFill();};
+  // ── WEAPON EXPORT ────────────────────────
+  function _exportWeapon(){
+    const w=_getWeapon(); if(!w) return;
+    const steps=w.steps.map(s=>{
+      // Deep copy, remove function refs, format cleanly
+      const c=Object.assign({},s);
+      return c;
+    });
+    const lines=[
+      `// ── ${w.name} — exported from live editor ──`,
+      `atkSpeed: ${w.atkSpeed},`,
+      `steps:[`,
+      ...steps.map((s,i)=>`  ${JSON.stringify(s)}${i<steps.length-1?',':''}`),
+      `],`,
+    ].join('\n');
+    navigator.clipboard.writeText(lines)
+      .then(()=>{ const b=document.getElementById('we-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export steps[] to Clipboard',1500); })
+      .catch(()=>prompt('Copy this into WEAPONS[key] in the source file:',lines));
+  }
+
+  // ── BOSS EXPORT ──────────────────────────
+  function _exportBoss(){
+    _bApply(); // make sure overrides are current
+    const o=_bossOverrides[_bKey];
+    const bossLabel={GRONK:'spawnGronk',SHAMAZ:'spawnShamaz',GARTU:'spawnGartu'}[_bKey];
+    const lines=[
+      `// ── ${_bKey} — exported from live editor ──`,
+      ``,
+      `// 1. In ${bossLabel}(), update the enemies.push({...}) object:`,
+      `//    hp: Math.round(${o.hp}*((save.difficulty||100)/100)),`,
+      `//    dmg: ${o.dmg}, speed: ${o.speed}, atkCD: ${o.atkCD},`,
+      `//    exp: ${o.exp}, gold: ${o.gold},`,
+      `//    bossStunMax: ${o.stunMax},`,
+      ``,
+      `// 2. In BOSS_ANIM_DEFS.${_bKey}, update:`,
+      `//    drawW:${o.drawW}, drawH:${o.drawH},`,
+      `//    offsetX:${o.offsetX}, offsetY:${o.offsetY},`,
+      `//    hitW:${o.hitW}, hitH:${o.hitH},`,
+      ``,
+    ];
+    if(_bKey==='GRONK'||_bKey==='SHAMAZ'){
+      lines.push(`// 3. Update the relevant let constants near the BOSS CONSTANTS block:`);
+      if(_bKey==='GRONK'){
+        lines.push(`let BOSS_ATK_RANGE   = ${BOSS_ATK_RANGE};`);
+        lines.push(`let BOSS_REACH       = ${BOSS_REACH};`);
+        lines.push(`let BOSS_ARM_LEN     = ${BOSS_ARM_LEN};`);
+        lines.push(`let BOSS_PIVOT_X     = ${BOSS_PIVOT_X};`);
+        lines.push(`let BOSS_PIVOT_Y     = ${BOSS_PIVOT_Y};`);
+        lines.push(`let BOSS_SPIN_DURATION = ${BOSS_SPIN_DURATION};`);
+      }
+      if(_bKey==='SHAMAZ'){
+        lines.push(`let SHAMAZ_HOOK_REACH     = ${SHAMAZ_HOOK_REACH};`);
+        lines.push(`let SHAMAZ_HOOK_PIVOT_X   = ${SHAMAZ_HOOK_PIVOT_X};`);
+        lines.push(`let SHAMAZ_HOOK_PIVOT_Y   = ${SHAMAZ_HOOK_PIVOT_Y};`);
+        if(o.cannonSpd)  lines.push(`// SHAMAZ_CANNON_SPEED: ${o.cannonSpd} (update SHAMAZ_CANNON_SPEED const)`);
+        if(o.cannonRad)  lines.push(`// SHAMAZ_CANNON_RADIUS: ${o.cannonRad} (update SHAMAZ_CANNON_RADIUS const)`);
+        if(o.cannonWindup) lines.push(`// SHAMAZ_CANNON_WINDUP: ${o.cannonWindup} (update SHAMAZ_CANNON_WINDUP const)`);
+      }
+    }
+    const txt=lines.join('\n');
+    navigator.clipboard.writeText(txt)
+      .then(()=>{ const b=_bget('be-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export Patch to Clipboard',1500); })
+      .catch(()=>prompt('Copy this patch into the source file:',txt));
+  }
+
+  _bget('be-apply-btn').onclick=_bApply;
+  _bget('be-spawn-btn').onclick=_bRespawn;
+  _bget('be-export-btn').onclick=_exportBoss;
+  document.getElementById('we-export-btn').onclick=_exportWeapon;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ _buildWeaSelect(); _bFill(); }));
+
   // Init weapon list when DOM+WEAPONS are ready
-  requestAnimationFrame(()=>requestAnimationFrame(()=>_buildWeaSelect()));
+  // (moved into rAF above)
 })();
 
 // Backtick = toggle weapon editor
