@@ -1854,11 +1854,9 @@ const WEAPONS = {
     special(p){
       const {bladeLen}=getSwordTip(p); const range=bladeLen*1.8; let hit=false;
       enemies.forEach(e=>{
-        if(e.dead)return;
-        if(Math.abs(e.x+EW/2-(p.x+PW/2))<range&&Math.abs(e.y+EH/2-(p.y+PH/2))<80){
-          _spHit(e,Math.round(calcBaseDmg()*2.5+(Math.random()*20|0))); hit=true;
-          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy-=6;
-        }
+        if(!_spInRange(p,e,range,90,14,true)) return;
+        _spHit(e,Math.round(calcBaseDmg()*2.5+(Math.random()*20|0))); hit=true;
+        e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy-=6;
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(18);triggerShake(14);triggerHitFlash();}
       for(let i=0;i<18;i++){const a=(i/18)*Math.PI*2;
@@ -1912,12 +1910,9 @@ const WEAPONS = {
     special(p){
       let hit=false;
       enemies.forEach(e=>{
-        if(e.dead)return;
-        const dx=(e.x+EW/2)-(p.x+PW/2);
-        if(Math.sign(dx)===p.facing&&Math.abs(dx)<220&&Math.abs(e.y-p.y)<60){
-          _spHit(e,Math.round(calcBaseDmg()*4+(Math.random()*30|0))); hit=true;
-          if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=5; }
-        }
+        if(!_spInRange(p,e,220,70,16)) return;
+        _spHit(e,Math.round(calcBaseDmg()*4+(Math.random()*30|0))); hit=true;
+        if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=5; }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(22);triggerShake(20);triggerHitFlash();}
       for(let i=0;i<20;i++){const ox=p.facing*(20+i*12);
@@ -2047,12 +2042,9 @@ const WEAPONS = {
     special(p){
       let hit=false;
       enemies.forEach(e=>{
-        if(e.dead) return;
-        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
-        if(dx<200&&dy<90){
-          _spHit(e,Math.round(calcBaseDmg()*2.4+(Math.random()*22|0))); hit=true;
-          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy=-9;
-        }
+        if(!_spInRange(p,e,200,90,14)) return;
+        _spHit(e,Math.round(calcBaseDmg()*2.4+(Math.random()*22|0))); hit=true;
+        e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*14; e.vy=-9;
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(18);triggerShake(16);triggerHitFlash();}
       for(let i=0;i<32;i++){
@@ -2128,17 +2120,14 @@ const WEAPONS = {
       // Blazing Rush — dash through all enemies with a fire tornado
       let hit=false;
       enemies.forEach(e=>{
-        if(e.dead) return;
-        const dx=Math.abs((e.x+EW/2)-(p.x+PW/2)), dy=Math.abs((e.y+EH/2)-(p.y+PH/2));
-        if(dx<320&&dy<80){
-          _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*14|0))); hit=true;
-          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*6; e.vy-=4;
-          for(let i=0;i<8;i++){
-            particles.push({type:'spark',x:e.x+EW/2+(Math.random()-0.5)*22,y:e.y+EH*0.38,
-              vx:(Math.random()-0.5)*5,vy:-Math.random()*8-2,
-              life:1,decay:0.038+Math.random()*0.03,r:3+Math.random()*4,
-              color:`hsl(${10+Math.random()*30|0},100%,${55+Math.random()*25|0}%)`});
-          }
+        if(!_spInRange(p,e,320,80,14,true)) return;
+        _spHit(e,Math.round(calcBaseDmg()*1.8+(Math.random()*14|0))); hit=true;
+        e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*6; e.vy-=4;
+        for(let i=0;i<8;i++){
+          particles.push({type:'spark',x:e.x+EW/2+(Math.random()-0.5)*22,y:e.y+EH*0.38,
+            vx:(Math.random()-0.5)*5,vy:-Math.random()*8-2,
+            life:1,decay:0.038+Math.random()*0.03,r:3+Math.random()*4,
+            color:`hsl(${10+Math.random()*30|0},100%,${55+Math.random()*25|0}%)`});
         }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(12);triggerShake(12);triggerHitFlash();}
@@ -2174,11 +2163,9 @@ const WEAPONS = {
       // Ground Slam — floor shockwave launches all grounded enemies
       let hit=false;
       enemies.forEach(e=>{
-        if(e.dead) return;
-        if(Math.abs((e.x+EW/2)-(p.x+PW/2))<300){
-          _spHit(e,Math.round(calcBaseDmg()*3.5+(Math.random()*30|0))); hit=true;
-          e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*12; e.vy=-14;
-        }
+        if(!_spInRange(p,e,300,100,18,true)) return;
+        _spHit(e,Math.round(calcBaseDmg()*3.5+(Math.random()*30|0))); hit=true;
+        e.vx+=(e.x+EW/2>p.x+PW/2?1:-1)*12; e.vy=-14;
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(24);triggerShake(26);triggerHitFlash();}
       for(let side=-1;side<=1;side+=2){
@@ -2393,12 +2380,9 @@ const WEAPONS = {
       // Fire Wave — rolling wall of flame sent forward
       let hit=false;
       enemies.forEach(e=>{
-        if(e.dead) return;
-        const dx=(e.x+EW/2)-(p.x+PW/2);
-        if(Math.sign(dx)===p.facing&&Math.abs(dx)<300&&Math.abs(e.y-p.y)<70){
-          _spHit(e,Math.round(calcBaseDmg()*2.8+(Math.random()*24|0))); hit=true;
-          if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=6; }
-        }
+        if(!_spInRange(p,e,300,70,14)) return;
+        _spHit(e,Math.round(calcBaseDmg()*2.8+(Math.random()*24|0))); hit=true;
+        if(!_groundLocked(e)){ e.vx+=p.facing*10; e.vy-=6; }
       });
       if(hit){playSfx(activeWeapon.spHitSound);triggerFreeze(16);triggerShake(14);triggerHitFlash();}
       for(let i=0;i<28;i++){
@@ -4728,6 +4712,24 @@ function _decayElemAccum(e){
 
 // Shared helper used by all weapon specials — apply damage + effects to one enemy.
 // Label and colour are derived from activeWeapon.elemental via the central maps.
+// Hit-test helper for weapon specials.
+// Tests enemy AABB against a box centred on p, extending forward by range and ±halfH vertically.
+// margin fattens the enemy box (same convention as tickAttackHits).
+function _spInRange(p, e, range, halfH, margin=12, bothSides=false){
+  if(e.dead) return false;
+  const px=p.x+PW/2, py=p.y+PH*0.45;
+  const ex0=e.x-margin, ex1=e.x+EW+margin;
+  const ey0=e.y-margin, ey1=e.y+EH+margin;
+  // Vertical check
+  if(py+halfH < ey0 || py-halfH > ey1) return false;
+  // Horizontal: if bothSides test both directions, else only facing direction
+  if(bothSides){
+    return ex1 >= px-range && ex0 <= px+range;
+  }
+  if(p.facing===1)  return ex0<=px+range && ex1>=px;
+  else              return ex1>=px-range && ex0<=px;
+}
+
 function _spHit(e, dmg){
   const _elem = activeWeapon?.elemental;
   const _lbl  = _elem ? ((ELEMENTAL_LABELS[_elem]       || '') + ' ') : '';
@@ -10752,8 +10754,9 @@ function _loopUpdate(){
     const bRight=b.facing===1?b.x:b.startX;
     enemies.forEach(e=>{
       if(e.dead||b.hitSet.has(e))return;
-      const ex=e.x+EW/2,ey=e.y+EH/2;
-      if(ex>=bLeft&&ex<=bRight&&ey>=b.y-b.halfH&&ey<=b.y+b.halfH){
+      // Test full enemy AABB against beam bounds (not just centre point)
+      const ex0=e.x, ex1=e.x+EW, ey0=e.y, ey1=e.y+EH;
+      if(ex1>=bLeft && ex0<=bRight && ey1>=b.y-b.halfH && ey0<=b.y+b.halfH){
         b.hitSet.add(e);
         _spHit(e,b.dmg);
         e.vx+=b.facing*3;
