@@ -1500,8 +1500,7 @@ const _multiHitQueue = [];
 // cells(x0, y0, n) slices n frames starting at (x0, y0)
 const CELL     = 96;   // cell width on the sheet (px)
 const CELL_H   = 96;   // cell height on the sheet (px)
-const ORIGIN_X = 48;   // px from cell LEFT edge to character horizontal centre
-const ORIGIN_Y = 70;   // px from cell TOP  edge to character FEET
+// CELL/CELL_H kept for sheet frame layout calculations
 
 function cells(x0, y0, n){
   return Array.from({length:n}, (_, i) => ({
@@ -1530,7 +1529,14 @@ const HERO_FRAMES = {
 };
 
 // Scale the character on screen — 1.0 = native 96px, 2.0 = double size
-const HERO_SCALE = 1.15;  // ← edit this to resize
+// Hero sprite draw dimensions — same convention as BOSS_ANIM_DEFS.
+// drawW/drawH: rendered pixel size on screen.
+// offsetX: px from draw-anchor (physics centre-x, feet-y) to sprite LEFT edge.
+// offsetY: px from draw-anchor to sprite TOP edge.
+let HERO_DRAW_W  = 110;   // rendered width  (px)
+let HERO_DRAW_H  = 110;   // rendered height (px)
+let HERO_OFFSET_X = 55;   // left edge from physics centre-x
+let HERO_OFFSET_Y = 80;   // top  edge from physics feet-y
                     //   1.0  = 96px tall (tiny)
                     //   1.15 = ~110px tall (current)
                     //   1.5  = 144px tall (large)
@@ -1601,7 +1607,8 @@ const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
 const AIR_ATK_FREEZE_DRIFT  = 0.5; // small forward velocity (px/frame) applied during the freeze
-const PW=30,PH=58, EW=28,EH=52;
+let PW=30, PH=58; // player physics hitbox (px) — edit in Player tab of editor
+const EW=28, EH=52;
 // Helpers that return per-enemy hitbox dimensions, falling back to the shared EW/EH.
 // Bosses with a custom hitW/hitH (from BOSS_ANIM_DEFS) use their own size;
 // regular enemies use the shared constants.
@@ -7513,17 +7520,17 @@ function drawSwordTrail(){
 // ── EVADE AFTERIMAGE TRAIL ───────────────
 function _drawDashTrail(){
   if(!_dashTrail.length || !heroLoaded || !heroCanvas) return;
-  // Lazily create an offscreen canvas sized to one scaled sprite cell
-  if(!_dashGhostCanvas){
+  // Lazily create offscreen canvas — invalidate if draw size changed
+  if(!_dashGhostCanvas || _dashGhostCanvas.width!==HERO_DRAW_W || _dashGhostCanvas.height!==HERO_DRAW_H){
     _dashGhostCanvas = document.createElement('canvas');
-    _dashGhostCanvas.width  = Math.ceil(CELL   * HERO_SCALE);
-    _dashGhostCanvas.height = Math.ceil(CELL_H * HERO_SCALE);
+    _dashGhostCanvas.width  = HERO_DRAW_W;
+    _dashGhostCanvas.height = HERO_DRAW_H;
     _dashGhostCtx = _dashGhostCanvas.getContext('2d');
   }
   const gc = _dashGhostCtx;
   const gw = _dashGhostCanvas.width, gh = _dashGhostCanvas.height;
-  const dw = CELL   * HERO_SCALE, dh = CELL_H * HERO_SCALE;
-  const ox = ORIGIN_X * HERO_SCALE, oy = ORIGIN_Y * HERO_SCALE;
+  const dw = HERO_DRAW_W, dh = HERO_DRAW_H;
+  const ox = HERO_OFFSET_X, oy = HERO_OFFSET_Y;
 
   _dashTrail.forEach(t=>{
     const f = HERO_FRAMES[t.name]?.[t.frame];
@@ -7553,63 +7560,16 @@ function drawPlayer(p){
   const f = HERO_FRAMES[heroAnim.name]?.[heroAnim.frame];
   if(!f || !heroLoaded || !heroCanvas){ drawPlayerFallback(p); return; }
 
-  // ─── DISPLAY SIZE ────────────────────────────────────────────────────────
-  // Each frame on the sheet is CELL×CELL (96×96 px).
-  // We scale it by HERO_SCALE so on screen it becomes:
-  //   dw = 96 × HERO_SCALE  (e.g. 96 × 1.15 = 110.4 px wide)
-  //   dh = 96 × HERO_SCALE  (e.g. 96 × 1.15 = 110.4 px tall)
-  // ↑ To change the character's pixel size, edit HERO_SCALE above.
-  const dw = CELL   * HERO_SCALE;  // destination width  on screen (px)
-  const dh = CELL_H * HERO_SCALE;  // destination height on screen (px)
-
-  // ─── ANCHOR / ORIGIN ─────────────────────────────────────────────────────
-  // The sprite sheet marks the character's CENTRE as x=ORIGIN_X (48px from left)
-  // and FEET as y=ORIGIN_Y (80px from top) within each 96×96 cell.
-  // After scaling:
-  //   ox = 48 × 1.15 = ~55 px  → how far the LEFT edge is from the draw centre
-  //   oy = 80 × 1.15 = ~92 px  → how far the TOP edge is above the feet
-  // We then draw at (-ox, -oy) so the feet align with the physics ground.
-  // ↑ To shift the sprite LEFT/RIGHT, change ORIGIN_X.
-  // ↑ To shift the sprite UP/DOWN,    change ORIGIN_Y.
-  const ox = ORIGIN_X * HERO_SCALE;  // horizontal offset from draw-point to sprite left edge
-  const oy = ORIGIN_Y * HERO_SCALE;  // vertical   offset from draw-point to sprite top edge
-
-  // ─── SCREEN POSITION ─────────────────────────────────────────────────────
-  // We translate the canvas to (screenX, groundY) and draw relative to that:
-  //   screenX = player world X  +  half physics body width  −  camera offset
-  //             (centres draw-point on the physics hitbox)
-  //   groundY = player world Y  +  physics body height
-  //             (this is exactly where the feet touch the floor)
-  // ↑ To nudge the sprite left/right on screen, add a pixel offset to screenX.
-  // ↑ To nudge it up/down, add a pixel offset to groundY.
+  // Draw sprite — same convention as BOSS_ANIM_DEFS:
+  // translate to (physics centre-x, feet-y), draw at (-offsetX, -offsetY, drawW, drawH)
   ctx.save();
-  ctx.translate(
-    p.x + PW/2 - camX,   // screenX: world centre → screen
-    p.y + PH              // groundY: physics feet → screen
-  );
-
-  // ─── FACING (mirror) ─────────────────────────────────────────────────────
-  // The sprite faces RIGHT by default (facing === 1, no flip).
-  // When facing === -1 (left), we flip horizontally by scaling X by -1.
-  // This mirrors the sprite so it faces the correct direction.
+  ctx.translate(p.x + PW/2 - camX, p.y + PH);
   if(p.facing === -1) ctx.scale(-1, 1);
-
-  // ─── DRAW ────────────────────────────────────────────────────────────────
-  // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-  //   sx, sy  = top-left of source frame on the sheet  (f.sx, f.sy)
-  //   sw, sh  = source frame size                       (CELL × CELL = 96×96)
-  //   dx, dy  = destination top-left, relative to translate origin
-  //             dx = -ox  → shifts left so horizontal centre aligns with origin
-  //             dy = -oy  → shifts up  so feet      align with origin
-  //   dw, dh  = destination size on screen             (CELL × HERO_SCALE)
   ctx.drawImage(
     heroCanvas,
-    f.sx, f.sy,     // source top-left on sheet   (auto from HERO_FRAMES)
-    f.sw, f.sh,     // source size (96 × 96)
-    -ox,            // dest X: -55px so sprite centre is at origin
-    -oy,            // dest Y: -92px so sprite feet  are at origin
-    dw,             // dest width  on screen
-    dh              // dest height on screen
+    f.sx, f.sy, f.sw, f.sh,
+    -HERO_OFFSET_X, -HERO_OFFSET_Y,
+    HERO_DRAW_W, HERO_DRAW_H
   );
   ctx.restore();
 }
@@ -10778,6 +10738,126 @@ function _loopUpdate(){
   _tickImpactAnim();
 } // end _loopUpdate
 
+let _debugHitboxes = false;
+
+function _drawDebugHitboxes(){
+  ctx.save();
+
+  // ── ENEMY HITBOXES & RANGES ─────────────────────────────────
+  enemies.forEach(e=>{
+    if(e.dead) return;
+    const sx=e.x-camX, sy=e.y;
+    const ew=eW(e), eh=eH(e);
+
+    // Body hitbox — red outline
+    ctx.strokeStyle='rgba(255,60,60,0.85)';
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]);
+    ctx.strokeRect(sx, sy, ew, eh);
+    ctx.setLineDash([]);
+
+    if(e.boss){
+      // Boss melee trigger range — orange dashed circle
+      ctx.strokeStyle='rgba(255,160,20,0.55)';
+      ctx.lineWidth=1;
+      ctx.setLineDash([6,4]);
+      ctx.beginPath();
+      ctx.arc(sx+ew/2, sy+eh/2, BOSS_ATK_RANGE, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Boss attack arc tip trace — yellow dots at current swing position
+      if(e.atk && (e.bossName==='GRONK'||!e.bossName)){
+        const _wa=-1.5+4.7*Math.min(e.atkF/(BOSS_SWING||50),1);
+        const tipX=sx+ew/2+e.facing*(BOSS_PIVOT_X+BOSS_ARM_LEN*Math.sin(_wa));
+        const tipY=sy+eh/2+BOSS_PIVOT_Y-BOSS_ARM_LEN*Math.cos(_wa);
+        // Pivot point
+        ctx.fillStyle='rgba(255,220,0,0.7)';
+        ctx.beginPath();
+        ctx.arc(sx+ew/2+e.facing*BOSS_PIVOT_X, sy+eh/2+BOSS_PIVOT_Y, 4, 0, Math.PI*2);
+        ctx.fill();
+        // Club tip + reach circle
+        ctx.strokeStyle='rgba(255,220,0,0.9)';
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([3,2]);
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, BOSS_REACH, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,80,0,0.85)';
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 4, 0, Math.PI*2);
+        ctx.fill();
+        // Arm line
+        ctx.strokeStyle='rgba(255,220,0,0.4)';
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(sx+ew/2+e.facing*BOSS_PIVOT_X, sy+eh/2+BOSS_PIVOT_Y);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+      }
+
+      // Shamaz hook arc tip
+      if(e.atk && e.bossName==='SHAMAZ'){
+        const _swingF=e.atkPattern===1&&e.atkPhase===0?21:e.atkPattern===1&&e.atkPhase===1?21:41;
+        const _wa = e.atkPattern===2 ? 0
+          : e.atkPhase===1 ? -1.2+4.2*Math.min(e.atkF/_swingF,1)
+          : -1.0+3.8*Math.min(e.atkF/_swingF,1);
+        const tipX=sx+ew/2+e.facing*(SHAMAZ_HOOK_PIVOT_X+SHAMAZ_HOOK_REACH*Math.sin(_wa));
+        const tipY=sy+eh/2+SHAMAZ_HOOK_PIVOT_Y-SHAMAZ_HOOK_REACH*Math.cos(_wa);
+        ctx.strokeStyle='rgba(80,220,255,0.9)';
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([3,2]);
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 20, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(80,200,255,0.85)';
+        ctx.beginPath(); ctx.arc(tipX,tipY,4,0,Math.PI*2); ctx.fill();
+      }
+
+    } else {
+      // Regular enemy melee range — cyan line forward
+      const _atkRange = e.type==='knight'?90
+                      : e.type==='guard'?75
+                      : e.type==='royal_guard'?100
+                      : e.type==='drunkard'?DRUNKARD_THROW_RANGE
+                      : ENEMY_ATK_RANGE;
+      ctx.strokeStyle='rgba(60,220,255,0.6)';
+      ctx.lineWidth=1;
+      ctx.setLineDash([4,3]);
+      ctx.beginPath();
+      ctx.moveTo(sx+ew/2, sy+eh/2);
+      ctx.lineTo(sx+ew/2+e.facing*_atkRange, sy+eh/2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Range endpoint dot
+      ctx.fillStyle='rgba(60,220,255,0.7)';
+      ctx.beginPath();
+      ctx.arc(sx+ew/2+e.facing*_atkRange, sy+eh/2, 3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Entity label
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.font='9px monospace';
+    ctx.fillText(`${e.type||e.bossName||'?'} hp:${e.hp|0}`, sx, sy-3);
+  });
+
+  // ── PLAYER HITBOX — green ─────────────────────────────────
+  const px=player.x-camX, py=player.y;
+  ctx.strokeStyle='rgba(60,255,120,0.8)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.strokeRect(px, py, PW, PH);
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(60,255,120,0.7)';
+  ctx.font='9px monospace';
+  ctx.fillText(`player hp:${player.hp|0}`, px, py-3);
+
+  ctx.restore();
+}
+
 function _loopDraw(){
   // ── RENDER INTERPOLATION (120fps mode) ──────────────────────────────────────
   // Move player, enemies and camera to the sub-tick interpolated position for
@@ -11086,6 +11166,8 @@ function _loopDraw(){
   // Deflect shield overlay
   if(!player.dead) drawDeflectShield(player);
   _drawMobileControls();
+  // Debug hitbox overlay (toggled from weapon/boss editor)
+  if(_debugHitboxes) _drawDebugHitboxes();
 
   ctx.restore();
 
@@ -12069,8 +12151,11 @@ document.addEventListener('touchstart',function _ft(){
   <h2 id="we-title">⚔ Weapon Editor</h2>
   <div id="we-tabs">
     <button class="we-tab active" data-tab="weapon">⚔ Weapon</button>
+    <button class="we-tab" data-tab="player">🧍 Player</button>
     <button class="we-tab" data-tab="boss">💀 Boss</button>
+    <button class="we-tab" data-tab="enemy">👹 Enemy</button>
   </div>
+  <button id="we-hitbox-btn" title="Toggle hitbox overlay on canvas" style="font-size:10px;padding:3px 8px;background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.25);border-radius:4px;cursor:pointer;color:#cc8080;">👁 Hitboxes</button>
   <span style="font-size:10px;color:#706050">[ \` ] to toggle</span>
   <button id="we-close">✕</button>
 </div>
@@ -12142,6 +12227,66 @@ document.addEventListener('touchstart',function _ft(){
     <button id="we-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export steps[] to Clipboard</button>
   </div>
   <div class="we-hint">Apply Live = runtime only. Export = paste into WEAPONS[key].steps in source.</div>
+</div>
+
+<!-- ── PLAYER TAB ── -->
+<div id="pe-body" data-panel="player" style="display:none">
+  <div class="we-section">
+    <div class="we-section-title">Sprite Render</div>
+    <div class="we-row"><label title="Rendered width in pixels (same as BOSS_ANIM_DEFS.drawW)">Draw W</label><input id="pf-drawW" type="number" step="2" min="16" max="300"></div>
+    <div class="we-row"><label title="Rendered height in pixels">Draw H</label><input id="pf-drawH" type="number" step="2" min="16" max="300"></div>
+    <div class="we-row"><label title="Pixels from draw-anchor to sprite LEFT edge (horizontal centre offset)">Offset X</label><input id="pf-offsetX" type="number" step="1"></div>
+    <div class="we-row"><label title="Pixels from draw-anchor to sprite TOP edge (feet offset)">Offset Y</label><input id="pf-offsetY" type="number" step="1"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Physics Hitbox</div>
+    <div class="we-row"><label title="Player hitbox width (PW)">Hitbox W</label><input id="pf-pw" type="number" step="1" min="8" max="80"></div>
+    <div class="we-row"><label title="Player hitbox height (PH)">Hitbox H</label><input id="pf-ph" type="number" step="1" min="16" max="120"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button id="pe-apply-btn">▶ Apply Live</button>
+    <button id="pe-reset-btn" style="opacity:0.6">↺ Reset</button>
+  </div>
+  <div style="margin-top:4px;">
+    <button id="pe-export-btn" style="width:100%;background:rgba(60,180,255,0.14);border:1px solid rgba(60,180,255,0.35);border-radius:4px;padding:6px;font-size:11px;cursor:pointer;color:#80ccff;">⬇ Export to Clipboard</button>
+  </div>
+  <div class="we-hint">Apply Live = runtime only. Export = paste into source.</div>
+</div>
+
+<!-- ── ENEMY TAB ── -->
+<div id="ee-body" data-panel="enemy" style="display:none">
+  <div class="we-section">
+    <div class="we-section-title">Enemy Type</div>
+    <div class="we-row"><label>Type</label>
+      <select id="ef-type">
+        <option value="grunt">Grunt</option>
+        <option value="knight">Knight</option>
+        <option value="guard">Guard</option>
+        <option value="royal_guard">Royal Guard</option>
+        <option value="drunkard">Drunkard</option>
+        <option value="heavy">Heavy</option>
+      </select>
+    </div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Stats</div>
+    <div class="we-row"><label>HP</label><input id="ef-hp" type="number" step="10" min="10"></div>
+    <div class="we-row"><label>DMG</label><input id="ef-dmg" type="number" step="1" min="1"></div>
+    <div class="we-row"><label>Speed</label><input id="ef-speed" type="number" step="0.05" min="0.1" max="6"></div>
+    <div class="we-row"><label>EXP</label><input id="ef-exp" type="number" step="5" min="0"></div>
+    <div class="we-row"><label>Gold</label><input id="ef-gold" type="number" step="5" min="0"></div>
+  </div>
+  <div class="we-section">
+    <div class="we-section-title">Attack</div>
+    <div class="we-row"><label title="Frames between attacks">atkCD</label><input id="ef-atkCD" type="number" step="5" min="10"></div>
+    <div class="we-row"><label title="Horizontal melee reach in pixels">Atk range (px)</label><input id="ef-atkRange" type="number" step="4" min="20"></div>
+    <div class="we-row"><label title="Windup frames before swing">Windup frames</label><input id="ef-windup" type="number" step="1" min="1"></div>
+    <div class="we-row"><label title="Damage per hit">Hit DMG</label><input id="ef-hitDmg" type="number" step="1" min="1"></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button id="ee-apply-btn">▶ Apply to All Live</button>
+  </div>
+  <div class="we-hint">Applies to all living enemies of selected type immediately.</div>
 </div>
 
 <!-- ── BOSS TAB ── -->
@@ -12379,14 +12524,12 @@ document.addEventListener('touchstart',function _ft(){
 
   // ── EVENT WIRING ─────────────────────────
   document.getElementById('we-close').onclick=()=>el.classList.remove('we-open');
-  document.getElementById('we-wsel').onchange=e=>{_weaKey=e.target.value;_stepIdx=0;_loadWeaponFields();};
-  document.getElementById('we-apply-btn').onclick=_applyStep;
-  document.getElementById('we-copy-btn').onclick=_copyJSON;
-  document.getElementById('we-add-step').onclick=_addStep;
-  document.getElementById('we-del-step').onclick=_delStep;
-
-  // ── EVENT WIRING ─────────────────────────
-  document.getElementById('we-close').onclick=()=>el.classList.remove('we-open');
+  document.getElementById('we-hitbox-btn').onclick=function(){
+    _debugHitboxes=!_debugHitboxes;
+    this.style.background=_debugHitboxes?'rgba(255,60,60,0.35)':'rgba(255,60,60,0.1)';
+    this.style.color=_debugHitboxes?'#ff8080':'#cc8080';
+    this.style.borderColor=_debugHitboxes?'rgba(255,60,60,0.7)':'rgba(255,60,60,0.25)';
+  };
   document.getElementById('we-wsel').onchange=e=>{_weaKey=e.target.value;_stepIdx=0;_loadWeaponFields();};
   document.getElementById('we-apply-btn').onclick=_applyStep;
   document.getElementById('we-copy-btn').onclick=_copyJSON;
@@ -12394,15 +12537,129 @@ document.addEventListener('touchstart',function _ft(){
   document.getElementById('we-del-step').onclick=_delStep;
 
   // ── TAB SWITCHING ────────────────────────
+  const _panels={'weapon':'we-body','player':'pe-body','boss':'be-body','enemy':'ee-body'};
   el.querySelectorAll('.we-tab').forEach(btn=>{
     btn.onclick=()=>{
       el.querySelectorAll('.we-tab').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const tab=btn.dataset.tab;
-      document.getElementById('we-body').style.display  = tab==='weapon'?'':'none';
-      document.getElementById('be-body').style.display  = tab==='boss'  ?'':'none';
+      Object.entries(_panels).forEach(([k,id])=>{
+        document.getElementById(id).style.display = k===tab ? '' : 'none';
+      });
+      if(tab==='player') _pFill();
+      if(tab==='enemy')  _eFill();
     };
   });
+
+  // ── PLAYER EDITOR ────────────────────────
+  const _playerDefaults = { drawW:110, drawH:110, offsetX:55, offsetY:80, pw:30, ph:58 };
+
+  function _pFill(){
+    document.getElementById('pf-drawW').value   = HERO_DRAW_W;
+    document.getElementById('pf-drawH').value   = HERO_DRAW_H;
+    document.getElementById('pf-offsetX').value = HERO_OFFSET_X;
+    document.getElementById('pf-offsetY').value = HERO_OFFSET_Y;
+    document.getElementById('pf-pw').value      = PW;
+    document.getElementById('pf-ph').value      = PH;
+  }
+
+  function _pApply(){
+    HERO_DRAW_W   = parseFloat(document.getElementById('pf-drawW').value)  || 110;
+    HERO_DRAW_H   = parseFloat(document.getElementById('pf-drawH').value)  || 110;
+    HERO_OFFSET_X = parseFloat(document.getElementById('pf-offsetX').value)|| 55;
+    HERO_OFFSET_Y = parseFloat(document.getElementById('pf-offsetY').value)|| 80;
+    PW            = parseFloat(document.getElementById('pf-pw').value)     || 30;
+    PH            = parseFloat(document.getElementById('pf-ph').value)     || 58;
+    // Invalidate dash ghost cache so it rebuilds at new size
+    _dashGhostCanvas = null;
+    const btn=document.getElementById('pe-apply-btn');
+    btn.textContent='✔ Applied!';
+    setTimeout(()=>btn.textContent='▶ Apply Live',900);
+  }
+
+  function _pReset(){
+    HERO_DRAW_W=_playerDefaults.drawW; HERO_DRAW_H=_playerDefaults.drawH;
+    HERO_OFFSET_X=_playerDefaults.offsetX; HERO_OFFSET_Y=_playerDefaults.offsetY;
+    PW=_playerDefaults.pw; PH=_playerDefaults.ph;
+    _dashGhostCanvas=null;
+    _pFill();
+  }
+
+  function _pExport(){
+    const lines=[
+      `// ── Player sprite & hitbox — exported from live editor ──`,
+      `let HERO_DRAW_W   = ${HERO_DRAW_W};`,
+      `let HERO_DRAW_H   = ${HERO_DRAW_H};`,
+      `let HERO_OFFSET_X = ${HERO_OFFSET_X};`,
+      `let HERO_OFFSET_Y = ${HERO_OFFSET_Y};`,
+      `let PW=${PW}, PH=${PH};`,
+    ].join('\n');
+    navigator.clipboard.writeText(lines)
+      .then(()=>{ const b=document.getElementById('pe-export-btn'); b.textContent='✔ Copied!'; setTimeout(()=>b.textContent='⬇ Export to Clipboard',1500); })
+      .catch(()=>prompt('Paste into source file:',lines));
+  }
+
+  document.getElementById('pe-apply-btn').onclick=_pApply;
+  document.getElementById('pe-reset-btn').onclick=_pReset;
+  document.getElementById('pe-export-btn').onclick=_pExport;
+
+  // ── ENEMY EDITOR ─────────────────────────
+  // Per-type defaults seeded from ENEMY_DEFS if available, else hardcoded
+  const _enemyTypes = {
+    grunt:      { hp:120, dmg:18, speed:1.1, exp:30,  gold:12, atkCD:70,  atkRange:60, windup:28, hitDmg:18 },
+    knight:     { hp:280, dmg:26, speed:0.9, exp:70,  gold:28, atkCD:90,  atkRange:90, windup:40, hitDmg:26 },
+    guard:      { hp:200, dmg:22, speed:1.0, exp:50,  gold:20, atkCD:80,  atkRange:75, windup:34, hitDmg:22 },
+    royal_guard:{ hp:340, dmg:32, speed:0.8, exp:90,  gold:36, atkCD:100, atkRange:100,windup:44, hitDmg:32 },
+    drunkard:   { hp:160, dmg:20, speed:1.2, exp:40,  gold:16, atkCD:120, atkRange:340,windup:55, hitDmg:20 },
+    heavy:      { hp:420, dmg:38, speed:0.6, exp:110, gold:44, atkCD:110, atkRange:80, windup:50, hitDmg:38 },
+  };
+  const _enemyOverrides = JSON.parse(JSON.stringify(_enemyTypes));
+  let _eType = 'grunt';
+
+  function _eFill(){
+    const o=_enemyOverrides[_eType]||_enemyTypes[_eType]||{};
+    document.getElementById('ef-hp').value       = o.hp??120;
+    document.getElementById('ef-dmg').value      = o.dmg??18;
+    document.getElementById('ef-speed').value    = o.speed??1.0;
+    document.getElementById('ef-exp').value      = o.exp??30;
+    document.getElementById('ef-gold').value     = o.gold??12;
+    document.getElementById('ef-atkCD').value    = o.atkCD??70;
+    document.getElementById('ef-atkRange').value = o.atkRange??60;
+    document.getElementById('ef-windup').value   = o.windup??28;
+    document.getElementById('ef-hitDmg').value   = o.hitDmg??18;
+  }
+
+  function _eApply(){
+    const o=_enemyOverrides[_eType];
+    o.hp       = parseFloat(document.getElementById('ef-hp').value)||120;
+    o.dmg      = parseFloat(document.getElementById('ef-dmg').value)||18;
+    o.speed    = parseFloat(document.getElementById('ef-speed').value)||1.0;
+    o.exp      = parseFloat(document.getElementById('ef-exp').value)||30;
+    o.gold     = parseFloat(document.getElementById('ef-gold').value)||12;
+    o.atkCD    = parseFloat(document.getElementById('ef-atkCD').value)||70;
+    o.atkRange = parseFloat(document.getElementById('ef-atkRange').value)||60;
+    o.windup   = parseFloat(document.getElementById('ef-windup').value)||28;
+    o.hitDmg   = parseFloat(document.getElementById('ef-hitDmg').value)||18;
+    // Apply to all live enemies of this type
+    let count=0;
+    enemies.forEach(e=>{
+      if(e.dead||e.boss||e.type!==_eType) return;
+      e.hp    = Math.min(e.hp, o.hp); // don't heal above new max
+      e.maxHp = o.hp;
+      e.dmg   = o.dmg;
+      e.speed = o.speed;
+      e.exp   = o.exp;
+      e.gold  = o.gold;
+      e.atkCD = Math.min(e.atkCD, o.atkCD);
+      count++;
+    });
+    const btn=document.getElementById('ee-apply-btn');
+    btn.textContent=`✔ Applied to ${count} enemy${count!==1?'s':''}!`;
+    setTimeout(()=>btn.textContent='▶ Apply to All Live',1200);
+  }
+
+  document.getElementById('ef-type').onchange=e=>{ _eType=e.target.value; _eFill(); };
+  document.getElementById('ee-apply-btn').onclick=_eApply;
 
   // ── BOSS EDITOR ──────────────────────────
   // Per-boss tunable data — all fields that can be edited live
