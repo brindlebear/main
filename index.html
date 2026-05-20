@@ -3077,7 +3077,7 @@ function _triggerArcaneExplosion(sp){
   // Damage all enemies in AOE radius
   enemies.forEach(e=>{
     if(e.dead) return;
-    const dist=Math.hypot((e.x+EW/2)-cx,(e.y+EH/2)-cy);
+    const dist=Math.hypot((e.x+eW(e)/2)-cx,(e.y+eH(e)/2)-cy);
     if(dist<sp.aoeRadius){
       const falloff=1-dist/sp.aoeRadius*0.45;
       const _darkM=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
@@ -10653,9 +10653,10 @@ function _loopUpdate(){
       const sp=proj.spell;
       if(e.dead||proj.dead) return;
       if(sp.piercing && proj.hitSet?.has(e)) return;
-      const dx=Math.abs(proj.x-(e.x+EW/2));
-      const dy=Math.abs(proj.y-(e.y+EH/2));
-      if(dx<proj.radius+EW/2&&dy<proj.radius+EH/2){
+      const ew=eW(e), eh=eH(e);
+      const dx=Math.abs(proj.x-(e.x+ew/2));
+      const dy=Math.abs(proj.y-(e.y+eh/2));
+      if(dx<proj.radius+ew/2&&dy<proj.radius+eh/2){
         const dmg=Math.round(proj.damage*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
         const prevHp=e.hp;
         e.hp=Math.max(0,e.hp-dmg);
@@ -10735,9 +10736,8 @@ function _loopUpdate(){
     enemies.forEach(e=>{
       if(e.dead||b.hitSet.has(e))return;
       // Test full enemy AABB against beam bounds (not just centre point)
-      const ex0=e.x, ex1=e.x+EW, ey0=e.y, ey1=e.y+EH;
-      if(ex1>=bLeft && ex0<=bRight && ey1>=b.y-b.halfH && ey0<=b.y+b.halfH){
-        b.hitSet.add(e);
+      const ex0=e.x, ex1=e.x+eW(e), ey0=e.y, ey1=e.y+eH(e);
+      if(ex1>=bLeft && ex0<=bRight && ey1>=b.y-b.halfH && ey0<=b.y+b.halfH){        b.hitSet.add(e);
         _spHit(e,b.dmg);
         e.vx+=b.facing*3;
         if(b.hitSet.size===1){playSfx(activeWeapon.spHitSound);triggerShake(6);rumble(264,0.38,0.69);}
