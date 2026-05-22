@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>IRONVEIL</title>
 <link rel="icon" type="image/svg+xml" href="Resources/GFX/Sprite/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:21.6px;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Cinzel',serif;display:flex;align-items:center;justify-content:center;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;justify-content:center;}
 canvas{display:block;}
 /* ── GAME VIEWPORT — letterboxed 16:9 on desktop, full-screen on mobile ── */
 #viewport{
@@ -23,15 +23,15 @@ canvas{display:block;}
 /* Black bars fill the rest of the screen (body background:#000 handles this) */
 /* ── SETTINGS SCREEN ── */
 .settings-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1.1vh,10px);overflow-y:auto;max-height:calc(100vh - 40px);padding:16px 0;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.25) transparent;}
-.settings-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
+.settings-title{font-family:'Cinzel',serif;font-size:clamp(1.1rem,3vw,1.9rem);letter-spacing:0.2em;color:#d4aa48;text-shadow:0 0 22px rgba(200,160,40,0.5);}
 .settings-section-lbl{font-size:0.78rem;letter-spacing:0.32em;color:rgba(200,170,100,0.75);text-transform:uppercase;margin-bottom:-6px;}
 .settings-divider{width:240px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,60,0.35),transparent);}
 .settings-fs-btn{width:280px;display:flex;align-items:center;justify-content:center;gap:12px;}
 .settings-fs-btn .fs-icon{font-size:1.1rem;}
 .diff-row{display:flex;align-items:center;gap:0;width:clamp(200px,28vw,280px);border:1px solid rgba(185,148,68,0.28);border-radius:8px;overflow:hidden;}
 .diff-label{flex:1;text-align:left;padding:0 12px;font-size:0.76rem;letter-spacing:0.18em;color:rgba(200,170,100,0.88);}
-.diff-val{font-family:'Cinzel',serif;font-size:0.92rem;letter-spacing:0.12em;color:#e8c880;min-width:52px;text-align:center;}
-.diff-btn{background:rgba(200,160,60,0.08);border:none;border-left:1px solid rgba(200,160,80,0.2);color:rgba(220,190,100,0.9);font-size:1.1rem;width:38px;height:38px;cursor:pointer;font-family:'Cinzel',serif;transition:background 0.15s;}
+.diff-val{font-family:'IBM Plex Sans',sans-serif;font-size:0.92rem;font-weight:600;letter-spacing:0.04em;color:#e8c880;min-width:52px;text-align:center;font-feature-settings:"tnum" 1;}
+.diff-btn{background:rgba(200,160,60,0.08);border:none;border-left:1px solid rgba(200,160,80,0.2);color:rgba(220,190,100,0.9);font-size:1.1rem;width:38px;height:38px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-weight:500;transition:background 0.15s;}
 .diff-btn:first-child{border-left:none;border-right:1px solid rgba(200,160,80,0.2);}
 .diff-btn:hover,.diff-btn.gamepad-focused{background:rgba(200,160,60,0.2);color:#ffe080;}
 .diff-desc{font-size:0.68rem;letter-spacing:0.12em;color:rgba(200,170,100,0.6);text-align:center;width:280px;}
@@ -66,7 +66,87 @@ canvas{display:block;}
 #menuScreen > *{position:relative;z-index:1;}
 /* rain canvas — behind vignette and buttons, non-interactive */
 #rainCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;display:block;}
-.menu-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,8vw,4rem);color:#ecdcb0;letter-spacing:0.18em;text-shadow:0 0 40px rgba(210,170,70,0.45),0 0 100px rgba(160,120,40,0.18);text-align:center;line-height:1.2;}
+/* ── Menu emissive layer ──
+   Auto-detected warm light sources (windows, torches, airship lanterns)
+   get tiny radial-gradient nodes laid here. Each animates with subtle
+   opacity/scale breathing on a randomized phase so the city feels alive
+   without visible "VFX". Lives between the static background and the
+   menu vignette/UI so it reads as part of the painted scene.
+   Safe to use mix-blend-mode here — the menu screen has no per-frame
+   canvas repaint underneath, so compositing cost is paid once. */
+#menuEmissive{
+  position:absolute; inset:0;
+  pointer-events:none; z-index:0;
+  overflow:hidden;
+}
+.em-light{
+  position:absolute;
+  width:var(--em-size,46px); height:var(--em-size,46px);
+  margin:calc(var(--em-size,46px) * -0.5) 0 0 calc(var(--em-size,46px) * -0.5);
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,210,140,var(--em-core,0.55)) 0%,
+    rgba(252,170,80,calc(var(--em-core,0.55) * 0.65)) 28%,
+    rgba(220,120,40,calc(var(--em-core,0.55) * 0.28)) 58%,
+    rgba(180,80,20,0) 100%);
+  mix-blend-mode:screen;
+  will-change:opacity,transform;
+  animation:em-breathe var(--em-dur,4.6s) ease-in-out infinite;
+  animation-delay:var(--em-delay,0s);
+  filter:blur(var(--em-blur,0.6px));
+}
+.em-light.warm{
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,196,118,var(--em-core,0.6)) 0%,
+    rgba(248,148,58,calc(var(--em-core,0.6) * 0.7)) 30%,
+    rgba(200,92,28,calc(var(--em-core,0.6) * 0.30)) 62%,
+    rgba(140,60,18,0) 100%);
+}
+.em-light.gold{
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,228,160,var(--em-core,0.55)) 0%,
+    rgba(252,198,90,calc(var(--em-core,0.55) * 0.65)) 30%,
+    rgba(212,150,40,calc(var(--em-core,0.55) * 0.26)) 60%,
+    rgba(160,100,30,0) 100%);
+}
+.em-light.ember{
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,176,98,var(--em-core,0.62)) 0%,
+    rgba(238,118,48,calc(var(--em-core,0.62) * 0.68)) 28%,
+    rgba(180,68,24,calc(var(--em-core,0.62) * 0.30)) 58%,
+    rgba(120,40,14,0) 100%);
+}
+/* Two-flavor flicker so neighboring lights don't sync.
+   Subtle: ±10% opacity, ±2% scale, never visible "blink" — feels like
+   atmospheric breathing rather than animation.
+   Centering is handled by negative margins on the element (see .em-light),
+   so the keyframe only animates scale — adding translate(-50%,-50%) here
+   would double-shift the light and miss its anchor point. */
+@keyframes em-breathe{
+  0%   { opacity:0.85; transform:scale(1); }
+  14%  { opacity:1.00; transform:scale(1.05); }
+  29%  { opacity:0.72; transform:scale(0.96); }
+  44%  { opacity:0.95; transform:scale(1.03); }
+  61%  { opacity:0.68; transform:scale(0.94); }
+  78%  { opacity:1.00; transform:scale(1.04); }
+  100% { opacity:0.85; transform:scale(1); }
+}
+@keyframes em-flicker{
+  0%   { opacity:0.92; transform:scale(1); }
+  8%   { opacity:1.00; transform:scale(1.07); }
+  17%  { opacity:0.55; transform:scale(0.92); }
+  28%  { opacity:0.98; transform:scale(1.05); }
+  39%  { opacity:0.62; transform:scale(0.94); }
+  52%  { opacity:1.00; transform:scale(1.06); }
+  67%  { opacity:0.68; transform:scale(0.95); }
+  82%  { opacity:0.95; transform:scale(1.04); }
+  100% { opacity:0.92; transform:scale(1); }
+}
+.em-light.flicker{ animation-name:em-flicker; animation-timing-function:cubic-bezier(.4,0,.6,1); }
+/* Respect reduced motion — keep the lights, drop the animation */
+@media (prefers-reduced-motion:reduce){
+  .em-light{ animation:none; }
+}
+.menu-title{font-family:'Cinzel',serif;font-weight:600;font-size:clamp(2rem,8vw,4rem);color:#ecdcb0;letter-spacing:0.10em;text-shadow:0 0 40px rgba(210,170,70,0.38),0 0 100px rgba(160,120,40,0.16);text-align:center;line-height:1.2;}
 .menu-subtitle{font-size:0.82rem;letter-spacing:0.34em;color:rgba(195,165,100,0.58);text-transform:uppercase;}
 .menu-divider{width:200px;height:1px;background:linear-gradient(90deg,transparent,rgba(190,150,60,0.38),transparent);margin:2px 0;}
 /* ── Base menu button ── */
@@ -206,8 +286,8 @@ canvas{display:block;}
 .si-row{display:flex;align-items:baseline;gap:clamp(8px,1.4vw,16px);}
 .si-row+.si-row{margin-top:6px;}
 .si-stat{display:flex;align-items:baseline;gap:5px;}
-.si-val{font-family:'Cinzel',serif;font-size:clamp(0.78rem,1.4vw,0.92rem);font-weight:600;letter-spacing:0.08em;color:rgba(228,202,145,0.94);text-shadow:0 1px 8px rgba(0,0,0,0.95);}
-.si-lbl{font-family:'Cinzel',serif;font-size:clamp(0.44rem,0.8vw,0.52rem);letter-spacing:0.22em;color:rgba(185,152,92,0.68);text-transform:uppercase;}
+.si-val{font-family:'IBM Plex Sans',sans-serif;font-size:clamp(0.78rem,1.4vw,0.92rem);font-weight:500;letter-spacing:0.05em;color:rgba(228,202,145,0.94);text-shadow:0 1px 8px rgba(0,0,0,0.95);}
+.si-lbl{font-family:'IBM Plex Sans',sans-serif;font-size:clamp(0.42rem,0.8vw,0.50rem);letter-spacing:0.18em;color:rgba(185,152,92,0.62);text-transform:uppercase;font-weight:400;}
 .si-dot{color:rgba(185,152,92,0.42);font-size:clamp(0.5rem,0.9vw,0.58rem);align-self:center;}
 .si-row.si-secondary .si-val{font-size:clamp(0.66rem,1.18vw,0.78rem);color:rgba(200,172,118,0.76);}
 .si-row.si-secondary .si-lbl{font-size:clamp(0.40rem,0.72vw,0.48rem);color:rgba(165,132,74,0.56);}
@@ -219,7 +299,7 @@ canvas{display:block;}
 /* ── BOSS RUSH SCREEN ── */
 #bossRushScreen{gap:0;}
 .boss-rush-wrap{width:min(420px,92vw);display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 32px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(200,150,40,0.22) transparent;padding:0 4px;}
-.boss-rush-title{font-family:'Cinzel Decorative',serif;font-size:1.3rem;letter-spacing:0.22em;color:#e8d5a0;text-align:center;margin-bottom:2px;}
+.boss-rush-title{font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:0.22em;color:#e8d5a0;text-align:center;margin-bottom:2px;}
 .boss-rush-sub{font-size:0.74rem;letter-spacing:0.24em;color:rgba(200,170,100,0.65);text-align:center;text-transform:uppercase;margin-bottom:12px;}
 .boss-entry{display:flex;align-items:center;gap:14px;padding:12px 16px;width:100%;
   background:rgba(255,255,255,0.025);border:1px solid rgba(190,55,20,0.28);border-radius:8px;
@@ -228,7 +308,7 @@ canvas{display:block;}
   box-shadow:0 2px 14px rgba(0,0,0,0.35);}
 .boss-entry:hover,.boss-entry.gamepad-focused{background:rgba(190,48,18,0.12);border-color:rgba(240,76,38,0.58);box-shadow:0 4px 22px rgba(0,0,0,0.5),0 0 18px rgba(190,48,14,0.3);}
 .boss-entry.locked{opacity:0.35;cursor:default;pointer-events:none;border-color:rgba(255,255,255,0.06);}
-.boss-entry-num{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:rgba(200,80,40,0.8);min-width:24px;text-align:center;}
+.boss-entry-num{font-family:'Cinzel',serif;font-size:1.1rem;color:rgba(200,80,40,0.8);min-width:24px;text-align:center;}
 .boss-entry-info{flex:1;}
 .boss-entry-name{font-size:0.94rem;letter-spacing:0.2em;color:#e8c090;font-family:'Cinzel',serif;}
 .boss-entry-sub{font-size:0.7rem;letter-spacing:0.14em;color:rgba(200,170,130,0.65);margin-top:2px;}
@@ -240,7 +320,7 @@ canvas{display:block;}
 .stage-card-bg{position:absolute;inset:0;background-size:cover;background-position:center top;opacity:0.52;transition:opacity 0.2s;}
 .stage-card:hover .stage-card-bg{opacity:0.72;}
 .stage-card-overlay{position:relative;z-index:1;width:100%;padding:10px 16px;background:linear-gradient(to top,rgba(2,4,14,0.94) 0%,rgba(2,4,14,0.1) 100%);display:flex;align-items:center;gap:14px;}
-.stage-card-num{font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:rgba(200,80,40,0.8);min-width:22px;text-align:center;}
+.stage-card-num{font-family:'Cinzel',serif;font-size:1.05rem;color:rgba(200,80,40,0.8);min-width:22px;text-align:center;}
 .stage-card-info{flex:1;}
 .stage-card-name{font-size:0.94rem;letter-spacing:0.2em;color:#e8c090;}
 .stage-card-sub{font-size:0.7rem;letter-spacing:0.14em;color:rgba(200,170,130,0.65);margin-top:2px;}
@@ -248,7 +328,7 @@ canvas{display:block;}
 /* ── Stage Complete overlay ── */
 #stageCompleteScreen{position:fixed;inset:0;background:rgba(0,10,2,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
 #stageCompleteScreen.show{opacity:1;pointer-events:all;}
-#stageCompleteScreen h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,5vw,2.6rem);color:#40dd80;letter-spacing:0.18em;text-shadow:0 0 30px rgba(0,255,80,0.3);animation:dpulse 1.1s ease-in-out infinite alternate;}
+#stageCompleteScreen h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5vw,2.6rem);color:#40dd80;letter-spacing:0.18em;text-shadow:0 0 30px rgba(0,255,80,0.3);animation:dpulse 1.1s ease-in-out infinite alternate;}
 #stageCompleteScreen .sc-stage-name{font-size:0.82rem;letter-spacing:0.3em;color:rgba(160,220,170,0.75);text-transform:uppercase;margin-top:-8px;}
 #stageCompleteScreen .sc-stats{font-size:0.82rem;letter-spacing:0.16em;color:rgba(200,160,80,0.78);text-align:center;line-height:2.2;}
 #stageCompleteScreen .sc-btns{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:6px;}
@@ -266,7 +346,7 @@ canvas{display:block;}
 .prep-wrap::-webkit-scrollbar-thumb{background:rgba(200,150,40,0.25);border-radius:2px;}
 /* prep header */
 .prep-header{text-align:center;padding:24px 24px 16px;background:linear-gradient(180deg,rgba(200,150,40,0.08) 0%,transparent 100%);border-bottom:1px solid rgba(200,150,40,0.12);margin-bottom:4px;}
-.prep-title{font-family:'Cinzel Decorative',serif;font-size:1.4rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:13px;}
+.prep-title{font-family:'Cinzel',serif;font-size:1.4rem;letter-spacing:0.22em;color:#e8d5a0;text-shadow:0 0 22px rgba(230,200,100,0.4);margin-bottom:13px;}
 .prep-resource-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;}
 .prep-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.9rem;letter-spacing:0.13em;color:rgba(200,170,100,0.9);background:rgba(200,150,40,0.08);border:1px solid rgba(200,150,40,0.2);border-radius:20px;padding:5px 16px;}
 .prep-chip.pts{color:#ffd060;border-color:rgba(255,210,60,0.35);background:rgba(255,200,40,0.09);}
@@ -300,9 +380,9 @@ canvas{display:block;}
 .stat-btn:hover:not(:disabled){background:rgba(200,150,40,0.18);color:#ffe080;border-color:rgba(200,150,40,0.6);}
 .stat-btn:disabled{opacity:0.2;cursor:default;}
 /* prep actions */
-.prep-actions{padding:18px 22px 0;display:flex;flex-direction:column;gap:8px;}
-.prep-confirm-btn{width:100%;padding:20px;font-size:1.15rem;letter-spacing:0.26em;}
-.prep-back-btn{width:100%;font-size:0.94rem;padding:14px;opacity:0.7;}
+.prep-actions{padding:26px 22px 0;display:flex;flex-direction:column;gap:8px;}
+.prep-confirm-btn{width:100%;padding:14px 20px;font-size:1.05rem;letter-spacing:0.26em;}
+.prep-back-btn{width:100%;font-size:0.88rem;padding:10px 14px;opacity:0.7;}
 @media(max-width:480px){.weapon-grid{grid-template-columns:1fr!important;}}
 
 /* ── PREP SCREEN — portrait+stats side-by-side layout ── */
@@ -327,10 +407,10 @@ canvas{display:block;}
   #pauseScreen{gap:9px;padding:14px 0;}
   #pauseScreen h2{font-size:1.3rem!important;margin-bottom:0;}
   #pauseScreen .psub{margin:-4px 0 4px;font-size:0.55rem;}
-  #pauseScreen button:not(.diff-btn):not(.hud-adj-btn):not(.mnb){padding:9px 28px;font-size:0.78rem;width:200px;}
-  #pauseScreen .hud-adj-row{width:200px;}
-  .pause-divider{width:200px;}
-  .pause-section-lbl{width:200px;}
+  #pauseScreen button:not(.diff-btn):not(.hud-adj-btn):not(.mnb){padding:9px 28px;font-size:0.78rem;width:min(260px,82vw);}
+  #pauseScreen .hud-adj-row{width:min(260px,82vw);}
+  .pause-divider{width:min(260px,82vw);}
+  .pause-section-lbl{width:min(260px,82vw);}
   /* Dead screen */
   #dead{gap:11px;padding:14px 0;}
   #dead h1{font-size:1.5rem!important;}
@@ -519,6 +599,8 @@ canvas{display:block;}
 /* panels */
 .prep-panel{padding:12px 0 4px;}
 .prep-panel.hidden{display:none;}
+/* Equipment panels: no padding, handled by equip-split */
+#prepPanel1,#prepPanel2,#prepPanel3{padding:0;}
 
 /* ── HUD ── */
 #hud{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:10;}
@@ -572,7 +654,7 @@ canvas{display:block;}
 .hud-panel .bar-fill{border-radius:4px;}
 .hud-divider{height:1px;margin:2px 0;background:linear-gradient(90deg,transparent,rgba(190,145,55,0.4),transparent);}
 .hud-footer{display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.hud-lv{font-size:var(--hud-lv,0.72rem);letter-spacing:0.12em;color:rgba(240,205,100,1);font-weight:700;text-shadow:0 0 10px rgba(220,175,60,0.6);}
+.hud-lv{font-size:var(--hud-lv,1.05rem);letter-spacing:0.10em;color:rgba(252,220,100,1);font-weight:700;text-shadow:0 0 14px rgba(230,185,40,0.75),0 1px 4px rgba(0,0,0,0.95);}
 .hud-pot-wrap{display:flex;align-items:center;gap:4px;pointer-events:all;cursor:pointer;}
 .hud-score-sm{font-size:var(--hud-score,0.62rem);letter-spacing:0.06em;color:rgba(225,190,120,0.95);}
 .hud-exp-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
@@ -643,7 +725,7 @@ body:not(.mc-active) .combo-hud{top:148px;}
   padding:4px 16px 4px;
 }
 .combo-comment{
-  font-family:'Cinzel Decorative',serif;
+  font-family:'Cinzel',serif;
   font-size:1.1rem;font-weight:700;
   letter-spacing:0.12em;text-transform:uppercase;
   display:block;line-height:1;
@@ -679,7 +761,7 @@ body:not(.mc-active) .combo-hud{top:148px;}
   padding:6px 10px 6px;
 }
 .streak-num{
-  font-family:'Cinzel Decorative',serif;display:block;
+  font-family:'Cinzel',serif;display:block;
   font-size:var(--streak-num,1.8rem);font-weight:700;color:#fff;letter-spacing:-0.02em;
   line-height:0.88;transition:color 0.25s,text-shadow 0.25s;
   text-shadow:0 2px 14px rgba(0,0,0,0.9),0 0 24px rgba(200,220,255,0.25);
@@ -692,7 +774,7 @@ body:not(.mc-active) .combo-hud{top:148px;}
 }
 .streak-sep{width:1px;height:10px;background:rgba(200,155,60,0.5);}
 .streak-x{
-  font-family:'Cinzel Decorative',serif;font-size:var(--streak-x,0.75rem);
+  font-family:'Cinzel',serif;font-size:var(--streak-x,0.75rem);
   letter-spacing:0.06em;color:#ffcc2e;
   text-shadow:0 0 12px rgba(255,185,20,0.9),0 1px 8px rgba(0,0,0,0.95);transition:color 0.25s,text-shadow 0.25s;
 }
@@ -727,7 +809,7 @@ body.mc-active #gpHints{display:none!important;}
 .cdi.dep .cdi-lbl{color:rgba(230,80,65,0.95);}
 /* keyboard key */
 .cdi-key{
-  font-family:'Cinzel Decorative',serif;font-size:0.78rem;font-weight:700;
+  font-family:'Cinzel',serif;font-size:0.78rem;font-weight:700;
   letter-spacing:0.04em;color:#f0c040;
   min-width:44px;text-align:center;flex-shrink:0;
   text-shadow:0 1px 6px rgba(0,0,0,0.95),0 0 12px rgba(220,160,30,0.55);
@@ -797,7 +879,7 @@ body.ps-ctrl .cdi-btn.x-btn{background:linear-gradient(160deg,#484848,#242424);c
   backdrop-filter:blur(4px);
 }
 .boss-name-lbl{
-  font-family:'Cinzel Decorative',serif;font-size:0.58rem;
+  font-family:'Cinzel',serif;font-size:0.58rem;
   letter-spacing:0.22em;color:rgba(220,200,160,0.75);
   text-align:center;margin-bottom:0;
   text-shadow:0 1px 6px rgba(0,0,0,0.95);
@@ -951,7 +1033,7 @@ body.mc-active #streakHud{top:54px;}
   gap:12px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;
   overflow-y:auto;padding:28px 0;}
 #pauseScreen.show{opacity:1;pointer-events:all;}
-#pauseScreen h2{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.2rem);
+#pauseScreen h2{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.2rem);
   color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 24px rgba(200,140,30,0.5);margin:0 0 4px;}
 #pauseScreen .psub{font-size:0.62rem;letter-spacing:0.2em;color:rgba(200,160,80,0.38);margin:-4px 0 4px;}
 #pauseScreen button:not(.mnb):not(.hud-adj-btn){font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.18em;
@@ -964,7 +1046,7 @@ body.mc-active #streakHud{top:54px;}
 #pauseScreen .quit-btn:hover,#pauseScreen .quit-btn:focus-visible{box-shadow:0 4px 24px rgba(0,0,0,0.5),0 0 16px rgba(180,48,48,0.28);color:#f07878;border-color:rgba(225,72,72,0.54);background:rgba(22,4,4,0.72);}
 /* HUD size adjuster row — three-segment connected button strip */
 .hud-adj-row{display:flex;align-items:stretch;width:220px;}
-.hud-adj-btn{font-family:'Cinzel',serif;font-size:1.1rem;width:44px;
+.hud-adj-btn{font-family:'IBM Plex Sans',sans-serif;font-size:1.1rem;width:44px;
   background:rgba(8,5,1,0.52);color:#c0985a;
   border:1px solid rgba(185,148,68,0.32);cursor:pointer;flex-shrink:0;
   transition:box-shadow 0.15s,color 0.15s;padding:0;}
@@ -982,7 +1064,7 @@ body.mc-active #streakHud{top:54px;}
 /* ── DEAD ── */
 #dead{position:fixed;inset:0;background:rgba(0,0,0,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
 #dead.show{opacity:1;pointer-events:all;}
-#dead h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.6rem,6vw,2.8rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 30px #ff220044;animation:dpulse 1.1s ease-in-out infinite alternate;}
+#dead h1{font-family:'Cinzel',serif;font-size:clamp(1.6rem,6vw,2.8rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 30px #ff220044;animation:dpulse 1.1s ease-in-out infinite alternate;}
 @keyframes dpulse{from{opacity:.6;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
 #dead .dead-stats{font-size:0.7rem;letter-spacing:0.18em;color:rgba(200,160,80,0.5);text-align:center;line-height:2.2;margin-bottom:4px;}
 #dead button:not(.mnb){font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.18em;padding:12px 36px;background:rgba(8,5,1,0.52);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#c0985a;border:1px solid rgba(185,148,68,0.32);border-radius:8px;cursor:pointer;box-shadow:0 2px 16px rgba(0,0,0,0.4);transition:color 0.2s,border-color 0.2s,background 0.2s,box-shadow 0.2s,transform 0.12s;}
@@ -991,7 +1073,7 @@ body.mc-active #streakHud{top:54px;}
 /* ── LEVEL UP OVERLAY ── */
 #lvlup{position:fixed;inset:0;pointer-events:none;z-index:18;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.4s;}
 #lvlup.show{opacity:1;}
-#lvlup .lvlup-text{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.4rem);letter-spacing:0.25em;color:#ffe060;text-shadow:0 0 30px #ffd040,0 0 80px rgba(255,180,0,0.5);animation:lvlpulse 0.6s ease-out;}
+#lvlup .lvlup-text{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.4rem);letter-spacing:0.25em;color:#ffe060;text-shadow:0 0 30px #ffd040,0 0 80px rgba(255,180,0,0.5);animation:lvlpulse 0.6s ease-out;}
 @keyframes lvlpulse{0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
 
 #ffl{position:fixed;inset:0;background:rgba(255,255,255,0);pointer-events:none;z-index:15;transition:background 0.05s;}
@@ -1048,8 +1130,8 @@ body.mc-active #streakHud{top:54px;}
 .acc-header{display:flex;align-items:center;gap:10px;padding:0 22px 10px;}
 .acc-toast{flex:1;text-align:center;font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.18em;color:#ff5555;background:rgba(180,20,20,0.18);border:1px solid rgba(200,40,40,0.35);border-radius:3px;padding:8px 16px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .acc-toast.visible{opacity:1;}
-.acc-unequip-btn{font-family:'Cinzel',serif;font-size:0.74rem;letter-spacing:0.14em;padding:7px 14px;background:rgba(40,200,180,0.08);border:1px solid rgba(40,200,180,0.28);color:rgba(80,220,200,0.75);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all 0.12s;flex-shrink:0;}
-.acc-unequip-btn:hover,.acc-unequip-btn.gamepad-focused{background:rgba(40,200,180,0.18);color:#60ffe0;border-color:rgba(40,200,180,0.55);box-shadow:0 0 12px rgba(40,200,180,0.25);}
+.acc-unequip-btn{font-family:'Cinzel',serif;font-size:0.74rem;letter-spacing:0.14em;padding:7px 14px;background:rgba(180,40,40,0.07);border:1px solid rgba(180,50,50,0.28);color:rgba(198,100,90,0.72);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all 0.14s;flex-shrink:0;}
+.acc-unequip-btn:hover,.acc-unequip-btn.gamepad-focused{background:rgba(180,40,40,0.14);color:rgba(228,115,105,0.92);border-color:rgba(195,60,55,0.48);box-shadow:none;}
 @keyframes accShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .acc-shake{animation:accShake 0.35s ease;}
 #status{display:none;position:fixed;top:10px;right:10px;font-size:0.7rem;color:#ffd060;white-space:nowrap;font-family:monospace;z-index:100;background:rgba(0,0,0,0.7);padding:6px 10px;border:1px solid rgba(255,208,96,0.3);border-radius:3px;transition:opacity 0.6s ease;}
@@ -1058,7 +1140,7 @@ body.mc-active #streakHud{top:54px;}
 /* ══ TUTORIAL SCREEN ══ */
 #tutorialScreen{overflow-y:auto;padding:32px 24px 40px;align-items:flex-start;}
 .tut-wrap{width:100%;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:0;}
-.tut-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,4vw,2rem);color:#ecdcb0;letter-spacing:0.2em;text-align:center;text-shadow:0 0 30px rgba(200,155,40,0.45);margin-bottom:6px;}
+.tut-title{font-family:'Cinzel',serif;font-size:clamp(1.4rem,4vw,2rem);color:#ecdcb0;letter-spacing:0.2em;text-align:center;text-shadow:0 0 30px rgba(200,155,40,0.45);margin-bottom:6px;}
 .tut-sub{font-size:0.62rem;letter-spacing:0.28em;color:rgba(190,155,90,0.45);text-align:center;margin-bottom:24px;}
 .tut-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;}
 .tut-card{background:linear-gradient(160deg,rgba(18,12,4,0.92),rgba(10,7,2,0.96));border:1px solid rgba(180,140,55,0.18);border-radius:8px;padding:16px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,215,100,0.04);}
@@ -1112,11 +1194,11 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 ══════════════════════════════════════════════════ */
 
 /* ── Shared selection screen header ── */
-.sel-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,3.8vw,2.2rem);color:#ecdcb0;letter-spacing:0.20em;text-shadow:0 0 40px rgba(210,170,70,0.38),0 0 80px rgba(160,120,40,0.14);align-self:center;text-align:center;}
+.sel-title{font-family:'Cinzel',serif;font-size:clamp(1.5rem,3.8vw,2.2rem);color:#ecdcb0;letter-spacing:0.20em;text-shadow:0 0 40px rgba(210,170,70,0.38),0 0 80px rgba(160,120,40,0.14);align-self:center;text-align:center;}
 .sel-sub{font-size:0.64rem;letter-spacing:0.32em;color:rgba(195,165,100,0.42);text-transform:uppercase;align-self:center;}
 
 /* ── Boss / Stage entry inner content ── */
-.bos-num{font-family:'Cinzel Decorative',serif;min-width:28px;text-align:center;flex-shrink:0;color:rgba(200,80,40,0.62);font-size:0.78em;}
+.bos-num{font-family:'Cinzel',serif;min-width:28px;text-align:center;flex-shrink:0;color:rgba(200,80,40,0.62);font-size:0.78em;}
 .bos-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
 .bos-name{font-family:'Cinzel',serif;letter-spacing:0.18em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bos-sub{font-size:0.58em;letter-spacing:0.15em;color:rgba(200,170,130,0.48);font-family:'Cinzel',serif;}
@@ -1138,26 +1220,27 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 #stageCards{display:flex;flex-direction:column;gap:4px;}
 
 /* ── PAUSE SCREEN ── */
-#pauseScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;gap:0;overflow-x:hidden;}
+#pauseScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;}
 .pause-header{width:min(420px,90vw);margin-bottom:clamp(10px,2vh,22px);}
-#pauseScreen h2{font-family:'Cinzel Decorative',serif;font-size:clamp(1.2rem,3vw,1.8rem);color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 22px rgba(200,140,30,0.45);margin:0 0 3px;}
+#pauseScreen h2{font-family:'Cinzel',serif;font-size:clamp(1.2rem,3vw,1.8rem);color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 22px rgba(200,140,30,0.45);margin:0 0 3px;}
 #pauseScreen .psub{font-size:0.54rem;letter-spacing:0.26em;color:rgba(200,160,80,0.28);margin:0;}
 .pause-nav{display:flex;flex-direction:column;gap:4px;align-items:flex-start;width:min(420px,90vw);padding-left:0;}
-.pause-nav .mnb-inner{min-width:clamp(160px,40vw,220px);}
-.pause-nav .mnb:hover .mnb-inner,.pause-nav .mnb.gamepad-focused .mnb-inner{min-width:clamp(200px,50vw,290px);}
-.pause-util{width:min(420px,90vw);margin-top:clamp(14px,2.5vh,26px);display:flex;flex-direction:column;align-items:center;gap:5px;padding-left:0;}
-.pause-util .pause-section-lbl{text-align:left;width:min(290px,82vw);margin-bottom:2px;}
-.pause-tog-grid{display:flex;flex-direction:column;gap:3px;align-items:stretch;width:min(290px,82vw);}
-.pause-tog{font-family:'Cinzel',serif;font-size:0.60rem;letter-spacing:0.12em;padding:5px 14px!important;background:rgba(8,5,1,0.32);color:rgba(168,138,76,0.52);border:1px solid rgba(130,100,40,0.14)!important;border-radius:2px;cursor:pointer;text-align:center;white-space:nowrap;width:100%!important;display:block;transition:color 0.18s,background 0.18s,border-color 0.18s;}
+.pause-nav .mnb-inner{min-width:min(260px,82vw);}
+.pause-nav .mnb:hover .mnb-inner,.pause-nav .mnb.gamepad-focused .mnb-inner{min-width:min(310px,88vw);}
+#pauseScreen button:not(.mnb):not(.hud-adj-btn){width:min(260px,82vw);}
+.pause-util{width:min(420px,90vw);margin-top:clamp(14px,2.5vh,26px);display:flex;flex-direction:column;align-items:flex-start;gap:5px;}
+.pause-util .pause-section-lbl{text-align:left;width:min(260px,82vw);margin-bottom:2px;}
+.pause-tog-grid{display:flex;flex-direction:column;gap:3px;align-items:stretch;width:min(260px,82vw);}
+.pause-tog{font-family:'IBM Plex Sans',sans-serif;font-size:0.62rem;letter-spacing:0.08em;padding:5px 14px!important;background:rgba(8,5,1,0.32);color:rgba(168,138,76,0.52);border:1px solid rgba(130,100,40,0.14)!important;border-radius:2px;cursor:pointer;text-align:center;white-space:nowrap;width:100%!important;display:block;transition:color 0.18s,background 0.18s,border-color 0.18s;}
 .pause-tog:hover,.pause-tog.gamepad-focused{color:rgba(210,178,108,0.82);background:rgba(18,12,3,0.52);border-color:rgba(168,134,50,0.28);}
-.pause-util .hud-adj-row{width:min(290px,82vw);margin-top:6px;}
+.pause-util .hud-adj-row{width:min(260px,82vw);margin-top:6px;}
 .pause-nav-bottom{margin-top:clamp(16px,3vh,32px);padding-top:clamp(10px,2vh,18px);border-top:1px solid rgba(130,100,40,0.18);}
 
 /* ── DEAD SCREEN ── */
-#dead{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(10,0,0,1) 0%,rgba(3,0,0,1) 100%);}
-#dead h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 40px rgba(180,20,20,0.55),0 0 100px rgba(100,0,0,0.30);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:8px;padding-left:0;}
-#dead .dead-stats{font-size:0.64rem;letter-spacing:0.18em;color:rgba(175,125,55,0.48);line-height:2.0;margin-bottom:clamp(12px,2.5vh,28px);width:min(480px,92vw);padding-left:0;}
-.dead-nav{display:flex;flex-direction:column;gap:4px;align-items:flex-start;width:min(480px,92vw);padding-left:0;}
+#dead{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(10,0,0,1) 0%,rgba(3,0,0,1) 100%);}
+#dead h1{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 40px rgba(180,20,20,0.55),0 0 100px rgba(100,0,0,0.30);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:8px;text-align:center;}
+#dead .dead-stats{font-size:0.68rem;letter-spacing:0.14em;color:rgba(200,162,90,0.85);line-height:2.2;margin-bottom:clamp(12px,2.5vh,28px);width:min(480px,92vw);text-align:center;}
+.dead-nav{display:flex;flex-direction:column;gap:4px;align-items:center;width:min(480px,92vw);}
 .dead-nav .mnb-inner{min-width:clamp(150px,40vw,220px);}
 .dead-nav .mnb:hover .mnb-inner,.dead-nav .mnb.gamepad-focused .mnb-inner{min-width:clamp(190px,50vw,290px);}
 /* All dead-nav bars → ember/red */
@@ -1165,13 +1248,13 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .dead-nav .mnb:hover .mnb-bg,.dead-nav .mnb.gamepad-focused .mnb-bg{background:linear-gradient(108deg,rgba(28,5,2,0.97),rgba(12,2,1,0.92));border-left-color:rgba(235,86,40,0.74);}
 
 /* ── STAGE COMPLETE ── */
-#stageCompleteScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(0,10,3,1),rgba(0,3,1,1));}
-#stageCompleteScreen h1{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#38c872;letter-spacing:0.18em;text-shadow:0 0 40px rgba(30,200,90,0.42),0 0 100px rgba(0,120,40,0.22);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:4px;padding-left:0;}
-#stageCompleteScreen .sc-stage-name{font-size:0.66rem;letter-spacing:0.28em;color:rgba(130,205,148,0.55);text-transform:uppercase;margin-bottom:6px;width:min(480px,92vw);padding-left:0;}
-#stageCompleteScreen .sc-stats{font-size:0.64rem;letter-spacing:0.14em;color:rgba(185,148,70,0.55);line-height:2.1;text-align:left;margin-bottom:clamp(14px,3vh,32px);width:min(480px,92vw);padding-left:0;}
-.sc-nav{display:flex;flex-direction:column;gap:4px;align-items:flex-start;width:min(480px,92vw);padding-left:0;}
-.sc-nav .mnb-inner{min-width:clamp(170px,42vw,240px);}
-.sc-nav .mnb:hover .mnb-inner,.sc-nav .mnb.gamepad-focused .mnb-inner{min-width:clamp(210px,52vw,310px);}
+#stageCompleteScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(0,10,3,1),rgba(0,3,1,1));}
+#stageCompleteScreen h1{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#38c872;letter-spacing:0.18em;text-shadow:0 0 40px rgba(30,200,90,0.42),0 0 100px rgba(0,120,40,0.22);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:4px;text-align:center;}
+#stageCompleteScreen .sc-stage-name{font-size:0.66rem;letter-spacing:0.28em;color:rgba(130,205,148,0.75);text-transform:uppercase;margin-bottom:6px;width:min(480px,92vw);text-align:center;}
+#stageCompleteScreen .sc-stats{font-size:0.68rem;letter-spacing:0.14em;color:rgba(200,162,90,0.85);line-height:2.2;text-align:center;margin-bottom:clamp(14px,3vh,32px);width:min(480px,92vw);}
+.sc-nav{display:flex;flex-direction:column;gap:4px;align-items:center;width:min(480px,92vw);}
+.sc-nav .mnb-inner{min-width:min(260px,82vw);}
+.sc-nav .mnb:hover .mnb-inner,.sc-nav .mnb.gamepad-focused .mnb-inner{min-width:min(310px,88vw);}
 /* All sc-nav bars → green */
 .sc-nav .mnb:hover .mnb-bar,.sc-nav .mnb.gamepad-focused .mnb-bar{background:rgba(60,200,118,0.92);box-shadow:0 0 18px rgba(60,200,118,0.68),0 0 6px rgba(90,240,150,0.9);}
 .sc-nav .mnb:hover .mnb-bg,.sc-nav .mnb.gamepad-focused .mnb-bg{background:linear-gradient(108deg,rgba(4,22,10,0.97),rgba(2,10,5,0.92));border-left-color:rgba(60,200,118,0.74);}
@@ -1190,9 +1273,1251 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 #stageCards,#bossCards{display:flex;flex-direction:column;gap:4px;width:clamp(280px,52vw,640px);}
 .stage-card{width:100%;}
 
-/* ── PREP confirm button → parallelogram ── */
-.prep-confirm-btn{transform:skewX(-4deg);letter-spacing:0.22em;}
-.prep-confirm-btn span{display:inline-block;transform:skewX(4deg);}
+/* ── PREP confirm button ── */
+.prep-confirm-btn{transform:none;letter-spacing:0.26em;}
+.prep-confirm-btn span{display:inline-block;transform:none;}
+
+/* ══════════════════════════════════════════
+   TITLE SCREEN — typography refinements
+══════════════════════════════════════════ */
+.menu-title{
+  letter-spacing:0.13em;
+  text-shadow:0 0 28px rgba(198,158,58,0.32),0 0 80px rgba(148,110,28,0.12);
+}
+.menu-subtitle{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-weight:300;
+  font-size:0.72rem;
+  letter-spacing:0.22em;
+  color:rgba(198,168,108,0.58);
+}
+.menu-divider{
+  width:148px;
+  margin:10px 0 8px;
+  background:linear-gradient(90deg,transparent,rgba(178,142,55,0.26),transparent);
+}
+#menuScreen .save-info{
+  margin-bottom:clamp(6px,1.2vh,14px);
+}
+
+/* ══════════════════════════════════════════
+   PREP SCREEN — JRPG / OCTOPATH
+   Typography + spacing. No effects. Warmth.
+══════════════════════════════════════════ */
+
+#prepScreen{
+  background:radial-gradient(ellipse at 50% 25%,rgba(22,18,28,1) 0%,rgba(8,6,10,1) 68%);
+}
+
+/* Panel */
+.prep-wrap{
+  background:rgba(18,15,22,0.97);
+  border:none;
+  border-top:1px solid rgba(185,155,90,0.24);
+  border-left:1px solid rgba(255,255,255,0.04);
+  border-right:1px solid rgba(255,255,255,0.04);
+  box-shadow:0 4px 80px rgba(0,0,0,0.85);
+  border-radius:0;
+}
+
+/* Header */
+.prep-header{
+  background:transparent;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:22px 28px 16px;
+}
+.prep-title{
+  font-family:'Cinzel',serif;
+  font-size:clamp(0.9rem,2.4vw,1.25rem);
+  letter-spacing:0.2em;
+  color:rgba(228,212,172,0.96);
+  text-shadow:none;
+}
+
+/* Chips */
+.prep-chip{
+  font-size:0.7rem;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.13);
+  color:rgba(178,162,128,0.75);
+  padding:3px 11px;
+  letter-spacing:0.07em;
+}
+.prep-chip.pts{
+  color:rgba(195,168,105,0.9);
+  border-color:rgba(185,155,90,0.32);
+  background:transparent;
+  font-weight:600;
+  box-shadow:none;
+}
+.prep-chip.pts.zero{
+  color:rgba(130,118,88,0.3);
+  border-color:rgba(130,110,60,0.12);
+  background:transparent;
+}
+
+/* Tabs */
+.prep-tabs{
+  background:transparent;
+  border-bottom:1px solid rgba(255,255,255,0.09);
+  padding:0 12px;
+  gap:0;
+}
+.prep-tab{
+  font-family:'Cinzel',serif;
+  font-size:0.66rem;
+  font-weight:600;
+  letter-spacing:0.12em;
+  color:rgba(168,152,118,0.68);
+  padding:14px 16px 12px;
+  border-bottom:2px solid transparent;
+  transition:color 0.18s,border-color 0.18s;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  line-height:1;
+}
+.prep-tab:hover{color:rgba(198,178,132,0.85);}
+.prep-tab.active{
+  color:rgba(232,215,168,1);
+  border-bottom:2px solid rgba(195,165,95,0.82);
+}
+.prep-tab.gamepad-focused{
+  color:rgba(222,204,158,0.98);
+  border-bottom:2px solid rgba(195,165,95,0.88);
+  background:transparent;
+  outline:none;
+}
+
+/* Portrait */
+.prep-portrait-img{
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:0 0 40px rgba(0,0,0,0.8);
+  filter:brightness(0.78) saturate(0.68) contrast(0.92);
+}
+
+/* Alloc badge */
+#allocPts{
+  color:rgba(195,168,105,0.9)!important;
+  border-color:rgba(185,155,90,0.3)!important;
+  background:transparent!important;
+  font-size:0.7rem!important;
+  box-shadow:none;
+  text-shadow:none;
+}
+
+/* Stat rows — pure list, thin divider only */
+.stat-rows-wrap{gap:0;}
+.stat-row{
+  background:rgba(255,255,255,0.015);
+  border:none;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  border-left:2px solid transparent;
+  border-radius:0;
+  padding:12px 14px 12px 10px;
+  gap:12px;
+  transition:background 0.14s,border-left-color 0.14s;
+}
+.stat-row:nth-child(even){background:rgba(255,255,255,0.025);}
+.stat-row:last-child{border-bottom:none;}
+.stat-row:hover{background:rgba(185,155,90,0.045);}
+.stat-row.gamepad-focused{
+  background:rgba(185,155,90,0.07);
+  border-left-color:rgba(185,155,90,0.72);
+  border-bottom-color:rgba(185,155,90,0.16);
+}
+.stat-name{
+  font-family:'Cinzel',serif;
+  font-size:0.76rem;
+  font-weight:600;
+  letter-spacing:0.10em;
+  color:rgba(218,200,158,0.95);
+}
+.stat-desc{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.60rem;
+  letter-spacing:0.01em;
+  font-weight:400;
+  color:rgba(162,148,115,0.65);
+  margin-top:2px;
+}
+.sv-total{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.96rem;
+  font-weight:700;
+  color:rgba(232,220,195,0.96);
+  font-feature-settings:"tnum" 1;
+  text-shadow:none;
+  min-width:2ch;
+  text-align:right;
+}
+.stat-btn{
+  width:28px;height:28px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.1);
+  color:rgba(158,140,98,0.58);
+  font-size:1rem;
+  border-radius:1px;
+  transition:all 0.13s;
+}
+.stat-btn:hover:not(:disabled){
+  background:rgba(185,155,90,0.08);
+  color:rgba(210,185,128,0.95);
+  border-color:rgba(185,155,90,0.4);
+  box-shadow:none;
+}
+.stat-btn.gamepad-focused{
+  background:rgba(185,155,90,0.1);
+  color:rgba(215,192,138,0.98);
+  border-color:rgba(185,155,90,0.52);
+  box-shadow:none;
+}
+
+/* ── Equipment: split-panel layout ── */
+.equip-split{
+  display:flex;
+  flex-direction:row;
+  align-items:flex-start;
+  padding:0;
+}
+.equip-list{
+  flex:0 0 42%;
+  max-height:clamp(200px,36vh,320px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  border-right:1px solid rgba(255,255,255,0.08);
+  scrollbar-width:thin;
+  scrollbar-color:rgba(140,110,55,0.15) transparent;
+}
+.equip-list::-webkit-scrollbar{width:2px;}
+.equip-list::-webkit-scrollbar-thumb{background:rgba(140,110,55,0.18);}
+.equip-list::-webkit-scrollbar-track{background:transparent;}
+
+/* List rows */
+.equip-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:9px 14px 9px 10px;
+  border-left:2px solid transparent;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  cursor:pointer;
+  transition:background 0.13s,border-left-color 0.13s;
+  position:relative;
+}
+.equip-row:last-child{border-bottom:none;}
+.equip-row:hover:not(.locked){background:rgba(255,255,255,0.025);}
+.equip-row.selected{
+  background:rgba(185,155,90,0.06);
+  border-left-color:rgba(185,155,90,0.65);
+}
+.equip-row.gamepad-focused{
+  background:rgba(185,155,90,0.08);
+  border-left-color:rgba(185,155,90,0.88);
+}
+.equip-row.locked{opacity:0.42;}
+.equip-row.locked.can-afford{opacity:0.78;}
+
+/* Row: small icon canvas */
+.erow-icon{
+  width:28px;height:28px;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  opacity:0.9;
+}
+.erow-icon canvas{width:28px;height:28px;}
+
+/* Row: name */
+.erow-name{
+  font-family:'Cinzel',serif;
+  font-size:0.73rem;
+  font-weight:600;
+  letter-spacing:0.06em;
+  color:rgba(208,188,145,0.9);
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.equip-row.selected .erow-name,
+.equip-row.gamepad-focused .erow-name{color:rgba(218,198,148,0.96);}
+
+/* Row: rarity/type dot */
+.erow-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  flex-shrink:0;
+  background:rgba(185,155,90,0.35);
+}
+.erow-dot.magic{background:rgba(160,100,255,0.45);}
+.erow-dot.acc{background:rgba(40,200,180,0.45);}
+.erow-dot.locked-dot{background:rgba(255,255,255,0.12);}
+
+/* Row: lock/check badge */
+.erow-badge{
+  font-size:0.65rem;
+  color:rgba(175,155,105,0.55);
+  flex-shrink:0;
+}
+.equip-row.selected .erow-badge{color:rgba(185,155,90,0.75);}
+
+/* ── Detail panel ── */
+.equip-detail{
+  flex:1;
+  padding:20px 20px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:none;
+}
+.equip-detail::-webkit-scrollbar{display:none;}
+.edetail-empty{
+  color:rgba(140,125,95,0.28);
+  font-size:0.68rem;
+  letter-spacing:0.12em;
+  font-family:'Cinzel',serif;
+  margin:auto;
+  text-align:center;
+}
+
+/* Detail: icon */
+.edetail-icon-wrap{
+  width:72px;height:72px;
+  margin-bottom:14px;
+  flex-shrink:0;
+}
+.edetail-canvas{width:72px;height:72px;display:block;}
+.edetail-spell-icon{
+  width:72px;height:72px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;
+}
+
+/* Detail: name + type */
+.edetail-name{
+  font-family:'Cinzel',serif;
+  font-size:clamp(0.78rem,1.8vw,1rem);
+  letter-spacing:0.14em;
+  color:rgba(232,215,172,0.98);
+  margin-bottom:3px;
+}
+.edetail-type{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.60rem;
+  font-weight:500;
+  letter-spacing:0.10em;
+  color:rgba(165,150,112,0.65);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.edetail-rule{
+  width:100%;
+  height:1px;
+  background:rgba(255,255,255,0.09);
+  margin-bottom:10px;
+}
+
+/* Detail: stats */
+.edetail-stats{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-bottom:10px;
+}
+.edetail-stat-row{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.68rem;
+  font-weight:500;
+  letter-spacing:0.02em;
+  color:rgba(208,192,148,0.9);
+  font-feature-settings:"tnum" 1;
+}
+.edetail-elem{
+  font-size:0.68rem;
+  letter-spacing:0.06em;
+  margin-top:3px;
+  opacity:0.88;
+}
+
+/* Detail: description */
+.edetail-desc{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.63rem;
+  font-weight:400;
+  line-height:1.65;
+  color:rgba(162,148,112,0.68);
+  letter-spacing:0.02em;
+  margin-bottom:8px;
+}
+
+/* Detail: locked cost */
+.edetail-cost{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.64rem;
+  font-weight:500;
+  letter-spacing:0.05em;
+  color:rgba(195,165,80,0.75);
+  margin-top:4px;
+}
+/* Detail: equipped badge */
+.edetail-equipped{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.58rem;
+  font-weight:600;
+  letter-spacing:0.12em;
+  color:rgba(185,155,90,0.68);
+  border:1px solid rgba(185,155,90,0.22);
+  padding:3px 10px;
+  display:inline-block;
+  margin-top:6px;
+  text-transform:uppercase;
+}
+
+/* Accessory header */
+.acc-header{padding:10px 14px 0;flex-shrink:0;}
+
+/* Responsive: narrow viewports stack list full-width, hide detail */
+@media(max-width:420px){
+  .equip-split{flex-direction:column;}
+  .equip-list{flex:0 0 auto;border-right:none;border-bottom:1px solid rgba(255,255,255,0.05);max-height:42%;}
+  .equip-detail{padding:12px 14px 10px;}
+}
+
+/* ── CTA ── */
+.prep-confirm-btn{
+  background:rgba(185,155,90,0.08);
+  border:1px solid rgba(185,155,90,0.32);
+  border-top:1px solid rgba(205,178,110,0.52);
+  border-bottom:1px solid rgba(145,118,60,0.28);
+  color:rgba(228,210,158,0.88);
+  text-shadow:none;
+  animation:none;
+  box-shadow:0 0 18px rgba(185,155,90,0.1);
+  transition:background 0.2s,border-color 0.2s,color 0.2s,box-shadow 0.2s;
+}
+.prep-confirm-btn:hover,.prep-confirm-btn.gamepad-focused{
+  background:rgba(185,155,90,0.15);
+  color:rgba(245,228,178,1);
+  border-color:rgba(210,180,110,0.65);
+  box-shadow:0 0 32px rgba(185,155,90,0.22),inset 0 0 14px rgba(185,155,90,0.07);
+}
+.prep-back-btn{opacity:0.38;letter-spacing:0.14em;transition:opacity 0.15s;}
+.prep-back-btn:hover,.prep-back-btn.gamepad-focused{opacity:0.65;}
+
+/* ══════════════════════════════════════════
+   COMBAT UI — HD-2D JRPG
+   Octopath · Triangle Strategy · FF influence
+   Typography-first. Restrained. Theatrical.
+══════════════════════════════════════════ */
+
+/* ── Player status panel — lacquered material, no blur ── */
+/* Corner vignette — atmospheric readability, not a panel */
+#hud::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse 44vw 40vh at 0% 0%,rgba(0,0,0,0.42) 0%,transparent 100%);
+  pointer-events:none;
+  z-index:0;
+}
+/* Panel — fully transparent, no container, no frame */
+.hud-panel{
+  background:none;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+  position:relative;
+  z-index:1;
+}
+.hud-panel::before{display:none;}
+.hud-panel::after{display:none;}
+
+/* Bar height hierarchy — HP primary hero, stamina secondary, mana tertiary */
+#hpWrap{height:17px;}
+#stWrap{height:10px;}
+#mpWrap{height:6px;}
+
+/* Bar tracks — atmospheric strips, localized contrast halos, no frame */
+.bar-track{
+  background:rgba(0,0,0,0.74);
+  border:none;
+  border-radius:2px;
+  box-shadow:0 2px 14px rgba(0,0,0,0.55),0 0 28px rgba(0,0,0,0.32),inset 0 2px 4px rgba(0,0,0,0.88);
+}
+.hud-panel .bar-track{border-radius:2px;}
+
+/* Ghost — faint parchment */
+.bar-ghost{background:rgba(210,188,148,0.08);}
+
+/* Leading-edge luminance — soft bright terminus, physical bar feel */
+.bar-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:5px;background:linear-gradient(to left,rgba(255,255,255,0.11),transparent);pointer-events:none;}
+
+/* Gloss — single-pixel top edge only */
+.bar-gloss{
+  display:block;
+  height:1px;
+  top:0;bottom:auto;
+  background:rgba(255,255,255,0.07);
+  border-radius:0;
+}
+
+/* HP — verdigris green, pigment-rich, luminous leading edge */
+.bar-inner.hp{
+  background:linear-gradient(90deg,
+    rgba(8,22,10,1) 0%,
+    rgba(20,52,24,1) 22%,
+    rgba(44,96,48,1) 50%,
+    rgba(74,142,78,1) 80%,
+    rgba(100,178,105,1) 100%);
+}
+.bar-inner.hp::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:rgba(128,205,132,0.32);
+  animation:none;
+}
+
+/* Stamina — aged varnish amber */
+.bar-inner.stamina{
+  background:linear-gradient(90deg,
+    rgba(42,20,3,1) 0%,
+    rgba(88,48,8,1) 28%,
+    rgba(152,95,18,1) 62%,
+    rgba(192,135,32,1) 84%,
+    rgba(210,155,48,1) 100%);
+}
+.bar-inner.stamina::after{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:rgba(218,168,62,0.22);
+  animation:none;
+}
+
+/* Mana — lapis lazuli indigo */
+.bar-inner.mana{
+  background:linear-gradient(90deg,
+    rgba(6,8,38,1) 0%,
+    rgba(16,24,85,1) 28%,
+    rgba(38,58,148,1) 62%,
+    rgba(65,88,178,1) 84%,
+    rgba(82,108,198,1) 100%);
+}
+.bar-inner.mana::after{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:rgba(108,138,215,0.2);
+  animation:none;
+}
+
+/* Icons — floating micro-labels, readability shadows */
+.hud-icon{font-size:0;width:22px;display:flex;align-items:center;}
+.hud-icon::before{font-family:'IBM Plex Sans',sans-serif;font-size:0.43rem;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;display:block;line-height:1;text-shadow:0 1px 5px rgba(0,0,0,0.98),0 2px 8px rgba(0,0,0,0.72);}
+.hud-icon.h{color:transparent;text-shadow:none;}
+.hud-icon.h::before{content:'HP';color:rgba(105,188,108,0.58);}
+.hud-icon.s{color:transparent;text-shadow:none;}
+.hud-icon.s::before{content:'ST';color:rgba(195,142,46,0.54);}
+.hud-icon.m{color:transparent;text-shadow:none;}
+.hud-icon.m::before{content:'MP';color:rgba(88,108,195,0.50);}
+
+/* Numeric values — floating, atmospheric readability shadows */
+.hud-val{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:0.96rem;letter-spacing:0.01em;font-feature-settings:"tnum" 1;min-width:46px;text-shadow:0 1px 8px rgba(0,0,0,0.98),0 2px 18px rgba(0,0,0,0.75);}
+.hud-val.hp{color:rgba(192,232,196,0.98);}
+.hud-val.stamina{font-size:0.82rem;font-weight:600;color:rgba(222,182,105,0.88);}
+.hud-val.mana{font-size:0.70rem;font-weight:500;color:rgba(145,168,225,0.70);}
+
+/* Footer labels — floating, no box support */
+.hud-lv{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:var(--hud-lv,1.05rem);
+  letter-spacing:0.08em;
+  color:rgba(252,220,100,1);
+  text-shadow:0 0 14px rgba(230,185,40,0.75),0 1px 4px rgba(0,0,0,0.95);
+  font-weight:700;
+  text-transform:uppercase;
+}
+.hud-divider{display:none;}
+.hud-score-sm{font-family:'IBM Plex Sans',sans-serif;color:rgba(218,185,98,0.92);font-size:0.88rem;letter-spacing:0.05em;font-weight:600;text-shadow:0 0 10px rgba(210,165,40,0.55),0 1px 4px rgba(0,0,0,0.95);font-feature-settings:"tnum" 1;}
+.hud-level{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.68rem;
+  letter-spacing:0.04em;
+  color:rgba(195,172,118,0.80);
+  text-shadow:0 1px 6px rgba(0,0,0,0.98),0 2px 10px rgba(0,0,0,0.72);
+  font-weight:500;
+  font-feature-settings:"tnum" 1;
+}
+.wave-hud{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:0.68rem;
+  letter-spacing:0.04em;
+  color:rgba(205,118,78,0.92);
+  text-shadow:0 1px 6px rgba(0,0,0,0.98),0 2px 10px rgba(0,0,0,0.72);
+  font-weight:600;
+}
+
+/* EXP bar — atmospheric strip */
+.exp-wrap{
+  background:rgba(0,0,0,0.70);
+  border:none;
+  box-shadow:0 1px 8px rgba(0,0,0,0.48),inset 0 1px 2px rgba(0,0,0,0.85);
+  border-radius:1px;
+  overflow:hidden;
+}
+.exp-fill-inner{
+  background:linear-gradient(90deg,rgba(45,24,4,1) 0%,rgba(95,58,10,1) 38%,rgba(158,108,28,1) 78%,rgba(195,152,58,1) 100%);
+}
+.exp-fill-inner::after{background:none;animation:none;}
+.exp-glow{display:none;}
+
+/* Kill bar — atmospheric strip */
+.kill-bar-wrap{
+  background:rgba(0,0,0,0.68);
+  border:none;
+  box-shadow:0 1px 8px rgba(0,0,0,0.45),inset 0 1px 2px rgba(0,0,0,0.82);
+  border-radius:1px;
+}
+.kill-bar-fill{
+  background:linear-gradient(90deg,rgba(50,5,2,1) 0%,rgba(108,18,8,1) 40%,rgba(168,38,22,1) 78%,rgba(200,65,42,1) 100%);
+}
+.kill-bar-fill::after{background:none;animation:none;}
+.kill-bar-glow{display:none;}
+
+/* Potion — floating, atmospheric */
+#potionCount{color:rgba(208,120,100,0.82);text-shadow:0 1px 6px rgba(0,0,0,0.98),0 2px 10px rgba(0,0,0,0.70);font-weight:500;}
+#potionCount.empty{color:rgba(255,255,255,0.18);}
+.potion-flask{filter:drop-shadow(0 2px 10px rgba(0,0,0,0.58)) drop-shadow(0 1px 3px rgba(148,30,30,0.25));}
+
+/* ── Combo HUD — Cinzel for cinematic callouts ── */
+.combo-comment{
+  font-family:'Cinzel',serif;font-size:0.84rem;font-weight:700;letter-spacing:0.16em;
+  color:rgba(235,225,198,0.97);
+  text-shadow:-1px -1px 0 rgba(0,0,0,0.88),1px -1px 0 rgba(0,0,0,0.88),
+              -1px  1px 0 rgba(0,0,0,0.88),1px  1px 0 rgba(0,0,0,0.88);
+}
+.combo-mult{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  color:rgba(205,178,95,0.88);
+  text-shadow:none;letter-spacing:0.06em;
+  font-feature-settings:"tnum" 1;
+}
+
+/* ── Streak HUD — IBM Plex Sans for scannable counts ── */
+.streak-num{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:700;
+  color:rgba(230,220,188,0.95);
+  text-shadow:0 2px 10px rgba(0,0,0,0.88);
+  font-feature-settings:"tnum" 1;
+}
+.streak-lbl{font-family:'IBM Plex Sans',sans-serif;color:rgba(195,175,128,0.72);font-weight:400;letter-spacing:0.12em;}
+.streak-sep{background:rgba(182,158,98,0.35);}
+.streak-x{font-family:'IBM Plex Sans',sans-serif;color:rgba(208,178,98,0.90);text-shadow:none;font-weight:600;letter-spacing:0.02em;}
+.streak-bar-wrap{
+  background:rgba(0,0,0,0.70);
+  border:none;
+  border-radius:1px;
+  box-shadow:0 1px 8px rgba(0,0,0,0.45),inset 0 1px 3px rgba(0,0,0,0.82);
+}
+.streak-bar-fill{
+  background:linear-gradient(90deg,rgba(75,45,6,1),rgba(182,132,38,1));
+  box-shadow:none;
+}
+
+/* ── Cooldown bar — strong ready/inactive contrast like FFXVI ── */
+.cdi{opacity:0.22;transition:opacity 0.22s ease;}
+.cdi.on{opacity:1;}
+.cdi.dep{opacity:0.52;}
+.cdi-key{
+  font-family:'IBM Plex Sans',sans-serif;font-size:0.64rem;font-weight:600;
+  color:rgba(192,172,122,0.92);text-shadow:none;letter-spacing:0.06em;
+  min-width:38px;
+}
+.cdi-lbl{
+  font-family:'IBM Plex Sans',sans-serif;font-size:0.66rem;font-weight:400;
+  color:rgba(200,182,140,0.88);text-shadow:none;letter-spacing:0.04em;
+  min-width:66px;
+}
+.cdi-track{
+  background:rgba(0,0,0,0.70);
+  border:none;
+  box-shadow:0 1px 6px rgba(0,0,0,0.42),inset 0 1px 2px rgba(0,0,0,0.82);
+  border-radius:1px;
+  height:3px;
+}
+.cdi-fill{
+  background:linear-gradient(90deg,rgba(78,52,8,1),rgba(172,132,40,1));
+  border-radius:1px;
+}
+.cdi.dep .cdi-fill{background:linear-gradient(90deg,rgba(75,10,6,1),rgba(172,42,28,1));}
+.cdi.dep .cdi-key{color:rgba(178,65,52,0.82);text-shadow:none;}
+.cdi.dep .cdi-lbl{color:rgba(182,72,58,0.82);}
+
+/* Controller button badges — keep functional colors, reduce intensity */
+.cdi-btn.face{box-shadow:0 1px 3px rgba(0,0,0,0.5);}
+.cdi-btn.shoulder{
+  background:linear-gradient(160deg,rgba(52,48,44,0.9),rgba(28,26,22,0.9));
+  border-color:rgba(255,255,255,0.1);color:rgba(215,205,188,0.82);
+  box-shadow:0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* ── Boss bar — cinematic overlay, no panel ── */
+#bossBar.show{
+  background:radial-gradient(ellipse 110% 220% at 50% -30%,rgba(0,0,0,0.44) 0%,transparent 100%);
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+.boss-name-lbl{
+  font-family:'Cinzel',serif;
+  color:rgba(215,198,158,0.82);
+  letter-spacing:0.26em;
+  text-shadow:0 1px 8px rgba(0,0,0,0.98),0 2px 16px rgba(0,0,0,0.72);
+}
+.boss-name-lbl::after{
+  background:linear-gradient(90deg,transparent,rgba(175,138,58,0.18),transparent);
+}
+.boss-track{
+  background:rgba(0,0,0,0.78);
+  border:none;
+  border-radius:2px;
+  box-shadow:0 2px 14px rgba(0,0,0,0.55),0 0 28px rgba(0,0,0,0.35),inset 0 2px 5px rgba(0,0,0,0.95);
+}
+.boss-fill-bar{
+  background:linear-gradient(90deg,rgba(28,3,3,1) 0%,rgba(78,8,8,1) 20%,rgba(132,20,20,1) 48%,rgba(178,38,28,1) 75%,rgba(208,65,48,1) 95%,rgba(228,95,75,1) 100%);
+  transition:width 0.22s ease-out;
+}
+.boss-fill-bar::after{
+  background:repeating-linear-gradient(90deg,transparent,transparent 22px,rgba(0,0,0,0.1) 22px,rgba(0,0,0,0.1) 23px);
+}
+.boss-bar-shine{display:none;}
+.boss-ghost{background:rgba(205,155,138,0.12);}
+.boss-hp-num.show-num{color:rgba(188,168,122,0.48);text-shadow:none;letter-spacing:0.1em;}
+
+/* Boss stagger bar */
+.boss-stun-lbl{
+  font-family:'Cinzel',serif;font-size:0.46rem;
+  color:rgba(198,168,68,0.55);font-weight:400;letter-spacing:0.18em;
+}
+.boss-stun-track{
+  background:rgba(4,2,6,1);
+  border:1px solid rgba(0,0,0,0.7);
+  border-bottom-color:rgba(255,255,255,0.018);
+  border-radius:1px;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.85);
+}
+.boss-stun-fill{
+  background:linear-gradient(90deg,rgba(28,14,2,1) 0%,rgba(78,42,4,1) 28%,rgba(142,90,12,1) 58%,rgba(192,138,25,1) 85%,rgba(218,178,55,1) 100%);
+}
+@keyframes stunPulse{
+  from{filter:brightness(1)   drop-shadow(0 0 1px rgba(185,145,20,0.4));}
+  to  {filter:brightness(1.4) drop-shadow(0 0 4px rgba(218,178,55,0.7));}
+}
+.boss-stun-shine{display:none;}
+.boss-stun-pip{background:rgba(38,22,2,0.28);border-color:rgba(148,105,8,0.18);}
+.boss-stun-pip.filled{background:rgba(198,142,8,0.75);box-shadow:none;}
+
+/* ══════════════════════════════════════════
+   BOSS BAR — bigger, clearer, no opacity
+   Premium cinematic combat readability — solid bars,
+   larger typography, significantly bigger stun system
+══════════════════════════════════════════ */
+
+/* Bar shell — clear, no translucent gradient backdrop */
+body:not(.mc-active) #bossBar{
+  width:min(620px,68vw);
+  padding:10px 26px 14px;
+}
+#bossBar.show{
+  background:none;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+
+/* Boss name — larger, more present */
+body:not(.mc-active) .boss-name-lbl{
+  font-size:1.05rem;
+  letter-spacing:0.22em;
+  color:rgba(232,212,170,0.98);
+  text-shadow:0 1px 10px rgba(0,0,0,0.98),0 2px 22px rgba(0,0,0,0.78);
+  margin-bottom:6px;
+}
+body:not(.mc-active) .boss-name-lbl::after{
+  height:1px;width:48%;margin:7px auto 9px;
+  background:linear-gradient(90deg,transparent,rgba(195,150,68,0.62),transparent);
+  opacity:1;
+}
+
+/* HP track — significantly taller, solid, premium ember crimson */
+body:not(.mc-active) .boss-track{
+  height:18px;
+  background:rgba(6,2,4,1);
+  border:none;
+  border-radius:2px;
+  box-shadow:
+    0 2px 16px rgba(0,0,0,0.62),
+    0 0 32px rgba(0,0,0,0.40),
+    inset 0 2px 5px rgba(0,0,0,0.95),
+    inset 0 -1px 0 rgba(255,180,140,0.05);
+}
+.boss-fill-bar{
+  background:linear-gradient(90deg,
+    rgba(40,4,6,1) 0%,
+    rgba(96,10,14,1) 18%,
+    rgba(158,22,24,1) 42%,
+    rgba(198,46,34,1) 68%,
+    rgba(228,82,58,1) 88%,
+    rgba(248,118,82,1) 100%);
+}
+/* Bevel highlight on HP fill */
+.boss-fill-bar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:42%;
+  background:linear-gradient(180deg,rgba(255,210,180,0.20),rgba(255,210,180,0));
+  pointer-events:none;
+}
+/* Subtle segmentation — more visible at this size */
+.boss-fill-bar::after{
+  background:repeating-linear-gradient(90deg,
+    transparent,transparent 36px,
+    rgba(255,200,170,0.07) 36px,rgba(255,200,170,0.07) 37px,
+    transparent 37px,transparent 38px,
+    rgba(0,0,0,0.22) 38px,rgba(0,0,0,0.22) 39px);
+}
+
+/* HP readout — readable */
+body:not(.mc-active) .boss-hp-num{
+  font-size:0.78rem;
+  margin-top:6px;
+}
+.boss-hp-num.show-num{
+  color:rgba(218,196,148,0.82);
+  letter-spacing:0.08em;
+}
+
+/* ── STUN ROW — label hidden, bar + pips centered ── */
+body:not(.mc-active) .boss-stun-row{
+  margin-top:11px;
+  gap:14px;
+  align-items:center;
+  justify-content:center;
+}
+body:not(.mc-active) .boss-stun-lbl{
+  display:none;
+}
+body:not(.mc-active) .boss-stun-track{
+  flex:1;
+  max-width:420px;
+  height:13px;
+  background:rgba(8,4,2,1);
+  border:none;
+  border-radius:2px;
+  box-shadow:
+    0 1px 10px rgba(0,0,0,0.55),
+    inset 0 1px 4px rgba(0,0,0,0.92),
+    inset 0 -1px 0 rgba(255,200,80,0.04);
+}
+.boss-stun-fill{
+  background:linear-gradient(90deg,
+    rgba(28,12,2,1) 0%,
+    rgba(92,46,4,1) 26%,
+    rgba(168,108,14,1) 54%,
+    rgba(220,162,32,1) 78%,
+    rgba(252,212,90,1) 100%);
+  box-shadow:inset 0 1px 1px rgba(255,230,140,0.18);
+}
+.boss-stun-fill::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:42%;
+  background:linear-gradient(180deg,rgba(255,235,160,0.22),rgba(255,235,160,0));
+  pointer-events:none;
+}
+
+/* Stun pips — bigger, clearer, more prominent */
+body:not(.mc-active) .boss-stun-pip{
+  width:13px;
+  height:13px;
+  border:1px solid rgba(195,148,28,0.55);
+  background:rgba(46,28,4,0.62);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,0.85);
+}
+body:not(.mc-active) .boss-stun-pip.filled{
+  background:radial-gradient(circle at 35% 30%,
+    rgba(255,232,140,1) 0%,
+    rgba(248,196,52,1) 50%,
+    rgba(184,118,12,1) 100%);
+  border-color:rgba(255,228,128,0.92);
+  box-shadow:
+    0 0 8px rgba(255,196,60,0.78),
+    0 0 16px rgba(232,162,28,0.42),
+    inset 0 1px 1px rgba(255,250,210,0.55);
+}
+body:not(.mc-active) .boss-stun-pips{
+  gap:5px;
+}
+
+/* ══════════════════════════════════════════
+   TYPOGRAPHY SYSTEM — final overrides
+   IBM Plex Sans: system/UI/numeric/gameplay info
+   Cinzel: display/titles/item names/cinematic emphasis only
+══════════════════════════════════════════ */
+
+/* Main menu buttons — Cinzel SemiBold, tighter tracking */
+.mnb-inner{font-family:'Cinzel',serif;font-weight:600;letter-spacing:0.13em;}
+
+/* Acc toast — system message */
+.acc-toast{font-family:'IBM Plex Sans',sans-serif;font-weight:500;letter-spacing:0.06em;}
+
+/* Save info values — tabular, IBM Plex Sans */
+.si-val{font-feature-settings:"tnum" 1;}
+
+/* Boss HP readout */
+.boss-hp-num.show-num{font-family:'IBM Plex Sans',sans-serif;font-weight:500;font-feature-settings:"tnum" 1;}
+
+/* Boss stun label — IBM Plex Sans for readability */
+.boss-stun-lbl{font-family:'IBM Plex Sans',sans-serif;font-size:0.46rem;font-weight:600;letter-spacing:0.14em;}
+
+/* Potion counter */
+#potionCount{font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-feature-settings:"tnum" 1;}
+
+/* Settings screen diff row label */
+.diff-label{font-family:'IBM Plex Sans',sans-serif;font-weight:400;}
+
+/* ── HUD numeric/label discipline ── */
+/* Bare .hud-val (base rule) — class-specific overrides already handle hp/stamina/mana,
+   this catches any unclassed usage so nothing falls back to Cinzel. */
+.hud-val{font-family:'IBM Plex Sans',sans-serif;letter-spacing:0.02em;font-feature-settings:"tnum" 1;}
+/* Progression labels above kill bar — system info, not cinematic */
+.hud-lv,.hud-level,.wave-hud{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  letter-spacing:0.10em;font-feature-settings:"tnum" 1;
+}
+.hud-score-sm{font-family:'IBM Plex Sans',sans-serif;font-weight:600;letter-spacing:0.04em;font-feature-settings:"tnum" 1;}
+
+/* ── Tutorial body — system typography ── */
+.tut-card-title{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  letter-spacing:0.18em;font-size:0.62rem;
+  color:rgba(208,182,118,0.78);
+  border-bottom:1px solid rgba(180,140,55,0.10);
+  padding-bottom:9px;margin-bottom:11px;
+}
+.tut-key,.tut-pill,.gp-pill{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  letter-spacing:0.03em;
+}
+.tut-tip-head{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  letter-spacing:0.12em;font-size:0.56rem;
+  color:rgba(208,182,118,0.76);
+}
+.gp-hint{font-family:'IBM Plex Sans',sans-serif;font-weight:400;letter-spacing:0.05em;}
+
+/* Utility buttons — system action, not display ornament */
+.wcard-unlock-btn,.acc-unequip-btn{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:500;
+  letter-spacing:0.10em;text-transform:uppercase;
+}
+
+/* Prep tabs — category navigation, still uppercase but system feel */
+.prep-tab{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;
+  letter-spacing:0.16em;font-size:0.74rem;
+  color:rgba(195,162,98,0.50);
+}
+.prep-tab.active{color:rgba(232,212,160,0.95);}
+
+/* Save info values numeric */
+.save-info{font-family:'IBM Plex Sans',sans-serif;font-feature-settings:"tnum" 1;}
+
+/* Pause/Dead/StageComplete subtitle text */
+#pauseScreen .pause-sub,
+#dead .dead-sub,
+#stageCompleteScreen .sc-sub{font-family:'IBM Plex Sans',sans-serif;font-weight:400;letter-spacing:0.08em;}
+
+/* ══════════════════════════════════════════
+   BUTTON & SEPARATOR REFINEMENT
+   Reduce webapp framing → typographic, integrated
+══════════════════════════════════════════ */
+
+/* Prep CTA — was solid bordered button. Now: typographic action with
+   subtle underline accent rather than container. */
+.prep-confirm-btn,
+#stageCompleteScreen button:not(.mnb),
+#dead button:not(.mnb){
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  position:relative;
+  padding:14px 28px 16px;
+  font-weight:600;
+  transition:color 0.22s ease,letter-spacing 0.28s cubic-bezier(0.22,1,0.36,1),transform 0.18s ease;
+}
+/* Soft luminous underline — implies action without boxing it */
+.prep-confirm-btn::after,
+#stageCompleteScreen button:not(.mnb)::after,
+#dead button:not(.mnb)::after{
+  content:'';position:absolute;left:14%;right:14%;bottom:8px;height:1px;
+  background:linear-gradient(90deg,transparent 0%,currentColor 30%,currentColor 70%,transparent 100%);
+  opacity:0.32;transition:opacity 0.25s ease,left 0.3s ease,right 0.3s ease;
+  pointer-events:none;
+}
+.prep-confirm-btn:hover,
+.prep-confirm-btn.gamepad-focused,
+#stageCompleteScreen button:not(.mnb):hover,
+#stageCompleteScreen button:not(.mnb).gamepad-focused,
+#dead button:not(.mnb):hover,
+#dead button:not(.mnb).gamepad-focused{
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  letter-spacing:0.28em;
+}
+.prep-confirm-btn:hover::after,
+.prep-confirm-btn.gamepad-focused::after,
+#stageCompleteScreen button:not(.mnb):hover::after,
+#stageCompleteScreen button:not(.mnb).gamepad-focused::after,
+#dead button:not(.mnb):hover::after,
+#dead button:not(.mnb).gamepad-focused::after{
+  opacity:0.72;left:6%;right:6%;
+}
+/* Back/secondary stays even lighter */
+.prep-back-btn{
+  background:transparent!important;
+  border:none!important;
+  box-shadow:none!important;
+}
+.prep-back-btn::after{display:none;}
+
+/* Detail panels — soften the container framing, atmospheric instead of card */
+.prep-header{border-bottom:1px solid rgba(255,255,255,0.04);}
+.prep-tabs{
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  background:transparent;
+}
+
+/* Tutorial cards — atmospheric, not stacked rectangles */
+.tut-card{
+  background:transparent!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  padding:14px 18px 14px 0!important;
+  position:relative;
+}
+.tut-card::before{
+  content:'';position:absolute;left:0;top:14px;bottom:14px;width:1px;
+  background:linear-gradient(180deg,transparent 0%,rgba(180,140,55,0.18) 30%,rgba(180,140,55,0.18) 70%,transparent 100%);
+}
+.tut-card{padding-left:18px!important;}
+
+/* Soft atmospheric separator utility — replaces hard dividers */
+.hud-divider{
+  background:linear-gradient(90deg,transparent 0%,rgba(190,148,58,0.18) 35%,rgba(190,148,58,0.18) 65%,transparent 100%);
+  opacity:0.45;
+}
+
+/* ══════════════════════════════════════════
+   CINEMATIC POST OVERLAY
+   Vignette + atmospheric haze + barely-visible scanline whisper
+   Sits between gameplay canvas (#c, z-index:auto) and HUD (z-index:3+)
+══════════════════════════════════════════ */
+#cinePost{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:2;
+  /* Layered atmospheric envelope: thin top haze for depth, heavier bottom
+     grounding for foreground weight, tighter focal vignette so the center
+     stays luminance-clean and the corners deepen into wine-navy.
+     The goal is depth hierarchy — center reads bright, corners ground. */
+  background:
+    /* Top haze — thin, just enough for sky-to-mid separation */
+    linear-gradient(180deg,
+      rgba(16,12,26,0.22) 0%,
+      rgba(16,12,26,0.06) 12%,
+      transparent 24%),
+    /* Bottom grounding — slightly stronger to anchor foreground */
+    linear-gradient(0deg,
+      rgba(6,4,12,0.46) 0%,
+      rgba(6,4,12,0.14) 14%,
+      transparent 28%),
+    /* Focal vignette — clean center, gradual mid falloff,
+       deeper wine-navy corners for richer luminance hierarchy */
+    radial-gradient(ellipse 105% 90% at 50% 54%,
+      transparent 0%,
+      transparent 42%,
+      rgba(10,5,16,0.22) 68%,
+      rgba(6,3,12,0.46) 88%,
+      rgba(4,2,10,0.68) 100%);
+}
+/* Very faint scanline whisper — restrained, not retro CRT.
+   No blend mode (would force per-frame canvas readback). Plain low-alpha
+   compositing is essentially free since the layer is static. */
+#cinePost::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.014) 0px,
+    rgba(255,255,255,0.014) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity:0.38;
+  pointer-events:none;
+}
+/* Gentle color grading — lift shadows toward deep navy, restrained warmth in highlights.
+   No blend mode (perf). Lower alpha to compensate for direct compositing. */
+#cinePost::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  /* Three-band cinematic grade — cool sky top, neutral mid (lets the scene
+     read clean), restrained warm earth bottom. Stronger warm/cool spread
+     than before to restore depth/temperature hierarchy without raising
+     overall alpha (no global wash). */
+  background:linear-gradient(180deg,
+    rgba(48,38,82,0.055) 0%,
+    rgba(28,24,46,0.018) 38%,
+    rgba(22,18,28,0.000) 58%,
+    rgba(72,38,18,0.055) 100%);
+  pointer-events:none;
+}
+/* Hide cine post when fullscreen overlay screens are active so menus stay pure */
+body:has(#menuScreen:not(.hidden)) #cinePost,
+body:has(#settingsScreen:not(.hidden)) #cinePost,
+body:has(#tutorialScreen:not(.hidden)) #cinePost,
+body:has(#bossRushScreen:not(.hidden)) #cinePost,
+body:has(#stageSelectScreen:not(.hidden)) #cinePost,
+body:has(#prepScreen:not(.hidden)) #cinePost,
+body:has(#menuScreen:not(.hidden)) #cineFog,
+body:has(#settingsScreen:not(.hidden)) #cineFog,
+body:has(#tutorialScreen:not(.hidden)) #cineFog,
+body:has(#bossRushScreen:not(.hidden)) #cineFog,
+body:has(#stageSelectScreen:not(.hidden)) #cineFog,
+body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
+
+/* Drifting fog disabled — animated overlays atop a per-frame-repainting
+   canvas force the compositor to dirty the whole viewport each frame.
+   The static atmospheric haze in #cinePost already provides depth. If we
+   want subtle motion later, the cheap path is to do it inside the canvas
+   render (one cheap drawImage with translated offset) rather than CSS. */
+#cineFog{display:none;}
+
+/* ══════════════════════════════════════════
+   SETTINGS — align with editorial style
+   Strip webapp framing, restrain typography
+══════════════════════════════════════════ */
+
+/* Settings title — restrained, not ornate */
+.settings-title{
+  font-family:'Cinzel',serif;font-weight:600;
+  letter-spacing:0.10em;
+  color:rgba(232,212,160,0.95);
+  text-shadow:0 0 18px rgba(200,160,40,0.20);
+}
+
+/* Section labels — system typography, not all-caps fantasy */
+.settings-section-lbl{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:500;
+  letter-spacing:0.18em;
+  color:rgba(195,162,98,0.62);
+  text-transform:uppercase;
+}
+
+/* Difficulty / HUD-size container — strip the bordered card */
+.diff-row{
+  border:none;
+  border-radius:0;
+  background:transparent;
+  position:relative;
+  padding:6px 0;
+}
+.diff-row::after{
+  content:'';position:absolute;left:8%;right:8%;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(190,148,58,0.18) 30%,rgba(190,148,58,0.18) 70%,transparent);
+}
+.diff-btn{
+  background:transparent;
+  border:none!important;
+  color:rgba(218,188,118,0.78);
+  font-family:'IBM Plex Sans',sans-serif;font-weight:500;
+  transition:color 0.18s ease,transform 0.15s ease;
+}
+.diff-btn:hover,.diff-btn.gamepad-focused{
+  background:transparent;
+  color:rgba(255,224,128,1);
+  transform:scale(1.18);
+}
+.diff-label{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:500;
+  letter-spacing:0.14em;color:rgba(208,182,118,0.72);
+  text-transform:uppercase;font-size:0.70rem;
+}
+.diff-val{
+  color:rgba(232,212,160,0.95);
+  font-weight:600;
+}
+.diff-desc{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:400;
+  letter-spacing:0.04em;
+  color:rgba(180,160,118,0.58);
+  font-size:0.70rem;
+  text-align:center;
+  margin-top:2px;
+}
+
+/* Settings divider — atmospheric, not a layout rule */
+.settings-divider{
+  width:200px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(190,148,58,0.16) 35%,rgba(190,148,58,0.16) 65%,transparent);
+  opacity:0.6;
+}
+
+/* Settings buttons — strip the webapp menu-btn framing */
+#settingsScreen .menu-btn{
+  background:transparent!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  text-shadow:0 1px 8px rgba(0,0,0,0.95);
+  position:relative;
+  font-family:'Cinzel',serif;font-weight:600;
+  letter-spacing:0.16em;
+  color:rgba(195,162,98,0.75);
+  padding:11px 24px 13px;
+  transition:color 0.22s ease,letter-spacing 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+#settingsScreen .menu-btn::after{
+  content:'';position:absolute;left:18%;right:18%;bottom:7px;height:1px;
+  background:linear-gradient(90deg,transparent,currentColor 30%,currentColor 70%,transparent);
+  opacity:0.22;transition:opacity 0.25s ease,left 0.3s ease,right 0.3s ease;
+  pointer-events:none;
+}
+#settingsScreen .menu-btn:hover,
+#settingsScreen .menu-btn.gamepad-focused,
+#settingsScreen .menu-btn:focus-visible{
+  background:transparent!important;
+  border:none!important;
+  box-shadow:none!important;
+  color:rgba(240,216,120,0.98);
+  letter-spacing:0.22em;
+  outline:none;
+}
+#settingsScreen .menu-btn:hover::after,
+#settingsScreen .menu-btn.gamepad-focused::after,
+#settingsScreen .menu-btn:focus-visible::after{opacity:0.62;left:10%;right:10%;}
+#settingsScreen .menu-btn.ghost{color:rgba(178,150,98,0.55);}
+#settingsScreen .menu-btn.ghost.danger{color:rgba(184,90,90,0.65);}
+#settingsScreen .menu-btn.ghost.danger:hover,
+#settingsScreen .menu-btn.ghost.danger.gamepad-focused{color:rgba(240,108,108,0.95);}
 </style>
 </head>
 <body>
@@ -1201,6 +2526,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 <!-- ══ MAIN MENU ══ -->
 <div id="menuScreen" class="screen">
   <canvas id="rainCanvas"></canvas>
+  <div id="menuEmissive" aria-hidden="true"></div>
   <div class="menu-title">IRONVEIL</div>
   <div class="menu-subtitle">Enter the Veil · Face the Dark</div>
   <div class="menu-divider"></div>
@@ -1457,7 +2783,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
       <button class="prep-tab active" id="prepTab0" onclick="switchPrepTab(0)">⚡ STATS</button>
       <button class="prep-tab" id="prepTab1" onclick="switchPrepTab(1)">⚔ WEAPON</button>
       <button class="prep-tab" id="prepTab2" onclick="switchPrepTab(2)">✨ MAGIC</button>
-      <button class="prep-tab" id="prepTab3" onclick="switchPrepTab(3)">💍 ACCESSORY</button>
+      <button class="prep-tab" id="prepTab3" onclick="switchPrepTab(3)">◈ ACCESSORY</button>
     </div>
 
     <!-- panel: stats -->
@@ -1513,12 +2839,18 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 
     <!-- panel: weapon -->
     <div class="prep-panel hidden" id="prepPanel1">
-      <div id="prepWeaponList" class="weapon-grid"></div>
+      <div class="equip-split">
+        <div class="equip-list" id="prepWeaponList"></div>
+        <div class="equip-detail" id="prepWeaponDetail"><div class="edetail-empty">Select a weapon</div></div>
+      </div>
     </div>
 
     <!-- panel: magic -->
     <div class="prep-panel hidden" id="prepPanel2">
-      <div id="prepSpellList" class="weapon-grid"></div>
+      <div class="equip-split">
+        <div class="equip-list" id="prepSpellList"></div>
+        <div class="equip-detail" id="prepSpellDetail"><div class="edetail-empty">Select a spell</div></div>
+      </div>
     </div>
 
     <!-- panel: accessory -->
@@ -1527,7 +2859,10 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
         <div id="accToast" class="acc-toast">✕ MAX EQUIP REACHED</div>
         <button class="acc-unequip-btn" onclick="selectedAccessoryKeys=[]; renderAccessorySelect();">↺ UNEQUIP ALL</button>
       </div>
-      <div id="prepAccessoryList" class="weapon-grid"></div>
+      <div class="equip-split">
+        <div class="equip-list" id="prepAccessoryList"></div>
+        <div class="equip-detail" id="prepAccessoryDetail"><div class="edetail-empty">Select an accessory</div></div>
+      </div>
     </div>
 
     <!-- actions always visible -->
@@ -1585,7 +2920,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
         </div>
         <span id="potionCount">×1</span>
       </div>
-      <span class="hud-score-sm" id="scoreEl">0 ☠ · 0 ✦</span>
+      <span class="hud-score-sm" id="scoreEl">✦ 0 G</span>
     </div>
     <div class="exp-wrap" id="expWrap">
       <div class="exp-fill" id="expFill">
@@ -1624,6 +2959,13 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 </div>
 
 <canvas id="c"></canvas>
+
+<!-- ══ CINEMATIC POST OVERLAY — vignette + atmospheric haze + scanline whisper ══
+     Sits between gameplay canvas and HUD. Pointer-events:none so it doesn't
+     interfere. All effects are restrained per the HD-2D spec. -->
+<div id="cinePost" aria-hidden="true"></div>
+<!-- Drifting atmospheric fog band — slow horizontal motion only -->
+<div id="cineFog" aria-hidden="true"></div>
 
 
 <!-- ══ BOSS HP BAR ══ -->
@@ -1941,12 +3283,237 @@ function updateSaveInfo(){
 }
 
 // ══════════════════════════════════════════
+//  MENU EMISSIVE LIGHTS
+//  Auto-detect warm bright spots in the menu background (windows, torches,
+//  city lights, airship lanterns) and place tiny breathing radial-gradient
+//  nodes over them. Each light gets randomized phase/duration so the scene
+//  feels alive without any single visible "animation".
+//  Runs once, on first menu show — results are cached.
+// ══════════════════════════════════════════
+// Hand-placed light positions (% of menu screen).
+// Each entry: { x, y } in percent. Optional fields:
+//   size:    base halo px (default 50)
+//   flavor:  'warm' | 'gold' | 'ember' (default cycles)
+//   flicker: true for sharper torch curve (default false — steady breathing)
+//   core:    inner alpha 0.3–0.8 (default 0.55)
+const _MENU_MANUAL_LIGHTS = [
+  { x:56.64, y:70.50 },   // 1  — gate
+  { x:45.40, y:70.34 },   // 2  — gate
+  { x:79.78, y:40.99 },   // 3  — tower window (the missing one)
+  { x:42.39, y:91.50 },   // 4  — foreground torch
+  { x:35.13, y:87.57 },   // 5
+  { x:37.92, y:84.89 },   // 6
+  { x:40.93, y:81.75 },   // 7
+  { x:21.50, y:56.18 },   // 8  — left wall window
+  { x:34.29, y:55.39 },   // 9
+  { x:62.83, y:54.68 },   // 10
+  { x:86.02, y:54.76 },   // 11
+  { x:95.88, y:55.15 },   // 12
+  { x:91.15, y:18.10 },   // 13 — airship lantern (right)
+  { x:17.08, y:17.15 },   // 14 — airship lantern (left)
+  { x:13.72, y:16.76 },   // 15 — airship lantern (left)
+  { x:89.47, y:87.80 },   // 16 — lower-right foreground light
+];
+
+let _menuEmissiveBuilt = false;
+function _menuBuildEmissive(){
+  if(_menuEmissiveBuilt) return;
+  const host = document.getElementById('menuEmissive');
+  if(!host) return;
+  // Inline CSS vars give each light its own size / animation duration /
+  // phase offset so neighbors never sync.
+  const frag = document.createDocumentFragment();
+  const flavors = ['warm','gold','ember','warm','gold'];
+  _MENU_MANUAL_LIGHTS.forEach((p, idx)=>{
+    const el = document.createElement('div');
+    const flavor = p.flavor || flavors[idx % flavors.length];
+    el.className = 'em-light ' + flavor;
+    // ~1 in 3 lights gets the sharper flicker curve (torches/braziers);
+    // explicit `flicker:true` on the pick overrides.
+    if(p.flicker || (idx % 3 === 1)) el.classList.add('flicker');
+    const size = p.size || (44 + ((idx * 13) % 22));  // 44–66 px, varied
+    const core = (p.core != null) ? p.core : 0.55;
+    const dur  = 3.6 + Math.random() * 4.4;            // 3.6–8.0 s
+    const dly  = -Math.random() * 7;                   // start mid-cycle
+    const blur = 0.4 + Math.random() * 1.1;            // 0.4–1.5 px softness
+    el.style.left = p.x + '%';
+    el.style.top  = p.y + '%';
+    el.style.setProperty('--em-size', size + 'px');
+    el.style.setProperty('--em-core', core.toFixed(3));
+    el.style.setProperty('--em-dur',  dur.toFixed(2) + 's');
+    el.style.setProperty('--em-delay', dly.toFixed(2) + 's');
+    el.style.setProperty('--em-blur', blur.toFixed(2) + 'px');
+    frag.appendChild(el);
+  });
+  host.appendChild(frag);
+  _menuEmissiveBuilt = true;
+}
+
+// ── Manual emissive picker (dev tool) ──
+// Call `_menuPickEmissive()` in the console to enable click-to-mark mode.
+//
+// Behavior depends on what's currently visible:
+//   • Menu screen visible → captures clicks in % of the menu screen.
+//   • In-game (canvas visible) → freezes the simulation (sets `paused=true`
+//     without opening the pause screen) and captures clicks in % of the
+//     canvas. Each pick includes the current stage so picks from different
+//     stages can be sorted out later.
+//
+// Picks accumulate on `window._menuPicks`. Each click drops a red ring at
+// the captured position. Call `_menuPickEmissive(false)` to exit; on
+// in-game mode it also unpauses unless you pass `_menuPickEmissive(false,
+// {keepPaused:true})`.
+window._menuPicks = [];
+let _menuPickerActive = false;
+let _menuPickerHandler = null;
+let _menuPickerTarget = null;       // element receiving clicks
+let _menuPickerOverlay = null;      // overlay div that holds marker dots (in-game only)
+let _menuPickerWasPaused = false;
+let _menuPickerContext = null;      // 'menu' | 'stage'
+function _menuPickEmissive(enable, opts){
+  // ── Disable ─────────────────────────────────────────────
+  if(enable === false){
+    if(_menuPickerHandler && _menuPickerTarget){
+      _menuPickerTarget.removeEventListener('click', _menuPickerHandler, true);
+    }
+    if(_menuPickerTarget) _menuPickerTarget.style.cursor = '';
+    if(_menuPickerOverlay && _menuPickerOverlay.parentNode){
+      _menuPickerOverlay.parentNode.removeChild(_menuPickerOverlay);
+    }
+    // Resume the game if we paused it (unless caller wants to keep paused).
+    if(_menuPickerContext === 'stage' && _menuPickerWasPaused === false){
+      const keep = opts && opts.keepPaused;
+      if(!keep && typeof paused !== 'undefined') paused = false;
+    }
+    _menuPickerHandler = null;
+    _menuPickerTarget  = null;
+    _menuPickerOverlay = null;
+    _menuPickerActive  = false;
+    const ctx = _menuPickerContext;
+    _menuPickerContext = null;
+    console.log(`picker OFF (${ctx}). Picks:`, window._menuPicks);
+    return window._menuPicks;
+  }
+  if(_menuPickerActive) return 'already on — call _menuPickEmissive(false) first';
+
+  // ── Auto-detect context ─────────────────────────────────
+  const menu = document.getElementById('menuScreen');
+  const canvasEl = document.getElementById('c');
+  const menuVisible = menu && !menu.classList.contains('hidden');
+  if(menuVisible){
+    _menuPickerContext = 'menu';
+    _menuPickerTarget  = menu;
+  } else if(canvasEl){
+    _menuPickerContext = 'stage';
+    _menuPickerTarget  = canvasEl;
+    // Freeze the simulation without showing the pause UI.
+    _menuPickerWasPaused = (typeof paused !== 'undefined') ? paused : false;
+    if(typeof paused !== 'undefined') paused = true;
+    // Markers can't persist on a per-frame-cleared canvas — drop them in a
+    // fixed overlay positioned exactly over the canvas's screen rect.
+    const rect = canvasEl.getBoundingClientRect();
+    const overlay = document.createElement('div');
+    overlay.id = '_pickerOverlay';
+    overlay.style.cssText =
+      `position:fixed;` +
+      `left:${rect.left}px;top:${rect.top}px;` +
+      `width:${rect.width}px;height:${rect.height}px;` +
+      `pointer-events:none;z-index:9999;`;
+    document.body.appendChild(overlay);
+    _menuPickerOverlay = overlay;
+  } else {
+    return 'no target visible';
+  }
+
+  // ── Activate ────────────────────────────────────────────
+  _menuPickerActive = true;
+  _menuPickerTarget.style.cursor = 'crosshair';
+  _menuPickerHandler = (ev)=>{
+    const rect = _menuPickerTarget.getBoundingClientRect();
+    const x = ((ev.clientX - rect.left) / rect.width)  * 100;
+    const y = ((ev.clientY - rect.top)  / rect.height) * 100;
+    const pick = { x: +x.toFixed(2), y: +y.toFixed(2) };
+    if(_menuPickerContext === 'stage'){
+      pick.stage = (typeof currentStage !== 'undefined') ? currentStage : null;
+      // Convert to world pixels using the current camera offset so picks
+      // captured at any camera position translate to a stable world coord.
+      const cx = (typeof camX !== 'undefined') ? camX : 0;
+      pick.wx = +((x/100) * canvas.width  + cx).toFixed(1);
+      pick.wy = +((y/100) * canvas.height).toFixed(1);
+    }
+    window._menuPicks.push(pick);
+    const extra = pick.stage != null ? `, stage:${pick.stage}, wx:${pick.wx}, wy:${pick.wy}` : '';
+    console.log(`pick #${window._menuPicks.length}: { x:${pick.x}, y:${pick.y}${extra} }`);
+
+    // Drop a visible marker. For menu we append to the screen (positioned in
+    // % of that screen); for in-game we append to the fixed overlay (also %
+    // of the canvas rect, which the overlay matches).
+    const m = document.createElement('div');
+    m.style.cssText =
+      `position:absolute;left:${x}%;top:${y}%;` +
+      `width:14px;height:14px;margin:-7px 0 0 -7px;` +
+      `border:2px solid #ff3030;border-radius:50%;` +
+      `box-shadow:0 0 8px rgba(255,40,40,0.9);` +
+      `pointer-events:none;`;
+    if(_menuPickerContext === 'stage' && _menuPickerOverlay){
+      _menuPickerOverlay.appendChild(m);
+    } else {
+      m.style.zIndex = '50';
+      _menuPickerTarget.appendChild(m);
+    }
+    ev.preventDefault();
+    ev.stopPropagation();
+  };
+  _menuPickerTarget.addEventListener('click', _menuPickerHandler, true);
+  const ctxStr = _menuPickerContext === 'stage'
+    ? `STAGE picker ON (stage ${typeof currentStage !== 'undefined' ? currentStage : '?'}, game paused).`
+    : 'MENU picker ON.';
+  console.log(`${ctxStr} Click warm light spots; call _menuPickEmissive(false) when done.`);
+  return 'ready';
+}
+
+// ══════════════════════════════════════════
 //  CANVAS & SPRITE ASSETS
 // ══════════════════════════════════════════
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 function resize(){ canvas.width=1280; canvas.height=720; }
 resize();
+// ── HD-2D RENDERING — crisp sprite edges, no browser interpolation blur ──
+ctx.imageSmoothingEnabled = false;
+
+// ── CINEMATIC POST FX — cheap downsampled bloom + tone shaping ─────────
+// Bloom: render gameplay → downsample to 1/4 → blur via native filter →
+//        additive-blend back. ~80% the look of a true bloom, ~5% the cost.
+const _bloomCanvas = document.createElement('canvas');
+const _bloomCtx = _bloomCanvas.getContext('2d');
+_bloomCanvas.width = 320;   // 1/4 of native — cheap to blur
+_bloomCanvas.height = 180;
+let _bloomEnabled = true;
+function _applyCinematicPost(){
+  if(!_bloomEnabled) return;
+  // ── Highlight-selective bloom ──
+  // Stricter threshold: contrast(1.62) crushes mid/low pixels harder so the
+  // additive pass only "punches" on true highlights — torch flames, weapon
+  // glints, rim light, ember FX, sky catches. Midtones stay clean and the
+  // scene keeps its luminance hierarchy.
+  _bloomCtx.globalAlpha = 1;
+  _bloomCtx.globalCompositeOperation = 'source-over';
+  _bloomCtx.filter = 'brightness(1.14) contrast(1.62) saturate(0.96)';
+  _bloomCtx.drawImage(canvas, 0, 0, _bloomCanvas.width, _bloomCanvas.height);
+  _bloomCtx.filter = 'none';
+  // Composite blurred highlight-only copy back — lighter pass for ember spill,
+  // restrained alpha so it accents highlights instead of washing them out.
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = 0.16;
+  ctx.imageSmoothingEnabled = true;
+  ctx.filter = 'blur(7px)';
+  ctx.drawImage(_bloomCanvas, 0, 0, canvas.width, canvas.height);
+  ctx.filter = 'none';
+  ctx.imageSmoothingEnabled = false;
+  ctx.restore();
+}
 // ── STAGE DEFINITIONS ─────────────────────────────────────────
 // bg:    image file for the stage background (cover-fitted to 1280×720)
 // music: audio file looped during gameplay
@@ -3286,103 +4853,65 @@ function renderWeaponSelect(){
   Object.entries(WEAPONS).forEach(([key, w]) => {
     const isUnlocked = save.unlockedWeapons.includes(key);
     const isSelected = key === selectedWeaponKey;
-    const card = document.createElement('div');
-    const canAffordCard = !isUnlocked && save.gold >= w.cost;
-    card.className = 'weapon-card'
+    const canAfford  = !isUnlocked && save.gold >= w.cost;
+    const row = document.createElement('div');
+    row.className = 'equip-row'
       + (isSelected ? ' selected' : '')
       + (!isUnlocked ? ' locked' : '')
-      + (canAffordCard ? ' can-afford' : '');
-    card.dataset.key = key;
-    card.onclick = () => {
-      if (isUnlocked) { selectedWeaponKey = key; renderWeaponSelect(); _refocusPrepCard('prepWeaponList', key); }
-      else if (save.gold >= w.cost) unlockWeapon(key);
+      + (canAfford  ? ' can-afford' : '');
+    row.dataset.key = key;
+    row.onclick = () => {
+      if(isUnlocked){ selectedWeaponKey = key; renderWeaponSelect(); _refocusPrepCard('prepWeaponList', key); }
+      else if(canAfford) unlockWeapon(key);
     };
+    row.addEventListener('mouseenter', () => _updateEquipDetail('weapon', key, w, isUnlocked, isSelected));
 
-    // top row: icon + name/desc
-    const topRow = document.createElement('div');
-    topRow.className = 'wcard-top';
+    // Small icon
     const iconWrap = document.createElement('div');
-    iconWrap.className = 'wcard-icon-wrap';
+    iconWrap.className = 'erow-icon';
     const cvs = document.createElement('canvas');
-    cvs.width = 72; cvs.height = 72;
+    cvs.width = 28; cvs.height = 28;
     iconWrap.appendChild(cvs);
-    const nameWrap = document.createElement('div');
-    nameWrap.className = 'wcard-name-wrap';
-    nameWrap.innerHTML = `<div class="weapon-name">${w.name}</div><div class="weapon-desc">${w.desc}</div>`;
-    topRow.appendChild(iconWrap);
-    topRow.appendChild(nameWrap);
 
-    // bottom: stat chips or unlock
-    const bottom = document.createElement('div');
-    bottom.className = 'wcard-bottom';
-    if(isUnlocked){
-      bottom.innerHTML = weaponStats(w).map(s=>`<span class="wcard-stat-chip">${s}</span>`).join('');
-      // Elemental affinity chip
-      if(w.elemental){
-        const _base  = calcBaseDmg();
-        const _wm    = w.dmgMult ?? 1.0;
-        const _steps = w.steps || [];
-        const _avgDmg = _steps.length
-          ? _steps.reduce((s,st)=>s+Math.round(_base*(st.dmgMult??1.0)*_wm),0) / _steps.length
-          : _base;
-        const _ed  = Math.max(1, Math.round(_avgDmg * 0.10));
-        const _col = ELEMENTAL_FLOAT_COLORS[w.elemental] || '#ffffff';
-        const _lbl = ELEMENTAL_LABELS[w.elemental] || '';
-        const ec = document.createElement('span');
-        ec.className = 'wcard-elem-chip';
-        ec.textContent = `${_lbl} +${_ed} ${w.elemental.toUpperCase()}`;
-        ec.style.color = _col;
-        ec.style.borderColor = _col;
-        bottom.appendChild(ec);
-      }
-    } else {
-      const costChip = document.createElement('span');
-      costChip.className = 'wcard-stat-chip';
-      costChip.style.color = canAffordCard ? '#ffd060' : 'rgba(200,180,120,0.35)';
-      costChip.textContent = canAffordCard ? `${w.cost}g — press A to unlock` : `${w.cost}g — need ${w.cost-save.gold}g`;
-      bottom.appendChild(costChip);
-      if(canAffordCard){
-        const btn = document.createElement('button');
-        btn.className = 'wcard-unlock-btn';
-        btn.textContent = 'UNLOCK';
-        btn.onclick = e => { e.stopPropagation(); unlockWeapon(key); };
-        bottom.appendChild(btn);
-      }
-    }
+    const name = document.createElement('div');
+    name.className = 'erow-name';
+    name.textContent = w.name;
 
-    // badges — inserted into topRow so they flow naturally without overlapping name
-    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='weapon-sel-badge'; b.textContent='✔'; topRow.appendChild(b); }
-    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; topRow.appendChild(lk); }
-    card.appendChild(topRow);
-    card.appendChild(bottom);
-    list.appendChild(card);
+    const dot = document.createElement('div');
+    dot.className = 'erow-dot' + (!isUnlocked ? ' locked-dot' : '');
 
-    // sprite — prefer sprites.weapon PNG (object or string), fall back to w.sheet (legacy), then emoji
+    const badge = document.createElement('div');
+    badge.className = 'erow-badge';
+    badge.textContent = isSelected && isUnlocked ? '✔' : !isUnlocked ? '🔒' : '';
+
+    row.appendChild(iconWrap);
+    row.appendChild(name);
+    row.appendChild(dot);
+    row.appendChild(badge);
+    list.appendChild(row);
+
+    // Draw sprite into small canvas
     const _sprW    = w.sprites?.weapon;
-    const _iconSrc = (_sprW?.src)                            ? _sprW.src
-                   : (typeof _sprW === 'string')             ? _sprW
-                   : (typeof w.sheet === 'string')           ? w.sheet
-                   : null;
-    const _iconCell = _sprW?.cell || 96; // cell size in the sprite sheet
+    const _iconSrc = _sprW?.src || (typeof _sprW==='string'?_sprW : typeof w.sheet==='string'?w.sheet : null);
+    const _iconCell = _sprW?.cell || 96;
     if(_iconSrc){
       const img = new Image();
       img.onload = () => {
         const c = cvs.getContext('2d');
-        c.clearRect(0, 0, 72, 72);
-        // Fit the full weapon cell into the icon with a small padding
-        const pad = 4;
-        const fit = 72 - pad * 2;
-        c.drawImage(img, 0, 0, _iconCell, _iconCell, pad, pad, fit, fit);
+        c.clearRect(0,0,28,28);
+        c.drawImage(img, 0,0, _iconCell,_iconCell, 2,2, 24,24);
       };
       img.src = _iconSrc;
     } else {
       const c = cvs.getContext('2d');
-      c.clearRect(0, 0, 72, 72);
-      c.font = '38px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(w.icon || '?', 36, 36);
+      c.font = '18px serif'; c.textAlign='center'; c.textBaseline='middle';
+      c.fillText(w.icon||'⚔', 14, 14);
     }
   });
   list.scrollTop = _savedScroll;
+  // Show detail for currently selected
+  const selW = WEAPONS[selectedWeaponKey];
+  if(selW) _updateEquipDetail('weapon', selectedWeaponKey, selW, save.unlockedWeapons.includes(selectedWeaponKey), true);
 }
 
 function unlockWeapon(key){
@@ -3419,63 +4948,43 @@ function renderSpellSelect(){
   Object.entries(SPELLS).forEach(([key, sp]) => {
     const isUnlocked = save.unlockedSpells.includes(key);
     const isSelected = key === selectedSpellKey;
-    const card = document.createElement('div');
-    const canAffordCard = !isUnlocked && save.gold >= sp.cost;
-    card.className = 'weapon-card magic-card'
+    const canAfford  = !isUnlocked && save.gold >= sp.cost;
+    const row = document.createElement('div');
+    row.className = 'equip-row'
       + (isSelected ? ' selected' : '')
       + (!isUnlocked ? ' locked' : '')
-      + (canAffordCard ? ' can-afford' : '');
-    card.dataset.key = key;
-    card.onclick = () => {
-      if (isUnlocked) { selectedSpellKey = key; renderSpellSelect(); _refocusPrepCard('prepSpellList', key); }
-      else if (save.gold >= sp.cost) unlockSpell(key);
+      + (canAfford  ? ' can-afford' : '');
+    row.dataset.key = key;
+    row.onclick = () => {
+      if(isUnlocked){ selectedSpellKey = key; renderSpellSelect(); _refocusPrepCard('prepSpellList', key); }
+      else if(canAfford) unlockSpell(key);
     };
+    row.addEventListener('mouseenter', () => _updateEquipDetail('spell', key, sp, isUnlocked, isSelected));
 
-    // top row
-    const topRow = document.createElement('div');
-    topRow.className = 'wcard-top';
     const iconWrap = document.createElement('div');
-    iconWrap.className = 'wcard-icon-wrap spell-icon';
+    iconWrap.className = 'erow-icon';
+    iconWrap.style.color = sp.color || 'rgba(185,155,90,0.8)';
     iconWrap.textContent = sp.icon;
-    const nameWrap = document.createElement('div');
-    nameWrap.className = 'wcard-name-wrap';
-    nameWrap.innerHTML = `<div class="weapon-name">${sp.name}</div><div class="weapon-desc">${sp.desc}</div>`;
-    topRow.appendChild(iconWrap);
-    topRow.appendChild(nameWrap);
 
-    // bottom: stat chips or unlock
-    const bottom = document.createElement('div');
-    bottom.className = 'wcard-bottom';
-    if(isUnlocked){
-      const intVal = save.stats.int||1;
-      const realDmg = sp.damage + intVal*(sp.dmgPerInt||3);
-      [`DMG ~${realDmg}`, `MP ${sp.mpCost}`, `CD ${(sp.cooldown/60).toFixed(1)}s`].forEach(s=>{
-        const chip=document.createElement('span'); chip.className='wcard-stat-chip'; chip.textContent=s; bottom.appendChild(chip);
-      });
-    } else {
-      const costChip = document.createElement('span');
-      costChip.className = 'wcard-stat-chip';
-      costChip.style.color = canAffordCard ? '#ffd060' : 'rgba(200,180,120,0.35)';
-      costChip.textContent = canAffordCard ? `${sp.cost}g — press A to unlock` : `${sp.cost}g — need ${sp.cost-save.gold}g`;
-      bottom.appendChild(costChip);
-      if(canAffordCard){
-        const btn=document.createElement('button');
-        btn.className='wcard-unlock-btn';
-        btn.style.cssText='border-color:rgba(120,80,200,0.38);color:#b080ff;';
-        btn.textContent='UNLOCK';
-        btn.onclick=e=>{e.stopPropagation();unlockSpell(key);};
-        bottom.appendChild(btn);
-      }
-    }
+    const name = document.createElement('div');
+    name.className = 'erow-name';
+    name.textContent = sp.name;
 
-    // badges — inserted into topRow so they flow naturally without overlapping
-    if(isSelected && isUnlocked){ const b=document.createElement('div'); b.className='spell-sel-badge'; b.textContent='✔'; topRow.appendChild(b); }
-    if(!isUnlocked){ const lk=document.createElement('div'); lk.className='wcard-lock-badge'; lk.textContent='🔒'; topRow.appendChild(lk); }
+    const dot = document.createElement('div');
+    dot.className = 'erow-dot magic' + (!isUnlocked ? ' locked-dot' : '');
 
-    card.appendChild(topRow);
-    card.appendChild(bottom);
-    list.appendChild(card);
+    const badge = document.createElement('div');
+    badge.className = 'erow-badge';
+    badge.textContent = isSelected && isUnlocked ? '✔' : !isUnlocked ? '🔒' : '';
+
+    row.appendChild(iconWrap);
+    row.appendChild(name);
+    row.appendChild(dot);
+    row.appendChild(badge);
+    list.appendChild(row);
   });
+  const selSp = SPELLS[selectedSpellKey];
+  if(selSp) _updateEquipDetail('spell', selectedSpellKey, selSp, save.unlockedSpells.includes(selectedSpellKey), true);
 }
 
 const SP_MANA_COST=40;
@@ -3599,7 +5108,7 @@ const SPELLS={
         const _total=Math.round(_dmg*_dark);
         const _h=Math.round(_total/2),_o=_total-_h;
         const prev=e.hp; e.hp=Math.max(0,e.hp-_total);
-        e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=18;
+        e.ghostHp=prev; e.ghostDrainDelay=18; e.hitCD=18;
         spawnEnemyBarChips(e,prev,e.hp);
         floatText(e.x+EW/2-8,e.y-20,`${ELEMENTAL_LABELS['dark']||''}${_h}`,ELEMENTAL_FLOAT_COLORS['dark'],true);
         floatText(e.x+EW/2+8,e.y-30,`${ELEMENTAL_LABELS['wind']||''}${_o}`,ELEMENTAL_FLOAT_COLORS['wind'],false);
@@ -3634,7 +5143,7 @@ const SPELLS={
         const _total=Math.round(_dmg*_dark);
         const _h=Math.round(_total/2),_o=_total-_h;
         const prev=e.hp; e.hp=Math.max(0,e.hp-_total);
-        e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=15;
+        e.ghostHp=prev; e.ghostDrainDelay=18; e.hitCD=15;
         spawnEnemyBarChips(e,prev,e.hp);
         if(!e.boss){
           if(!e.onGround){
@@ -3701,7 +5210,7 @@ const SPELLS={
             const _dark=e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1;
             const _fd=Math.round(_dmg*_dark*falloff);
             const prev=e.hp; e.hp=Math.max(0,e.hp-_fd);
-            e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=15;
+            e.ghostHp=prev; e.ghostDrainDelay=18; e.hitCD=15;
             spawnEnemyBarChips(e,prev,e.hp);
             const dir=(e.x+EW/2)>lx?1:-1;
             if(!_groundLocked(e)){e.vx+=dir*8; e.vy-=4;}
@@ -3810,18 +5319,18 @@ function renderAccessorySelect(){
   Object.entries(ACCESSORIES).forEach(([key, acc]) => {
     const isSelected = selectedAccessoryKeys.includes(key);
     const isBlocked  = !isSelected && atMax;
-    const card = document.createElement('div');
-    card.className = 'weapon-card acc-card'
+    const row = document.createElement('div');
+    row.className = 'equip-row acc-row'
       + (isSelected ? ' selected' : '')
-      + (isBlocked  ? ' acc-blocked' : '');
-    card.dataset.key = key;
-    card.onclick = () => {
+      + (isBlocked  ? ' locked' : '');
+    row.dataset.key = key;
+    row.onclick = () => {
       if(isSelected){
         selectedAccessoryKeys = selectedAccessoryKeys.filter(k => k !== key);
       } else if(atMax){
         _showAccToast();
-        card.classList.add('acc-shake');
-        setTimeout(() => card.classList.remove('acc-shake'), 400);
+        row.classList.add('acc-shake');
+        setTimeout(() => row.classList.remove('acc-shake'), 400);
         return;
       } else {
         selectedAccessoryKeys = [...selectedAccessoryKeys, key];
@@ -3829,62 +5338,149 @@ function renderAccessorySelect(){
       renderAccessorySelect();
       _refocusPrepCard('prepAccessoryList', key);
     };
+    row.addEventListener('mouseenter', () => _updateEquipDetail('accessory', key, acc, true, isSelected));
 
-    const topRow = document.createElement('div');
-    topRow.className = 'wcard-top';
     const iconWrap = document.createElement('div');
-    iconWrap.className = 'wcard-icon-wrap';
+    iconWrap.className = 'erow-icon';
     const cvs = document.createElement('canvas');
-    cvs.width = 72; cvs.height = 72;
+    cvs.width = 28; cvs.height = 28;
     iconWrap.appendChild(cvs);
-    const nameWrap = document.createElement('div');
-    nameWrap.className = 'wcard-name-wrap';
-    nameWrap.innerHTML = `<div class="weapon-name">${acc.name}</div><div class="weapon-desc">${acc.desc}</div>`;
-    topRow.appendChild(iconWrap);
-    topRow.appendChild(nameWrap);
-    if(isBlocked){
-      const badge = document.createElement('span');
-      badge.className = 'wcard-lock-badge acc-max-badge';
-      badge.textContent = '✕';
-      topRow.appendChild(badge);
-    }
 
-    const bottom = document.createElement('div');
-    bottom.className = 'wcard-bottom';
-    (acc.statChips||[]).forEach(s => {
-      const chip = document.createElement('span');
-      chip.className = 'wcard-stat-chip acc-chip';
-      chip.textContent = s;
-      bottom.appendChild(chip);
-    });
-    if(isBlocked){
-      const lock = document.createElement('span');
-      lock.className = 'wcard-stat-chip acc-chip acc-locked-chip';
-      lock.textContent = 'MAX EQUIP REACHED';
-      bottom.appendChild(lock);
-    }
+    const name = document.createElement('div');
+    name.className = 'erow-name';
+    name.textContent = acc.name;
 
-    card.appendChild(topRow);
-    card.appendChild(bottom);
-    list.appendChild(card);
+    const dot = document.createElement('div');
+    dot.className = 'erow-dot acc' + (isBlocked ? ' locked-dot' : '');
 
-    // icon: image if acc.img is set, otherwise emoji fallback
+    const badge = document.createElement('div');
+    badge.className = 'erow-badge';
+    badge.textContent = isSelected ? '✔' : isBlocked ? '✕' : '';
+
+    row.appendChild(iconWrap);
+    row.appendChild(name);
+    row.appendChild(dot);
+    row.appendChild(badge);
+    list.appendChild(row);
+
     if(acc.img){
       const img = new Image();
       img.onload = () => {
         const c = cvs.getContext('2d');
-        c.clearRect(0, 0, 72, 72);
-        const pad = 4, fit = 72 - pad * 2;
-        c.drawImage(img, 0, 0, img.width, img.height, pad, pad, fit, fit);
+        c.clearRect(0,0,28,28);
+        c.drawImage(img, 0,0, img.width,img.height, 2,2, 24,24);
       };
       img.src = acc.img;
     } else {
       const c = cvs.getContext('2d');
-      c.clearRect(0, 0, 72, 72);
-      c.font = '38px serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      c.fillText(acc.icon || '?', 36, 36);
+      c.font = '18px serif'; c.textAlign='center'; c.textBaseline='middle';
+      c.fillText(acc.icon||'?', 14, 14);
     }
   });
+  // Show detail for first selected or first item
+  const firstSelKey = selectedAccessoryKeys[0] || Object.keys(ACCESSORIES)[0];
+  if(firstSelKey && ACCESSORIES[firstSelKey])
+    _updateEquipDetail('accessory', firstSelKey, ACCESSORIES[firstSelKey], true, selectedAccessoryKeys.includes(firstSelKey));
+}
+
+// ── Populate detail panel ─────────────────────────────────────────────────────
+function _updateEquipDetail(type, key, data, isUnlocked, isSelected){
+  const detailId = type==='weapon' ? 'prepWeaponDetail' : type==='spell' ? 'prepSpellDetail' : 'prepAccessoryDetail';
+  const detail = document.getElementById(detailId);
+  if(!detail) return;
+
+  let iconHTML = '';
+  let statsHTML = '';
+  let typeLabel = '';
+
+  if(type === 'weapon'){
+    typeLabel = 'Weapon' + (data.elemental ? ' · '+data.elemental.charAt(0).toUpperCase()+data.elemental.slice(1) : '');
+    if(isUnlocked){
+      statsHTML = weaponStats(data).map(s=>`<div class="edetail-stat-row">${s}</div>`).join('');
+      if(data.elemental){
+        const _base=calcBaseDmg(), _wm=data.dmgMult??1.0, _steps=data.steps||[];
+        const _avg=_steps.length?_steps.reduce((s,st)=>s+Math.round(_base*(st.dmgMult??1.0)*_wm),0)/_steps.length:_base;
+        const _ed=Math.max(1,Math.round(_avg*0.10));
+        const _col=ELEMENTAL_FLOAT_COLORS[data.elemental]||'#fff';
+        const _lbl=ELEMENTAL_LABELS[data.elemental]||'';
+        statsHTML += `<div class="edetail-elem" style="color:${_col}">${_lbl} +${_ed} ${data.elemental.toUpperCase()}</div>`;
+      }
+    }
+    iconHTML = '<canvas class="edetail-canvas" width="72" height="72"></canvas>';
+  } else if(type === 'spell'){
+    typeLabel = 'Spell' + (data.elemental ? ' · '+data.elemental.charAt(0).toUpperCase()+data.elemental.slice(1) : ' · Arcane');
+    if(isUnlocked){
+      const intVal=save.stats.int||1;
+      const realDmg=data.damage+intVal*(data.dmgPerInt||3);
+      statsHTML = [`DMG ~${realDmg}`,`MP ${data.mpCost}`,`CD ${(data.cooldown/60).toFixed(1)}s`]
+        .map(s=>`<div class="edetail-stat-row">${s}</div>`).join('');
+    }
+    iconHTML = `<div class="edetail-spell-icon" style="color:${data.color||'rgba(185,155,90,0.9)'}">${data.icon}</div>`;
+  } else {
+    typeLabel = 'Accessory';
+    statsHTML = (data.statChips||[]).map(s=>`<div class="edetail-stat-row">${s}</div>`).join('');
+    iconHTML = '<canvas class="edetail-canvas" width="72" height="72"></canvas>';
+  }
+
+  const costHTML = !isUnlocked
+    ? `<div class="edetail-cost">${data.cost}g to unlock${save.gold>=data.cost?' — press A':` · need ${data.cost-save.gold}g`}</div>`
+    : '';
+  const equippedHTML = isSelected && isUnlocked
+    ? '<div class="edetail-equipped">EQUIPPED</div>'
+    : '';
+
+  detail.innerHTML = `
+    <div class="edetail-icon-wrap">${iconHTML}</div>
+    <div class="edetail-name">${data.name}</div>
+    <div class="edetail-type">${typeLabel}</div>
+    <div class="edetail-rule"></div>
+    <div class="edetail-stats">${statsHTML}</div>
+    <div class="edetail-desc">${data.desc||''}</div>
+    ${costHTML}${equippedHTML}
+  `;
+
+  // Draw sprite into large canvas
+  if(type==='weapon' || type==='accessory'){
+    const cvs = detail.querySelector('.edetail-canvas');
+    if(cvs){
+      if(type==='weapon'){
+        const _sprW=data.sprites?.weapon;
+        const _src=_sprW?.src||(typeof _sprW==='string'?_sprW:typeof data.sheet==='string'?data.sheet:null);
+        const _cell=_sprW?.cell||96;
+        if(_src){
+          const img=new Image();
+          img.onload=()=>{ const c=cvs.getContext('2d'); c.clearRect(0,0,72,72); c.drawImage(img,0,0,_cell,_cell,4,4,64,64); };
+          img.src=_src;
+        } else {
+          const c=cvs.getContext('2d'); c.font='40px serif'; c.textAlign='center'; c.textBaseline='middle';
+          c.fillText(data.icon||'⚔',36,36);
+        }
+      } else {
+        if(data.img){
+          const img=new Image();
+          img.onload=()=>{ const c=cvs.getContext('2d'); c.clearRect(0,0,72,72); c.drawImage(img,0,0,img.width,img.height,4,4,64,64); };
+          img.src=data.img;
+        } else {
+          const c=cvs.getContext('2d'); c.font='40px serif'; c.textAlign='center'; c.textBaseline='middle';
+          c.fillText(data.icon||'💍',36,36);
+        }
+      }
+    }
+  }
+}
+
+function _syncEquipDetail(el){
+  if(!el?.dataset?.key) return;
+  const key=el.dataset.key;
+  const list=el.closest('[id]');
+  if(!list) return;
+  if(list.id==='prepWeaponList'){
+    const w=WEAPONS[key]; if(w) _updateEquipDetail('weapon',key,w,save.unlockedWeapons.includes(key),key===selectedWeaponKey);
+  } else if(list.id==='prepSpellList'){
+    const sp=SPELLS[key]; if(sp) _updateEquipDetail('spell',key,sp,save.unlockedSpells.includes(key),key===selectedSpellKey);
+  } else if(list.id==='prepAccessoryList'){
+    const acc=ACCESSORIES[key]; if(acc) _updateEquipDetail('accessory',key,acc,true,selectedAccessoryKeys.includes(key));
+  }
 }
 
 function equipSpell(key){
@@ -3938,7 +5534,7 @@ function _triggerArcaneExplosion(sp){
       const _dmgF=Math.round(dmg*_darkM);
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-_dmgF);
-      e.ghostHp=prev; e.ghostDrainDelay=62;
+      e.ghostHp=prev; e.ghostDrainDelay=18;
       e.hitCD=28;
       const dir=(e.x+EW/2)>cx?1:-1;
       if(!_groundLocked(e)) e.vx+=dir*sp.knockback*falloff;
@@ -4394,6 +5990,7 @@ function showMenu(){
   updateSaveInfo();
   _stageMusicStop();
   _menuAmbPlay();
+  _menuBuildEmissive();
 }
 
 function pauseGame(){
@@ -4623,7 +6220,7 @@ function startRun(){
   setHpBar(maxHp,maxHp,false);
   setStBar(maxSt,maxSt);
   setMpBar(maxMp,maxMp);
-  document.getElementById('scoreEl').textContent=`KILLS: 0 | GOLD: ${save.gold}`;
+  document.getElementById('scoreEl').textContent=`✦ ${save.gold} G`;
   document.getElementById('lvlLabel').textContent=`LV ${save.level}`;
   if(!_bossRush) document.getElementById('waveLabel').textContent=`0 / ${TOTAL_ENEMIES}`;
   updateKillBar(_bossRush?0:0, _bossRush?0:TOTAL_ENEMIES);
@@ -4906,14 +6503,25 @@ function sparkBurst(x,y,n=10,gold=false){
       color:`hsl(${h},100%,${65+Math.random()*25|0}%)`});
   }
 }
-function floatText(x,y,txt,col='#fff',big=false){
+function floatText(x,y,txt,col='#fff',big=false,kind='dmg'){
+  let vy,vx,decay,scale,sDecay,dly;
+  if(kind==='xp'){
+    // XP — cool elegance, smooth motion, light emphasis (appears after damage)
+    vy=-(1.20+Math.random()*0.22); vx=(Math.random()-0.5)*0.55;
+    decay=0.0145; scale=1.18; sDecay=0.024; dly=5;
+  } else if(kind==='gold'){
+    // Gold — warm luxury, restrained but satisfying (appears after XP)
+    vy=-(1.45+Math.random()*0.28); vx=(Math.random()-0.5)*0.48;
+    decay=0.016; scale=1.24; sDecay=0.028; dly=12;
+  } else {
+    // 'dmg' — sharp, directional, immediate impact with squash/stretch
+    vy=-(2.1+Math.random()*0.55); vx=(Math.random()-0.5)*1.4;
+    decay=0.025; scale=big?2.20:1.82; sDecay=0.072; dly=0;
+  }
   particles.push({
     type:'text', x, y:y-10,
-    vy:-(1.8+Math.random()*0.6),
-    text:txt, color:col,
-    life:1, decay:0.022,   // ~45 frames ≈ 0.75s — shorter lifespan reduces canvas shadow load
-    scale:1.9,             // pops large then shrinks to 1
-    big,
+    vy, vx, text:txt, color:col,
+    life:1, decay, scale, sDecay, big, kind, dly,
   });
 }
 function spawnEnemyBarChips(e,prevHp,newHp){
@@ -5178,12 +6786,13 @@ function _tickMultiHitQueue(){
     const yOff = h.hitIdx * 10;
     const _dispRoll = _hDark > 1 ? Math.round(h.roll * _hDark) : h.roll;
     const _dispElem = _hDark > 1 ? Math.round(h.elemDmg * _hDark) : h.elemDmg;
-    const _rollCol  = _hDark > 1 ? '#dba8ff' : '#ffffff';
+    const _rollCol  = _hDark > 1 ? '#dba8ff' : '#f5ecd6';
     floatText(
       e.x+EW/2-14 + (Math.random()-0.5)*8,
       e.y - (h.isFinisher ? 32 : 16) - yOff,
       `${_dispRoll}`,
-      _rollCol
+      _rollCol,
+      h.isFinisher  // finishers render as crits (bigger, luminous rim)
     );
     if(_dispElem > 0){
       floatText(e.x+EW/2+10, e.y-(h.isFinisher?50:32)-yOff, `${h.el}${_dispElem}`, h.ec, false);
@@ -5699,7 +7308,7 @@ function _spHit(e, dmg){
   const _dmgFinal = _darkMult > 1 ? Math.round(dmg * _darkMult) : dmg;
   const prev=e.hp;
   e.hp-=_dmgFinal; e.hitCD=30;
-  e.ghostHp=prev; e.ghostDrainDelay=62;
+  e.ghostHp=prev; e.ghostDrainDelay=18;
   spawnEnemyBarChips(e,prev,e.hp);
   bloodBurst(e.x+EW/2,e.y+EH*.35,20);
   sparkBurst(e.x+EW/2,e.y+EH*.25,16,true);
@@ -6263,7 +7872,7 @@ function _airRelaunch(){
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=14;
-      e.ghostHp=prev; e.ghostDrainDelay=62;
+      e.ghostHp=prev; e.ghostDrainDelay=18;
       if(e.slammed || e.slamStunned) return; // never relaunch a grounded slam victim
       if(e.boss && (!(e.stunTimer>0) || e.bossSlamLanded>0)) return; // bosses only relaunchable when deflect-stunned and not freshly slammed
       e.vy=JUGGLE_VY; // full relaunch — same height each time
@@ -6323,7 +7932,7 @@ function launchEnemy(held=false){
       const prev=e.hp;
       e.hp=Math.max(0,e.hp-dmg);
       e.hitCD=18;
-      e.ghostHp=prev; e.ghostDrainDelay=62;
+      e.ghostHp=prev; e.ghostDrainDelay=18;
       // Launch physics only when stunned — damage above always applies regardless.
       const canLaunch = !e.slammed && !e.slamStunned && (!e.boss || e.stunTimer>0);
       if(canLaunch){ e.vy=JUGGLE_VY; e.vx=player.facing*20; e.juggled=true; e.juggleTimer=200; e.onGround=false; e.airFreezeTimer=0; anyJuggled=true; }
@@ -6840,7 +8449,7 @@ function updateEnemyProjectiles(){
           const dmg=Math.round(p.damage*1.6);
           const prev=e.hp;
           e.hp=Math.max(0,e.hp-dmg);
-          e.ghostHp=prev; e.ghostDrainDelay=62; e.hitCD=18;
+          e.ghostHp=prev; e.ghostDrainDelay=18; e.hitCD=18;
           if(e.boss){
             // Reflected projectile lands on boss — only count once per attack using the
             // boss-level gate (already set when the player parried it; all bolts from
@@ -6913,10 +8522,10 @@ function onEnemyKilled(e){
     bloodDecals.push({x:cx+(Math.random()-.5)*90,y:floorY()+30,rx:12+Math.random()*32,ry:4+Math.random()*10,alpha:0.8,decay:0.002});
   }
 
-  floatText(cx+58,e.y-10,`+${e.gold}g`,'#ffd060',true);
-  const _expLabel=_expMult>1?`+${_scaledExp}xp ×${_expMult.toFixed(1)}`:`+${_scaledExp}xp`;
-  floatText(cx+58,e.y-32,_expLabel,'#90e0ff',true);
-  document.getElementById('scoreEl').textContent=`KILLS: ${runKills} | GOLD: ${save.gold}`;
+  floatText(cx+58,e.y-12,`+${e.gold} G`,'#d8b878',false,'gold');
+  const _expLabel=_expMult>1?`+${_scaledExp} XP  ×${_expMult.toFixed(1)}`:`+${_scaledExp} XP`;
+  floatText(cx+58,e.y-30,_expLabel,'#9cc6d6',false,'xp');
+  document.getElementById('scoreEl').textContent=`✦ ${save.gold} G`;
   gainExp(_scaledExp);
 
   if(e.boss){
@@ -7336,11 +8945,114 @@ function drawBG(){
   }
 }
 
+// ── STAGE EMISSIVE LIGHTS ──────────────────
+// Hand-placed warm light sources baked into the stage backgrounds (torches,
+// windows, lanterns). Drawn directly on the game canvas with additive
+// compositing — no DOM, no blend-mode-over-canvas perf hit.
+//
+// Coordinates are stored in WORLD pixels (canvas native, 1280×720) so they
+// scroll naturally with the camera via `wx - camX`. Picks captured by the
+// picker include the camera offset at pick time so the conversion is
+// stable across stages with parallax / scrolling.
+//
+// Per-light fields:
+//   wx, wy : world position in canvas pixels
+//   r      : base halo radius in canvas pixels
+//   flav   : 'warm' | 'gold' | 'ember' — color temperature
+//   kind   : 'breathe' (steady window glow) | 'flicker' (torch / brazier)
+//   dur    : seconds per breathing cycle (3.6–8.0 typical)
+//   phase  : radians, stable per-light offset so neighbours don't sync
+const _STAGE_EMISSIVE = {
+  // ── Stage 1: Airship ──
+  1: [
+    // Wall lantern on the left side of the deck
+    { wx:  97, wy:  402, r: 48, flav:'warm', kind:'flicker', dur:5.0, phase:0.7 },
+  ],
+  // ── Stage 2: Forest ──
+  // Torches scattered through the foreground / midground / canopy. Y position
+  // controls size — picks near the bottom of the frame (close to player) are
+  // physically nearer the camera, so they read as larger halos.
+  2: [
+    // pick #3, #4 — foreground torches at player height (largest)
+    { wx:  869, wy:  364, r: 68, flav:'warm',  kind:'flicker', dur:5.4, phase:0.0 },
+    { wx: 1018, wy:  368, r: 64, flav:'ember', kind:'flicker', dur:4.8, phase:1.4 },
+    // pick #1, #2 — midground torches on the left
+    { wx:   58, wy:  228, r: 44, flav:'warm',  kind:'flicker', dur:6.2, phase:2.7 },
+    { wx:  152, wy:  230, r: 42, flav:'gold',  kind:'flicker', dur:5.6, phase:4.1 },
+    // pick #10–#13 — mid background canopy
+    { wx:  643, wy:  187, r: 38, flav:'warm',  kind:'flicker', dur:4.4, phase:5.3 },
+    { wx:  707, wy:  137, r: 36, flav:'gold',  kind:'breathe', dur:6.8, phase:0.6 },
+    { wx:  797, wy:  184, r: 38, flav:'ember', kind:'flicker', dur:5.0, phase:1.9 },
+    { wx:  643, wy:  137, r: 36, flav:'warm',  kind:'breathe', dur:7.2, phase:3.2 },
+    // pick #5–#9, #14 — far background torches (smallest)
+    { wx:  833, wy:  102, r: 30, flav:'gold',  kind:'breathe', dur:6.4, phase:4.5 },
+    { wx:  758, wy:   97, r: 28, flav:'warm',  kind:'breathe', dur:7.0, phase:5.8 },
+    { wx:  730, wy:  126, r: 30, flav:'ember', kind:'flicker', dur:4.6, phase:1.1 },
+    { wx:  515, wy:  115, r: 28, flav:'warm',  kind:'breathe', dur:6.6, phase:2.4 },
+    { wx:  423, wy:  100, r: 26, flav:'gold',  kind:'breathe', dur:7.4, phase:3.7 },
+    { wx:  971, wy:  104, r: 28, flav:'ember', kind:'flicker', dur:5.2, phase:5.0 },
+  ],
+  // ── Stage 4: Royal Sewers ──
+  4: [
+    // Big ceiling lantern centered above the arena
+    { wx: 576, wy: 120, r: 86, flav:'gold', kind:'flicker', dur:6.4, phase:0.0 },
+  ],
+};
+
+function _drawStageEmissive(){
+  const lights = _STAGE_EMISSIVE[currentStage];
+  if(!lights || !lights.length) return;
+  const t = Date.now() / 1000;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for(let i=0; i<lights.length; i++){
+    const L = lights[i];
+    // Cull lights well outside the visible viewport — cheap and meaningful
+    // for stages that scroll horizontally.
+    const x = L.wx - camX;
+    if(x < -L.r*2 || x > canvas.width + L.r*2) continue;
+
+    // Multi-frequency wave gives natural-feeling irregularity — none of the
+    // peaks land on the same phase, so it never reads as a single sine pulse.
+    const ph    = (t * Math.PI * 2 / L.dur) + L.phase;
+    const wave  = Math.sin(ph) * 0.55
+                + Math.sin(ph * 2.3 + 1.1) * 0.30
+                + Math.sin(ph * 3.7 + 2.5) * 0.18;   // ≈ -1.03..+1.03
+    const isFlicker = (L.kind === 'flicker');
+    const aRange = isFlicker ? 0.26 : 0.16;
+    const sRange = isFlicker ? 0.07 : 0.045;
+    const alpha = Math.max(0.55, Math.min(1.0, (isFlicker ? 0.80 : 0.86) + wave * aRange));
+    const scale = 1.0 + wave * sRange;
+    const r = L.r * scale;
+
+    // Color triple by flavor: inner / mid / outer color before alpha.
+    let c0, c1, c2;
+    if(L.flav === 'ember'){
+      c0 = 'rgba(255,176, 98,'; c1 = 'rgba(238,118,48,'; c2 = 'rgba(180, 68,24,';
+    } else if(L.flav === 'gold'){
+      c0 = 'rgba(255,228,160,'; c1 = 'rgba(252,198,90,'; c2 = 'rgba(212,150,40,';
+    } else { // warm
+      c0 = 'rgba(255,196,118,'; c1 = 'rgba(248,148,58,'; c2 = 'rgba(200, 92,28,';
+    }
+    const grad = ctx.createRadialGradient(x, L.wy, 0, x, L.wy, r);
+    grad.addColorStop(0.00, c0 + (0.62 * alpha).toFixed(3) + ')');
+    grad.addColorStop(0.32, c1 + (0.36 * alpha).toFixed(3) + ')');
+    grad.addColorStop(0.64, c2 + (0.16 * alpha).toFixed(3) + ')');
+    grad.addColorStop(1.00, 'rgba(140,60,18,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - r, L.wy - r, r*2, r*2);
+  }
+  ctx.restore();
+}
+
 // ── STAGE FX ──────────────────────────────
 // Per-stage atmospheric effects drawn on top of the background but behind all game objects.
 function _drawStageFX(){
   const W=canvas.width,H=canvas.height;
   const t=Date.now()/1000;
+  // Emissive torches/lanterns sit underneath atmospheric overlays so rain
+  // and fog read through them naturally.
+  _drawStageEmissive();
   if(currentStage===2){
     // ── Stage 2: Forest — rain ────────────────────────────────────
     ctx.save();
@@ -10044,58 +11756,12 @@ function drawEnemy(e){
     ctx.restore();
   }
 
-  // ── ENEMY HP BAR ──
+  // ── ENEMY HP BAR ── delegate to shared premium renderer
   const bw=82,bh=9;
   const bx=sx+eW(e)/2-bw/2,by=sy-30;
-  const R=1; // near-rectangle corners
-  // enemy name above bar
+  const R=1;
   const _eName={orc:'Orc',goblin:'Goblin'}[e.type]||(e.type||'Enemy');
-  ctx.save();
-  ctx.font='bold 13px Cinzel,serif';ctx.textAlign='center';
-  ctx.strokeStyle='rgba(0,0,0,0.95)';ctx.lineWidth=4;ctx.lineJoin='round';
-  ctx.strokeText(_eName,bx+bw/2,by-7);
-  ctx.fillStyle='rgba(245,210,150,1)';
-  ctx.fillText(_eName,bx+bw/2,by-7);
-  ctx.restore();
-  ctx.save();
-  // track
-  ctx.fillStyle='#0e0305';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,R);ctx.fill();
-  ctx.strokeStyle='rgba(0,0,0,0.7)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,R);ctx.stroke();
-  // withered section — lost HP shown as dark corroded red, not just empty
-  const hpf=Math.max(0,e.hp/e.maxHp);
-  if(hpf<1){
-    ctx.fillStyle='#3a0008';ctx.beginPath();ctx.roundRect(bx+bw*hpf,by,bw*(1-hpf),bh,R);ctx.fill();
-    // chip marks across the withered zone
-    ctx.fillStyle='rgba(0,0,0,0.35)';
-    for(let i=1;i<8;i++){
-      const cx=bx+bw*hpf+bw*(1-hpf)*(i/8);
-      if(cx>bx+bw*hpf+2) ctx.fillRect(cx,by,1,bh);
-    }
-  }
-  // ghost drain
-  const gp=Math.max(0,Math.min(1,e.ghostHp/e.maxHp));
-  if(gp>hpf){
-    ctx.fillStyle='rgba(255,220,220,0.32)';ctx.beginPath();ctx.roundRect(bx+bw*hpf,by,bw*(gp-hpf),bh,R);ctx.fill();
-    // top edge line
-    ctx.fillStyle='rgba(255,200,200,0.5)';ctx.fillRect(bx+bw*hpf,by,bw*(gp-hpf),1.5);
-  }
-  // current HP fill
-  if(hpf>0){
-    ctx.save();ctx.beginPath();ctx.roundRect(bx,by,bw*hpf,bh,R);ctx.clip();
-    ctx.fillStyle='#c0001a';ctx.fillRect(bx,by,bw,bh);
-    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(bx,by,bw,bh*.38);
-    ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fillRect(bx,by+bh*.72,bw,bh*.28);
-    ctx.restore();
-  }
-  // outer border
-  ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,R);ctx.stroke();
-  // hit flash
-  if(flash){
-    ctx.fillStyle='rgba(255,80,80,0.28)';ctx.beginPath();ctx.roundRect(bx,by,bw*hpf,bh,R);ctx.fill();
-  }
-  ctx.restore();
-
-  _drawElemBarsCanvas(e, bx, by, bw, bh);
+  _drawEnemyHpBar(e, bx, by, bw, bh, R, _eName);
 
   // ── STUN INDICATOR ── spinning golden stars above the enemy
   if(e.stunTimer>0){
@@ -11195,73 +12861,103 @@ function _drawEnemyHpBar(e,bx,by_,bw,bh,R,name){
   const hpf  = Math.max(0, e.hp / e.maxHp);
   const gp   = Math.max(0, Math.min(1, e.ghostHp / e.maxHp));
   const fwFull = bw * hpf;
-  const fwGhost= bw * gp;
 
-  // ── Name ─────────────────────────────────
+  // ── Name — IBM Plex Sans SemiBold small-caps, soft shadow (no thick outline) ──
   ctx.save();
-  ctx.font = `bold 11px 'Cinzel',serif`;
+  ctx.font = `600 10px 'IBM Plex Sans',sans-serif`;
   ctx.textAlign = 'center';
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = 3.5;
-  ctx.strokeStyle = 'rgba(0,0,0,0.96)';
-  ctx.strokeText(name, bx+bw/2, by_-5);
-  ctx.fillStyle = 'rgba(250,220,160,0.95)';
-  ctx.fillText(name, bx+bw/2, by_-5);
+  // Soft atmospheric shadow halo replaces hard black outline
+  ctx.shadowColor = 'rgba(0,0,0,0.94)';
+  ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
+  ctx.fillStyle = 'rgba(220,200,170,0.88)';
+  // Small-caps treatment via letter spacing + uppercase
+  if('letterSpacing' in ctx) ctx.letterSpacing = '1.4px';
+  ctx.fillText((name||'').toUpperCase(), bx+bw/2, by_-5);
+  if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   ctx.restore();
 
   ctx.save();
 
-  // ── Track background ─────────────────────
-  ctx.fillStyle = '#0a0206';
+  // ── Track — deep, atmospheric, with inset shadow halo ──
+  // outer drop shadow gives the bar a "projected" feel without a hard border
+  ctx.shadowColor = 'rgba(0,0,0,0.72)';
+  ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+  ctx.fillStyle = '#08020a';
   ctx.beginPath(); ctx.roundRect(bx, by_, bw, bh, R); ctx.fill();
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
-  // ── Ghost drain (yellowish taper) ────────
+  // ── Ghost drain — warm ember taper, soft fade ──
   if(gp > hpf){
     const gw = bw*(gp-hpf);
-    ctx.fillStyle = 'rgba(255,200,120,0.22)';
+    const ggrad = ctx.createLinearGradient(bx+fwFull, 0, bx+fwFull+gw, 0);
+    ggrad.addColorStop(0,   'rgba(235,160,80,0.78)');
+    ggrad.addColorStop(0.5, 'rgba(210,120,60,0.52)');
+    ggrad.addColorStop(1,   'rgba(180,90,45,0.14)');
+    ctx.fillStyle = ggrad;
     ctx.beginPath(); ctx.roundRect(bx+fwFull, by_, gw, bh, R); ctx.fill();
-    // bright leading edge of drain
-    ctx.fillStyle = 'rgba(255,200,100,0.55)';
-    ctx.fillRect(bx+fwFull, by_+1, 1.5, bh-2);
   }
 
-  // ── HP fill — gradient dark→red→orange tip ─
+  // ── HP fill — rich crimson, layered material ──
   if(hpf > 0){
     ctx.save();
     ctx.beginPath(); ctx.roundRect(bx, by_, fwFull, bh, R); ctx.clip();
+    // Base gradient — deep ember crimson → warm tip
     const grad = ctx.createLinearGradient(bx, 0, bx+fwFull, 0);
-    grad.addColorStop(0,    '#3a0008');
-    grad.addColorStop(0.25, '#8c0016');
-    grad.addColorStop(0.55, '#cc0022');
-    grad.addColorStop(0.80, '#ee2832');
-    grad.addColorStop(1.0,  '#ff5040');
+    grad.addColorStop(0.00, '#1a020a');
+    grad.addColorStop(0.25, '#5a040e');
+    grad.addColorStop(0.55, '#94101a');
+    grad.addColorStop(0.82, '#b8281e');
+    grad.addColorStop(1.00, '#d65030');
     ctx.fillStyle = grad;
     ctx.fillRect(bx, by_, fwFull, bh);
-    // top shine
-    ctx.fillStyle = 'rgba(255,255,255,0.10)';
-    ctx.fillRect(bx, by_, fwFull, bh*0.38);
+    // Subtle bevel — top luminance highlight
+    const top = ctx.createLinearGradient(0, by_, 0, by_+bh*0.5);
+    top.addColorStop(0,'rgba(255,220,200,0.16)');
+    top.addColorStop(1,'rgba(255,220,200,0)');
+    ctx.fillStyle = top;
+    ctx.fillRect(bx, by_, fwFull, bh*0.5);
+    // Lower vignette — material depth
+    const bot = ctx.createLinearGradient(0, by_+bh*0.55, 0, by_+bh);
+    bot.addColorStop(0,'rgba(0,0,0,0)');
+    bot.addColorStop(1,'rgba(0,0,0,0.36)');
+    ctx.fillStyle = bot;
+    ctx.fillRect(bx, by_, fwFull, bh);
+    // Leading-edge ember luminance
+    const tipW = Math.min(3, fwFull);
+    const tip = ctx.createLinearGradient(bx+fwFull-tipW, 0, bx+fwFull, 0);
+    tip.addColorStop(0,'rgba(255,180,140,0)');
+    tip.addColorStop(1,'rgba(255,200,150,0.52)');
+    ctx.fillStyle = tip;
+    ctx.fillRect(bx+fwFull-tipW, by_, tipW, bh);
     ctx.restore();
   }
 
-  // ── Segment tick marks ───────────────────
+  // ── Segment dividers — soft luminance, restrained rhythm ──
   const segW = bw / 8;
-  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-  ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(255,220,200,0.10)';
   for(let i=1; i<8; i++){
     const tx = bx + segW*i;
-    ctx.beginPath(); ctx.moveTo(tx, by_+1); ctx.lineTo(tx, by_+bh-1); ctx.stroke();
+    // 1px wide divider that reads as material seam, not arcade outline
+    ctx.fillRect(tx, by_+1.5, 1, bh-3);
+  }
+  // Inner shadow seam alongside divider for crafted depth
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  for(let i=1; i<8; i++){
+    const tx = bx + segW*i;
+    ctx.fillRect(tx-1, by_+1.5, 1, bh-3);
   }
 
-  // ── Hit flash overlay ────────────────────
+  // ── Hit flash overlay — soft luminance, not red wash ──
   if(e.hitCD > 8){
-    ctx.fillStyle = `rgba(255,100,80,${Math.min(0.38, e.hitCD*0.012)})`;
+    ctx.fillStyle = `rgba(255,220,180,${Math.min(0.32, e.hitCD*0.010)})`;
     ctx.beginPath(); ctx.roundRect(bx, by_, fwFull, bh, R); ctx.fill();
   }
 
-  // ── Outer border ─────────────────────────
-  ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+  // ── Soft outer edge — replaces hard black border ──
+  ctx.strokeStyle = 'rgba(255,220,180,0.06)';
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(bx, by_, bw, bh, R); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(bx+0.5, by_+0.5, bw-1, bh-1, R); ctx.stroke();
 
   ctx.restore();
   _drawElemBarsCanvas(e, bx, by_, bw, bh);
@@ -12154,16 +13850,16 @@ function _loopUpdate(){
   updateGrapple();
   const maxCamX=Math.max(0, STAGE_RIGHT - canvas.width);
   const _targetCamX=Math.max(0, Math.min(maxCamX, player.x - canvas.width*0.36));
-  camX += (_targetCamX - camX) * 0.14; // smooth lerp — responsive but not jarring
+  camX += (_targetCamX - camX) * 0.11; // cinematic lerp — weighted inertia, less mechanical
   camX = Math.max(0, Math.min(maxCamX, camX));
 
   // ENEMIES
   enemies.forEach(e=>{
     if(e.dead) return;
     if(e.hitCD>0) e.hitCD--;if(e.atkCD>0) e.atkCD--;
-    // ghost HP drain — hold for ~1s then slowly bleed to current HP
+    // ghost HP drain — short hold then fast visible bleed
     if(e.ghostDrainDelay>0) e.ghostDrainDelay--;
-    else if(e.ghostHp>e.hp) e.ghostHp=Math.max(e.hp, e.ghostHp-e.maxHp*0.005);
+    else if(e.ghostHp>e.hp) e.ghostHp=Math.max(e.hp, e.ghostHp-e.maxHp*0.020);
     // frost slow
     const slowed=e.slowTimer>0;
     if(slowed){ e.slowTimer--; e.vx*=0.85; }
@@ -12193,7 +13889,7 @@ function _loopUpdate(){
       const _prev=e.hp;
       e.hp=Math.max(0,e.hp-_slamDmg);
       e.hitCD=18;
-      e.ghostHp=_prev; e.ghostDrainDelay=62;
+      e.ghostHp=_prev; e.ghostDrainDelay=18;
       spawnEnemyBarChips(e,_prev,e.hp);
       const _slamCX=e.x+EW/2, _slamCY=e.y+EH;
       enemies.forEach(other=>{
@@ -13053,7 +14749,7 @@ function _loopUpdate(){
         const dmg=Math.round(proj.damage*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
         const prevHp=e.hp;
         e.hp=Math.max(0,e.hp-dmg);
-        e.ghostHp=prevHp; e.ghostDrainDelay=62;
+        e.ghostHp=prevHp; e.ghostDrainDelay=18;
         e.hitCD=18;
         if(sp.juggleMissile){
           if(!e.boss){
@@ -13133,7 +14829,7 @@ function _loopUpdate(){
       if(e.x+eW(e)>t.x-_tw&&e.x<t.x+_tw&&e.y+eH(e)>t.y-_th&&e.y<t.y+10){
         t.hitMap.set(e,20);
         const prev=e.hp; e.hp=Math.max(0,e.hp-t.damage);
-        e.ghostHp=prev; e.ghostDrainDelay=62;
+        e.ghostHp=prev; e.ghostDrainDelay=18;
         spawnEnemyBarChips(e,prev,e.hp);
         floatText(e.x+eW(e)/2,e.y-18,`${ELEMENTAL_LABELS['wind']}${t.damage}`,ELEMENTAL_FLOAT_COLORS['wind'],false);
         addElemAccum(e,'wind',true);
@@ -13221,7 +14917,12 @@ function _loopUpdate(){
     if(p.type==='blood'||p.type==='spark'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.life-=p.decay;}
     else if(p.type==='barChip'){p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.vx*=.95;p.rot+=p.rotV;p.life-=p.decay;}
     else if(p.type==='gore'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.90;p.rot+=p.rotV;p.life-=p.decay;if(p.y>=floorY()){p.y=floorY();p.vy*=-0.15;p.vx*=0.5;}}
-    else if(p.type==='text'){p.y+=p.vy;p.vy*=0.88;p.life-=p.decay;p.scale=Math.max(1,p.scale-0.06);}
+    else if(p.type==='text'){if(p.dly>0){p.dly--;} else{p.x+=(p.vx||0);p.vx=(p.vx||0)*0.92;p.y+=p.vy;p.vy*=0.88;p.life-=p.decay;
+      // Exponential scale decay — fast impact pop, elegant settle (premium AAA feel)
+      // Combined with the linear floor of sDecay so it still resolves cleanly.
+      const _sOver=p.scale-1;
+      p.scale = _sOver > 0.04 ? 1 + _sOver*0.86 : Math.max(1, p.scale-(p.sDecay||0.06));
+    }}
     else if(p.type==='iaidoLine'){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;}
     if(p.life<=0){particles[i]=particles[particles.length-1];particles.pop();}
   }
@@ -13234,8 +14935,14 @@ function _loopUpdate(){
     if(_tenraiSlashes[i].life<=0)_tenraiSlashes.splice(i,1);
   }
 
-  // SHAKE
-  if(shakeMag>0.3){shakeX=(Math.random()-.5)*shakeMag*2;shakeY=(Math.random()-.5)*shakeMag*2;shakeMag*=0.7;}
+  // SHAKE — cinematic restraint: reduced amplitude, faster settle, layered decay
+  if(shakeMag>0.3){
+    // Halve the amplitude — premium combat impulse, not arcade rumble
+    const _sAmp = shakeMag * 0.5;
+    shakeX=(Math.random()-.5)*_sAmp;
+    shakeY=(Math.random()-.5)*_sAmp*0.7; // vertical shake softer than horizontal
+    shakeMag*=0.62; // faster decay → cleaner settle
+  }
   else{shakeX=0;shakeY=0;shakeMag=0;}
 
   // ── PDK BOULDER DROP TICK ───────────────────────────────────────────────────
@@ -13559,6 +15266,33 @@ function _loopDraw(){
   drawBG();
   _drawStageFX(); // stage-specific atmospheric overlay (clouds, wind, etc.)
 
+  // ── CONTACT SHADOWS — soft elliptical grounding under each sprite ──
+  // Drawn before sprites so they ground but don't overdraw the art.
+  // Uses wine-black (not pure black) for atmospheric depth.
+  if(typeof floorY === 'function'){
+    const _fy = floorY();
+    ctx.save();
+    ctx.fillStyle = 'rgba(14,8,22,0.42)';
+    enemies.forEach(e => {
+      if(e.dead) return;
+      const _csX = e.x + (typeof eW === 'function' ? eW(e)/2 : 14) - camX;
+      const _csY = _fy + 1;
+      // Width tied to sprite footprint, soft ellipse
+      const _csW = (typeof eW === 'function' ? eW(e) : 28) * 0.55;
+      ctx.beginPath();
+      ctx.ellipse(_csX, _csY, _csW, _csW*0.22, 0, 0, Math.PI*2);
+      ctx.fill();
+    });
+    // Player contact shadow
+    if(player && !player.dead){
+      const _pcsX = player.x + (typeof PW !== 'undefined' ? PW/2 : 16) - camX;
+      ctx.beginPath();
+      ctx.ellipse(_pcsX, _fy+1, 16, 4, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // blood decals (floor stains — drawn behind everything)
   bloodDecals.forEach(d=>{ctx.fillStyle=`rgba(80,0,8,${d.alpha})`;ctx.beginPath();ctx.ellipse(d.x-camX,d.y,d.rx,d.ry,0,0,Math.PI*2);ctx.fill();});
 
@@ -13586,29 +15320,85 @@ function _loopDraw(){
       ctx.save();ctx.translate(p.x-camX,p.y);ctx.rotate(p.rot*Math.PI/180);
       ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
     }else if(p.type==='text'){
+      if(p.dly>0){} else {
       const sc = p.scale||1;
-      const sz = p.big ? 26 : 20;
-      const alpha = Math.min(1, p.life * 3); // quick fade-in, slow fade-out
+      const big = p.big;
+      const kind = p.kind||'dmg';
+      const alpha = Math.min(1, p.life * 3.2);
+      const hasDigit = /\d/.test(p.text);
       ctx.save();
       ctx.translate(p.x - camX, p.y);
       ctx.scale(sc, sc);
       ctx.globalAlpha = alpha;
       ctx.textAlign = 'center';
-      ctx.font = `900 ${sz}px 'Cinzel',serif`;
-      // thick black outline
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = 'rgba(0,0,0,0.85)';
-      ctx.lineJoin = 'round';
-      ctx.strokeText(p.text, 0, 0);
-      // outer glow — blur kept small; shadowBlur cost scales quadratically
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = p.color;
-      ctx.fillText(p.text, 0, 0);
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-      ctx.textAlign = 'left';
-      ctx.restore();
+
+      if(kind==='xp'){
+        // XP — cool pale cyan, elegant, light emphasis
+        ctx.font = `600 13px 'IBM Plex Sans',sans-serif`;
+        // Two-pass: soft cool bloom + crisp foreground
+        ctx.shadowColor='rgba(110,180,200,0.40)'; ctx.shadowBlur=10;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowColor='rgba(0,0,0,0.86)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+      } else if(kind==='gold'){
+        // Gold — warm muted brass, luxurious restraint
+        ctx.font = `600 14px 'IBM Plex Sans',sans-serif`;
+        // Two-pass: warm bloom + crisp foreground
+        ctx.shadowColor='rgba(220,180,90,0.42)'; ctx.shadowBlur=10;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowColor='rgba(0,0,0,0.86)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+      } else if(!hasDigit){
+        // Cinematic label text (STAGGERED, DEFLECT, BOSS SLAIN, etc.) — Cinzel, stylised
+        const sz = big ? 22 : 16;
+        ctx.font = `700 ${sz}px 'Cinzel',serif`;
+        // Soft luminous halo replaces hard black outline
+        ctx.shadowColor=p.color; ctx.shadowBlur=14;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowColor='rgba(0,0,0,0.88)'; ctx.shadowBlur=5; ctx.shadowOffsetY=2;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+      } else {
+        // ── Numeric damage — premium AAA action-RPG treatment ──
+        // Tighter letterforms, warm burgundy depth (not pure black),
+        // ember crimson bloom on crits (not arcade red).
+        const sz = big ? 28 : 19;
+        ctx.font = `700 ${sz}px 'IBM Plex Sans',sans-serif`;
+        // Compact letterforms — premium, sharp
+        if('letterSpacing' in ctx) ctx.letterSpacing = '-0.4px';
+        if(big){
+          // Crit / finisher — ember crimson bloom integrated into scene lighting
+          ctx.shadowColor='rgba(196,72,48,0.68)'; ctx.shadowBlur=18;
+          ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+          // Second pass for richer ember halo
+          ctx.shadowColor='rgba(228,108,72,0.42)'; ctx.shadowBlur=10;
+          ctx.fillText(p.text,0,0);
+          // Thin luminous heated-copper rim
+          ctx.shadowBlur=0;
+          ctx.lineWidth=1.2; ctx.strokeStyle='rgba(255,196,148,0.28)';
+          ctx.lineJoin='round'; ctx.strokeText(p.text,0,0);
+        } else {
+          // Normal hit — soft warm bloom fringe (not pure ivory glow)
+          ctx.shadowColor='rgba(220,176,128,0.30)'; ctx.shadowBlur=7;
+          ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        }
+        // ── Warm dark burgundy depth shadow (not harsh black) ──
+        // This is the material-integration pass — text reads as physically
+        // lit within the scene rather than UI-pasted-on-top.
+        ctx.shadowColor='rgba(28,8,12,0.94)';
+        ctx.shadowBlur=big?5:3; ctx.shadowOffsetY=big?2:1;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+      }
+
+      ctx.globalAlpha=1; ctx.textAlign='left'; ctx.restore();
+      }
     }else if(p.type==='iaidoLine'){
       ctx.save();ctx.globalAlpha=p.life*0.8;ctx.fillStyle='rgba(255,255,200,0.9)';
       ctx.shadowColor='rgba(255,240,120,0.8)';ctx.shadowBlur=10;
@@ -14051,6 +15841,9 @@ function _loopDraw(){
 
   ctx.restore();
 
+  // ── CINEMATIC POST PASS — bloom (HUD is HTML so it stays crisp) ─────────
+  _applyCinematicPost();
+
   // ── RESTORE SIMULATION POSITIONS after interpolated draw ──────────────────
   if(_iSaved){
     player.x=_iSaved.px; player.y=_iSaved.py; camX=_iSaved.cx;
@@ -14072,7 +15865,10 @@ function onPlayerDead(){
   document.getElementById('deadStats').innerHTML=
     `Kills: ${runKills} &nbsp;|&nbsp; Gold earned: ${runGold}<br>EXP earned: ${runExp}<br>Level: ${save.level} &nbsp;|&nbsp; Unspent pts: ${save.unspentPts}`;
   const retryLbl=document.getElementById('deadRetryBtn');
-  if(retryLbl) retryLbl.textContent=currentRunIsBossRush?'↺ RETRY BOSS':'↺ RETRY STAGE';
+  if(retryLbl){
+    const _rInner=retryLbl.querySelector('.mnb-inner');
+    if(_rInner) _rInner.innerHTML='<span class="mnb-icon">↺</span> '+(currentRunIsBossRush?'RETRY BOSS':'RETRY STAGE');
+  }
   dead.classList.add('show');
   writeSave();
 }
@@ -14466,7 +16262,7 @@ function _navigatePrepScreen(up, down, left, right, fromKeyboard = false) {
   const activePanel = document.getElementById('prepPanel'+activeIdx);
   const panelItems  = activePanel
     ? Array.from(activePanel.querySelectorAll(
-        'button:not([disabled]):not(.wcard-unlock-btn), .weapon-card'
+        'button:not([disabled]):not(.wcard-unlock-btn), .equip-row'
       ))
     : [];
   const actions = ['prepConfirmBtn','prepBackBtn'].map(id => document.getElementById(id)).filter(Boolean);
@@ -14484,7 +16280,8 @@ function _navigatePrepScreen(up, down, left, right, fromKeyboard = false) {
     menuFocusedButton = el;
     el.classList.add('gamepad-focused');
     el.closest?.('.stat-row')?.classList.add('gamepad-focused');
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    _syncEquipDetail(el);
   };
 
   // No focus yet — seed on first item
@@ -14539,6 +16336,7 @@ function focusStatButton(btn) {
   btn.classList.add('gamepad-focused');
   btn.closest('.stat-row')?.classList.add('gamepad-focused');
   btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  _syncEquipDetail(btn);
 }
 
 function navigateMenu(direction) {
