@@ -978,6 +978,43 @@ body.mc-active #streakHud{top:54px;}
 #status{display:none;position:fixed;top:10px;right:10px;font-size:0.7rem;color:#ffd060;white-space:nowrap;font-family:monospace;z-index:100;background:rgba(0,0,0,0.7);padding:6px 10px;border:1px solid rgba(255,208,96,0.3);border-radius:3px;transition:opacity 0.6s ease;}
 #gpHints{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;padding:5px 20px 6px;background:rgba(0,0,0,0.72);backdrop-filter:blur(3px);border-top:1px solid rgba(255,255,255,0.07);justify-content:center;align-items:center;gap:4px 22px;flex-wrap:wrap;}
 .gp-hint{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.07em;color:rgba(255,255,255,0.55);}
+/* ══ TUTORIAL SCREEN ══ */
+#tutorialScreen{overflow-y:auto;padding:32px 24px 40px;align-items:flex-start;}
+.tut-wrap{width:100%;max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:0;}
+.tut-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,4vw,2rem);color:#ecdcb0;letter-spacing:0.2em;text-align:center;text-shadow:0 0 30px rgba(200,155,40,0.45);margin-bottom:6px;}
+.tut-sub{font-size:0.62rem;letter-spacing:0.28em;color:rgba(190,155,90,0.45);text-align:center;margin-bottom:24px;}
+.tut-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px;}
+.tut-card{background:linear-gradient(160deg,rgba(18,12,4,0.92),rgba(10,7,2,0.96));border:1px solid rgba(180,140,55,0.18);border-radius:8px;padding:16px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,215,100,0.04);}
+.tut-card-title{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.22em;color:#c8a050;text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(180,140,55,0.18);}
+.tut-row{display:flex;align-items:flex-start;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.tut-row:last-child{border-bottom:none;padding-bottom:0;}
+.tut-keys{display:flex;align-items:center;gap:4px;flex-shrink:0;width:112px;}
+.tut-key{display:inline-flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.46rem;font-weight:700;letter-spacing:0.04em;padding:2px 6px;min-width:22px;height:18px;background:linear-gradient(160deg,#3a3530,#22201c);border:1px solid rgba(255,255,255,0.18);border-radius:4px;color:rgba(230,210,170,0.92);box-shadow:0 2px 4px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.1);white-space:nowrap;}
+.tut-sep{font-size:0.44rem;color:rgba(180,150,80,0.35);flex-shrink:0;}
+.tut-btn-xbox{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:0.52rem;font-weight:900;font-family:'Arial Black',sans-serif;line-height:1;flex-shrink:0;color:#fff;box-shadow:0 2px 4px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.2);}
+.tut-btn-xbox.y{background:linear-gradient(160deg,#c89020,#7a5500);}
+.tut-btn-xbox.b{background:linear-gradient(160deg,#d84040,#941818);}
+.tut-btn-xbox.a{background:linear-gradient(160deg,#4cb855,#267534);}
+.tut-btn-xbox.x{background:linear-gradient(160deg,#3878cc,#1848a0);}
+.tut-pill{display:inline-flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.44rem;font-weight:700;letter-spacing:0.05em;padding:2px 6px;height:18px;background:linear-gradient(160deg,#3a3530,#22201c);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:rgba(215,200,178,0.92);box-shadow:0 2px 4px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.1);white-space:nowrap;}
+/* PS override — gray circle + colored symbol */
+body.ps-ctrl .tut-btn-xbox{background:linear-gradient(160deg,#484848,#242424);}
+body.ps-ctrl .tut-btn-xbox.y{color:#1a9040;}
+body.ps-ctrl .tut-btn-xbox.b{color:#c83030;}
+body.ps-ctrl .tut-btn-xbox.a{color:#2868c8;}
+body.ps-ctrl .tut-btn-xbox.x{color:#b02888;}
+/* PS label swaps via data attribute */
+.tut-pill[data-ps]::after{content:'';}
+body.ps-ctrl .tut-pill[data-ps]{font-size:0;}
+body.ps-ctrl .tut-pill[data-ps]::after{content:attr(data-ps);font-size:0.44rem;}
+.tut-desc{font-size:0.6rem;color:rgba(190,175,145,0.78);line-height:1.45;flex:1;}
+.tut-desc em{color:rgba(220,185,95,0.88);font-style:normal;}
+.tut-wide{grid-column:1/-1;}
+.tut-tip-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;}
+.tut-tip{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;}
+.tut-tip-head{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.14em;color:rgba(210,170,80,0.85);margin-bottom:4px;}
+.tut-tip p{font-size:0.58rem;color:rgba(175,160,130,0.72);line-height:1.5;margin:0;}
+.tut-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(180,140,55,0.22),transparent);margin:14px 0;}
 .gp-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:0.58rem;font-weight:900;font-family:'Arial Black',sans-serif;line-height:1;flex-shrink:0;padding:0;overflow:hidden;vertical-align:middle;}
 /* Xbox face buttons — colored bg, white letter, depth */
 .gp-a{background:linear-gradient(160deg,#4cb855,#267534);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.24);}
@@ -1008,6 +1045,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
   <button class="menu-btn boss-rush" onclick="openBossRushScreen()">☠ BOSS RUSH</button>
   <div class="save-info" id="saveInfo">Loading save...</div>
   <div class="menu-secondary-row">
+    <button class="menu-btn ghost" onclick="showTutorial()">📖 HOW TO PLAY</button>
     <button class="menu-btn ghost" onclick="showSettings()">⚙ SETTINGS</button>
     <button class="menu-btn ghost danger" onclick="exitGame()">✕ EXIT</button>
   </div>
@@ -1065,6 +1103,145 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 </div>
 
 <!-- ══ SETTINGS ══ -->
+<div id="tutorialScreen" class="screen hidden">
+  <div class="tut-wrap">
+    <div class="tut-title">HOW TO PLAY</div>
+    <div class="tut-sub">IRONVEIL · COMBAT COMPENDIUM</div>
+
+    <div class="tut-grid">
+
+      <!-- MOVEMENT -->
+      <div class="tut-card">
+        <div class="tut-card-title">⚡ Movement</div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">A</span><span class="tut-sep">/</span><span class="tut-key">D</span><span class="tut-sep">·</span><span class="tut-pill">L.Stick</span></div>
+          <div class="tut-desc">Move left &amp; right</div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">SPACE</span><span class="tut-sep">·</span><span class="tut-btn-xbox a">A</span></div>
+          <div class="tut-desc">Jump — <em>press again mid-air for double jump</em></div>
+        </div>
+      </div>
+
+      <!-- COMBAT -->
+      <div class="tut-card">
+        <div class="tut-card-title">⚔ Combat</div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">LMB</span><span class="tut-sep">·</span><span class="tut-btn-xbox x">X</span></div>
+          <div class="tut-desc">Attack — <em>chain up to 3 hits in a combo</em></div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">Q</span><span class="tut-sep">·</span><span class="tut-btn-xbox y">Y</span></div>
+          <div class="tut-desc">Special — <em>weapon-specific power move</em></div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">F</span><span class="tut-sep">·</span><span class="tut-pill" data-ps="R2">RT</span></div>
+          <div class="tut-desc">Launch — <em>hold to charge; sends enemies airborne</em></div>
+        </div>
+      </div>
+
+      <!-- DEFENSE -->
+      <div class="tut-card">
+        <div class="tut-card-title">🛡 Defense</div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">RMB</span><span class="tut-sep">·</span><span class="tut-pill" data-ps="L1">LB</span></div>
+          <div class="tut-desc">Deflect — <em>tap to parry an attack at the exact moment of impact</em></div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">⇧</span><span class="tut-sep">·</span><span class="tut-btn-xbox b">B</span></div>
+          <div class="tut-desc">Evade — <em>quick dash with brief invincibility frames</em></div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">RMB</span><span class="tut-sep">·</span><span class="tut-pill" data-ps="L1">LB</span></div>
+          <div class="tut-desc"><em>Hold in air</em> — teleports you straight down to the floor</div>
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="tut-card">
+        <div class="tut-card-title">✨ Skills</div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">R</span><span class="tut-sep">·</span><span class="tut-pill" data-ps="L2">LT</span></div>
+          <div class="tut-desc">Magic — <em>cast your equipped spell</em></div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys"><span class="tut-key">E</span><span class="tut-sep">·</span><span class="tut-pill" data-ps="R1">RB</span></div>
+          <div class="tut-desc">Grapple — <em>zip to nearest enemy; suspends you in air when airborne</em></div>
+        </div>
+      </div>
+
+      <!-- ADVANCED TECHNIQUES -->
+      <div class="tut-card tut-wide">
+        <div class="tut-card-title">⬆ Advanced Techniques</div>
+        <div class="tut-tip-grid">
+          <div class="tut-tip">
+            <div class="tut-tip-head">Air Attack</div>
+            <p>Attack while airborne for a single aerial strike. Can only be used once per jump.</p>
+          </div>
+          <div class="tut-tip">
+            <div class="tut-tip-head">Air Slam</div>
+            <p>Hold <em>↓</em> and attack in the air to crash straight down, stunning nearby enemies on impact.</p>
+          </div>
+          <div class="tut-tip">
+            <div class="tut-tip-head">Juggle Follow</div>
+            <p>After launching an enemy into the air, jump to follow them up and extend the combo.</p>
+          </div>
+          <div class="tut-tip">
+            <div class="tut-tip-head">Deflect Streak</div>
+            <p>Successfully deflect multiple attacks in a row to build a streak that amplifies your damage.</p>
+          </div>
+          <div class="tut-tip">
+            <div class="tut-tip-head">Reflect Projectiles</div>
+            <p>Perfectly timing a deflect against a projectile sends it back at the enemy.</p>
+          </div>
+          <div class="tut-tip">
+            <div class="tut-tip-head">Air Teleport</div>
+            <p>Hold deflect while airborne for 10 frames to instantly snap to the floor — great for escaping pressure.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ELEMENTS -->
+      <div class="tut-card">
+        <div class="tut-card-title">🔥 Elemental System</div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">WEAPON</span></div>
+          <div class="tut-desc">Attacking builds your weapon's elemental gauge</div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">MAGIC</span></div>
+          <div class="tut-desc">Casting spells charges a second elemental gauge</div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">BURST</span></div>
+          <div class="tut-desc"><em>Fill the bar completely</em> to trigger an elemental burst — massive AoE with element-specific effects</div>
+        </div>
+      </div>
+
+      <!-- PREP & STATS -->
+      <div class="tut-card">
+        <div class="tut-card-title">📋 Preparation</div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">WEAPON</span></div>
+          <div class="tut-desc">Choose your melee weapon — each has unique combos and specials</div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">MAGIC</span></div>
+          <div class="tut-desc">Choose a spell — synergises with your INT stat and element build</div>
+        </div>
+        <div class="tut-row">
+          <div class="tut-keys" style="width:auto;margin-right:10px;"><span class="tut-key">STATS</span></div>
+          <div class="tut-desc"><em>STR</em> damage · <em>VIT</em> HP · <em>END</em> stamina · <em>AGI</em> speed · <em>INT</em> magic</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tut-divider"></div>
+    <button class="menu-btn ghost" style="align-self:center;margin-top:4px;" onclick="closeTutorial()">↩ BACK</button>
+  </div>
+</div>
+
 <div id="settingsScreen" class="screen hidden">
   <div class="settings-wrap">
     <div class="settings-title">SETTINGS</div>
@@ -1482,6 +1659,14 @@ function _syncDiffDisplay(){
 }
 function closeSettings(){
   document.getElementById('settingsScreen').classList.add('hidden');
+  showMenu();
+}
+function showTutorial(){
+  document.getElementById('menuScreen').classList.add('hidden');
+  document.getElementById('tutorialScreen').classList.remove('hidden');
+}
+function closeTutorial(){
+  document.getElementById('tutorialScreen').classList.add('hidden');
   showMenu();
 }
 
