@@ -8177,6 +8177,45 @@ function spawnDrak(isBossRush=false){
   updateBossBar({hp,maxHp:hp,ghostHp:hp});
   floatText(camX+canvas.width/2, floorY()-200, '🐉 Stuck Drake 🐉', '#44ff88', true);
   triggerShake(40); rumble(700,1.0,1.0);
+  playSfx('Resources/Audio/slam_land.wav', 1.0);
+  // Wall-break debris — Drak crashes in from the right
+  (function _drakWallBreak(){
+    const _brkColors=['#8B4040','#7A3A2E','#9C6444','#6B6059','#A07060','#554846','#BF8060','#4A3A36'];
+    const _dustColors=['rgba(160,130,100,0.9)','rgba(140,120,90,0.85)','rgba(180,150,110,0.8)','rgba(120,100,80,0.9)'];
+    const _wx = STAGE_RIGHT + 20;      // world-x: just off the right edge
+    const _fy = floorY();
+    // Large brick chunks
+    for(let i=0;i<22;i++){
+      const _col = _brkColors[i % _brkColors.length];
+      const _w   = 8 + Math.random()*18;
+      const _h   = 6 + Math.random()*14;
+      const _spd = 6 + Math.random()*11;
+      const _ang = Math.PI + (Math.random()-0.5)*0.9; // mostly leftward
+      particles.push({type:'debris',
+        x:_wx + Math.random()*30,
+        y:_fy - 20 - Math.random()*240,
+        vx:Math.cos(_ang)*_spd,
+        vy:Math.sin(_ang)*_spd - Math.random()*3,
+        life:1, decay:0.010 + Math.random()*0.008,
+        color:_col, w:_w, h:_h,
+        rot:(Math.random()-0.5)*360, rotV:(Math.random()-0.5)*18,
+      });
+    }
+    // Dust / mortar puffs
+    for(let i=0;i<18;i++){
+      const _col = _dustColors[i % _dustColors.length];
+      const _ang = Math.PI + (Math.random()-0.5)*1.1;
+      const _spd = 3 + Math.random()*7;
+      particles.push({type:'spark',
+        x:_wx + Math.random()*20,
+        y:_fy - 10 - Math.random()*200,
+        vx:Math.cos(_ang)*_spd,
+        vy:Math.sin(_ang)*_spd - 1,
+        life:1, decay:0.018 + Math.random()*0.012,
+        r:4 + Math.random()*7, color:_col,
+      });
+    }
+  })();
   enemies.push({
     id:eid++, x:_dx, y:_dy, vx:0, vy:0, onGround:false,
     hp, maxHp:hp, ghostHp:hp, ghostDrainDelay:0,
@@ -8991,6 +9030,12 @@ const _STAGE_EMISSIVE = {
     { wx:  515, wy:  115, r: 28, flav:'warm',  kind:'breathe', dur:6.6, phase:2.4 },
     { wx:  423, wy:  100, r: 26, flav:'gold',  kind:'breathe', dur:7.4, phase:3.7 },
     { wx:  971, wy:  104, r: 28, flav:'ember', kind:'flicker', dur:5.2, phase:5.0 },
+  ],
+  // ── Stage 3: City ──
+  3: [
+    { wx: 1046, wy: 293, r: 22, flav:'ember', kind:'flicker', dur:3.8, phase:0.4 },
+    { wx: 1241, wy: 309, r: 20, flav:'warm',  kind:'flicker', dur:4.2, phase:1.9 },
+    { wx: 1112, wy: 424, r: 24, flav:'ember', kind:'flicker', dur:3.6, phase:3.1 },
   ],
   // ── Stage 4: Royal Sewers ──
   4: [
@@ -14923,6 +14968,7 @@ function _loopUpdate(){
       const _sOver=p.scale-1;
       p.scale = _sOver > 0.04 ? 1 + _sOver*0.86 : Math.max(1, p.scale-(p.sDecay||0.06));
     }}
+    else if(p.type==='debris'){p.x+=p.vx;p.y+=p.vy;p.vy+=.30;p.vx*=.93;p.rot+=p.rotV;p.life-=p.decay;if(p.y>=floorY()){p.y=floorY();p.vy*=-0.08;p.vx*=0.5;p.rotV*=0.25;}}
     else if(p.type==='iaidoLine'){p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;}
     if(p.life<=0){particles[i]=particles[particles.length-1];particles.pop();}
   }
@@ -15319,6 +15365,11 @@ function _loopDraw(){
     }else if(p.type==='gore'){
       ctx.save();ctx.translate(p.x-camX,p.y);ctx.rotate(p.rot*Math.PI/180);
       ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+    }else if(p.type==='debris'){
+      ctx.save();ctx.translate(p.x-camX,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(-p.w/2+1,-p.h/2+1,p.w-1,p.h-1);
+      ctx.restore();
     }else if(p.type==='text'){
       if(p.dly>0){} else {
       const sc = p.scale||1;
