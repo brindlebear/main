@@ -6,6 +6,8 @@
 <title>IRONVEIL</title>
 <link rel="icon" type="image/svg+xml" href="Resources/GFX/Sprite/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,600,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:21.6px;}
@@ -367,7 +369,7 @@ canvas{display:block;}
 .stat-row{display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,0.022);border:1px solid rgba(255,255,255,0.06);border-radius:4px;transition:border-color 0.15s,background 0.15s;}
 .stat-row:hover{background:rgba(200,150,40,0.05);border-color:rgba(200,150,40,0.18);}
 .stat-row.gamepad-focused{background:rgba(255,208,96,0.1);border:1px solid rgba(255,208,96,0.46);box-shadow:0 0 14px rgba(255,208,96,0.12);}
-.stat-icon{font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;}
+.stat-icon{font-size:1.4rem;width:32px;text-align:center;flex-shrink:0;}.stat-icon:empty{width:0;}
 .stat-info{flex:1;}
 .stat-name{font-size:1rem;letter-spacing:0.14em;color:#d4ac48;}
 .stat-desc{font-size:0.76rem;letter-spacing:0.07em;color:rgba(200,180,120,0.68);margin-top:2px;}
@@ -425,7 +427,7 @@ canvas{display:block;}
   .prep-stats-col .stat-rows-wrap{padding:0;}
   .prep-stats-col #allocPts{margin:0 0 6px!important;}
   .stat-row{padding:7px 10px;gap:8px;}
-  .stat-icon{font-size:1.1rem;width:24px;}
+  .stat-icon{font-size:1.1rem;width:24px;}.stat-icon:empty{width:0;}
   .stat-name{font-size:0.72rem!important;}
   .stat-desc{font-size:0.54rem!important;}
   .stat-btn{width:34px;height:34px;font-size:1.1rem;}
@@ -740,7 +742,10 @@ body:not(.mc-active) .combo-hud{top:148px;}
   font-family:'Cinzel',serif;font-size:0.52rem;font-weight:700;
   letter-spacing:0.32em;text-transform:uppercase;
   color:rgba(255,220,80,0.9);
-  text-shadow:0 0 8px rgba(255,185,20,0.6);
+  text-shadow:
+    -1px -1px 0 rgba(0,0,0,0.92), 1px -1px 0 rgba(0,0,0,0.92),
+    -1px  1px 0 rgba(0,0,0,0.92), 1px  1px 0 rgba(0,0,0,0.92),
+    0 0 8px rgba(255,185,20,0.6);
   display:block;line-height:1;
 }
 @keyframes comboIn{
@@ -800,18 +805,33 @@ body:not(.mc-active) .combo-hud{top:148px;}
   pointer-events:none;z-index:10;
 }
 #cdBar.visible{display:flex;}
-/* hide cdBar and gpHints when mobile controls active */
-body.mc-active #cdBar{display:none!important;}
+/* hide gpHints on mobile — cooldown bar still shown, repositioned */
 body.mc-active #gpHints{display:none!important;}
-.cdi{display:flex;align-items:center;gap:10px;opacity:0.42;transition:opacity 0.18s;}
+/* Mobile cdBar — same column layout, right side, below combo meter */
+body.mc-active #cdBar{
+  top:172px;bottom:auto;right:24px;
+}
+body.mc-active #cdBar .cdi-key,
+body.mc-active #cdBar .cdi-btn{display:none!important;}
+/* Shift down when boss bar is visible */
+body.mc-active.boss-fighting #cdBar{top:206px;}
+/* ── Input-mode visibility rules ── */
+/* gpHints bar only renders when a gamepad is connected */
+body:not(.gp-active) #gpHints{display:none!important;}
+/* Cooldown bar: keyboard key shown by default, controller btn hidden */
+#cdBar .cdi-btn{display:none;}
+/* When gamepad active: flip — show controller btn, hide keyboard key */
+body.gp-active #cdBar .cdi-btn{display:inline-flex;}
+body.gp-active #cdBar .cdi-key{display:none;}
+.cdi{display:flex;align-items:center;gap:10px;opacity:0.55;transition:opacity 0.18s;}
 .cdi.on{opacity:1;}
 .cdi.dep .cdi-key{color:#f04040;text-shadow:0 0 10px rgba(240,40,40,0.7);}
 .cdi.dep .cdi-lbl{color:rgba(230,80,65,0.95);}
 /* keyboard key */
 .cdi-key{
-  font-family:'Cinzel',serif;font-size:0.78rem;font-weight:700;
+  font-family:'Cinzel',serif;font-size:0.88rem;font-weight:700;
   letter-spacing:0.04em;color:#f0c040;
-  min-width:44px;text-align:center;flex-shrink:0;
+  min-width:46px;text-align:center;flex-shrink:0;
   text-shadow:0 1px 6px rgba(0,0,0,0.95),0 0 12px rgba(220,160,30,0.55);
 }
 /* controller button */
@@ -821,7 +841,7 @@ body.mc-active #gpHints{display:none!important;}
   letter-spacing:0.02em;flex-shrink:0;line-height:1;
 }
 .cdi-btn.face{
-  width:20px;height:20px;border-radius:50%;color:#fff;
+  width:23px;height:23px;border-radius:50%;color:#fff;
   box-shadow:0 2px 5px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.22);
 }
 .cdi-btn.shoulder{
@@ -844,15 +864,15 @@ body.ps-ctrl .cdi-btn.a-btn{background:linear-gradient(160deg,#484848,#242424);c
 body.ps-ctrl .cdi-btn.x-btn{background:linear-gradient(160deg,#484848,#242424);color:#b02888;box-shadow:0 2px 5px rgba(0,0,0,0.6),0 0 8px rgba(176,40,136,0.32),inset 0 1px 0 rgba(255,255,255,0.1);}
 /* ability label */
 .cdi-lbl{
-  font-family:'Cinzel',serif;font-size:0.82rem;font-weight:700;
+  font-family:'Cinzel',serif;font-size:0.92rem;font-weight:700;
   letter-spacing:0.10em;text-transform:uppercase;
-  color:rgba(235,205,125,0.95);min-width:76px;flex-shrink:0;
+  color:rgba(235,205,125,0.95);min-width:82px;flex-shrink:0;
   white-space:nowrap;
   text-shadow:0 1px 6px rgba(0,0,0,0.95);
 }
 /* cooldown track */
 .cdi-track{
-  width:88px;height:5px;
+  width:104px;height:6px;
   background:rgba(255,255,255,0.1);
   border-radius:3px;overflow:hidden;flex-shrink:0;
 }
@@ -891,11 +911,12 @@ body.ps-ctrl .cdi-btn.x-btn{background:linear-gradient(160deg,#484848,#242424);c
   background:linear-gradient(90deg,transparent,rgba(185,148,72,0.5),transparent);
 }
 .boss-track{position:relative;height:7px;background:rgba(12,3,2,0.95);
-  border:1px solid rgba(120,30,18,0.5);border-radius:2px;overflow:hidden;
+  border:1px solid rgba(120,30,18,0.5);border-radius:999px;overflow:hidden;
   box-shadow:inset 0 2px 4px rgba(0,0,0,0.9),0 0 8px rgba(160,10,0,0.18);}
 .boss-fill-bar{position:absolute;inset:0;width:100%;
   background:linear-gradient(90deg,#2a0005 0%,#7a0012 20%,#b80020 45%,#e02030 68%,#f84050 88%,#ff7060 100%);
-  border-radius:2px;transition:width 0.18s;}
+  /* NO border-radius — parent overflow:hidden clips to pill shape; straight edge on right during drain */
+  transition:width 0.18s;}
 /* subtle segment notches on fill */
 .boss-fill-bar::after{
   content:'';position:absolute;inset:0;
@@ -936,7 +957,7 @@ body.mc-active .boss-track{height:6px;}
   position:relative;flex:1;height:5px;
   background:rgba(18,10,2,0.95);
   border:1px solid rgba(180,120,10,0.30);
-  border-radius:2px;overflow:hidden;
+  border-radius:999px;overflow:hidden;
 }
 .boss-stun-fill{
   position:absolute;inset:0;width:0%;
@@ -1195,6 +1216,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 
 /* ── Shared selection screen header ── */
 .sel-title{font-family:'Cinzel',serif;font-size:clamp(1.5rem,3.8vw,2.2rem);color:#ecdcb0;letter-spacing:0.20em;text-shadow:0 0 40px rgba(210,170,70,0.38),0 0 80px rgba(160,120,40,0.14);align-self:center;text-align:center;}
+.sel-divider{width:200px;height:1px;background:linear-gradient(90deg,transparent,rgba(190,150,60,0.38),transparent);margin:4px 0;align-self:center;}
 .sel-sub{font-size:0.64rem;letter-spacing:0.32em;color:rgba(195,165,100,0.42);text-transform:uppercase;align-self:center;}
 
 /* ── Boss / Stage entry inner content ── */
@@ -1305,7 +1327,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
    Typography + spacing. No effects. Warmth.
 ══════════════════════════════════════════ */
 
-#prepScreen{
+#prepScreen,#settingsScreen,#stageSelectScreen,#bossRushScreen,#tutorialScreen{
   background:radial-gradient(ellipse at 50% 25%,rgba(22,18,28,1) 0%,rgba(8,6,10,1) 68%);
 }
 
@@ -1776,9 +1798,27 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
     rgba(100,178,105,1) 100%);
 }
 .bar-inner.hp::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:rgba(128,205,132,0.32);
-  animation:none;
+  content:'';
+  position:absolute;inset:0;
+  /* Narrow specular band — soft feathered edges, very low peak opacity */
+  background:linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(168,228,172,0.07) 46%,
+    rgba(200,240,202,0.10) 50%,
+    rgba(168,228,172,0.07) 54%,
+    transparent 62%,
+    transparent 100%
+  );
+  animation:hpSheen 9s cubic-bezier(0.45,0,0.55,1) infinite;
+  pointer-events:none;
+}
+@keyframes hpSheen{
+  0%   { transform:translateX(-100%); }
+  45%  { transform:translateX(-100%); } /* long pause before sweep */
+  65%  { transform:translateX(220%);  } /* slow controlled pass     */
+  100% { transform:translateX(220%);  } /* hold off-screen          */
 }
 
 /* Stamina — aged varnish amber */
@@ -1836,9 +1876,11 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
   text-shadow:0 0 14px rgba(230,185,40,0.75),0 1px 4px rgba(0,0,0,0.95);
   font-weight:700;
   text-transform:uppercase;
+  -webkit-text-stroke:2px rgba(0,0,0,0.92);
+  paint-order:stroke fill;
 }
 .hud-divider{display:none;}
-.hud-score-sm{font-family:'IBM Plex Sans',sans-serif;color:rgba(218,185,98,0.92);font-size:0.88rem;letter-spacing:0.05em;font-weight:600;text-shadow:0 0 10px rgba(210,165,40,0.55),0 1px 4px rgba(0,0,0,0.95);font-feature-settings:"tnum" 1;}
+.hud-score-sm{font-family:'IBM Plex Sans',sans-serif;color:rgba(218,185,98,0.92);font-size:0.88rem;letter-spacing:0.05em;font-weight:600;text-shadow:0 0 10px rgba(210,165,40,0.55),0 1px 4px rgba(0,0,0,0.95);font-feature-settings:"tnum" 1;-webkit-text-stroke:1.5px rgba(0,0,0,0.90);paint-order:stroke fill;}
 .hud-level{
   font-family:'IBM Plex Sans',sans-serif;
   font-size:0.68rem;
@@ -1868,7 +1910,10 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .exp-fill-inner{
   background:linear-gradient(90deg,rgba(45,24,4,1) 0%,rgba(95,58,10,1) 38%,rgba(158,108,28,1) 78%,rgba(195,152,58,1) 100%);
 }
-.exp-fill-inner::after{background:none;animation:none;}
+.exp-fill-inner::after{
+  background:none;
+  animation:none;
+}
 .exp-glow{display:none;}
 
 /* Kill bar — atmospheric strip */
@@ -1899,7 +1944,10 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .combo-mult{
   font-family:'IBM Plex Sans',sans-serif;font-weight:600;
   color:rgba(205,178,95,0.88);
-  text-shadow:none;letter-spacing:0.06em;
+  text-shadow:
+    -1px -1px 0 rgba(0,0,0,0.92), 1px -1px 0 rgba(0,0,0,0.92),
+    -1px  1px 0 rgba(0,0,0,0.92), 1px  1px 0 rgba(0,0,0,0.92);
+  letter-spacing:0.06em;
   font-feature-settings:"tnum" 1;
 }
 
@@ -1925,25 +1973,25 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 }
 
 /* ── Cooldown bar — strong ready/inactive contrast like FFXVI ── */
-.cdi{opacity:0.22;transition:opacity 0.22s ease;}
+.cdi{opacity:0.55;transition:opacity 0.22s ease;}
 .cdi.on{opacity:1;}
-.cdi.dep{opacity:0.52;}
+.cdi.dep{opacity:0.72;}
 .cdi-key{
-  font-family:'IBM Plex Sans',sans-serif;font-size:0.64rem;font-weight:600;
-  color:rgba(192,172,122,0.92);text-shadow:none;letter-spacing:0.06em;
+  font-family:'IBM Plex Sans',sans-serif;font-size:0.76rem;font-weight:600;
+  color:rgba(205,185,135,0.96);text-shadow:0 1px 5px rgba(0,0,0,0.9);letter-spacing:0.06em;
   min-width:38px;
 }
 .cdi-lbl{
-  font-family:'IBM Plex Sans',sans-serif;font-size:0.66rem;font-weight:400;
-  color:rgba(200,182,140,0.88);text-shadow:none;letter-spacing:0.04em;
+  font-family:'IBM Plex Sans',sans-serif;font-size:0.78rem;font-weight:500;
+  color:rgba(215,195,150,0.92);text-shadow:0 1px 5px rgba(0,0,0,0.9);letter-spacing:0.04em;
   min-width:66px;
 }
 .cdi-track{
   background:rgba(0,0,0,0.70);
   border:none;
-  box-shadow:0 1px 6px rgba(0,0,0,0.42),inset 0 1px 2px rgba(0,0,0,0.82);
-  border-radius:1px;
-  height:3px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.42),inset 0 1px 2px rgba(0,0,0,0.82),inset 0 0 0 1px rgba(0,0,0,0.55);
+  border-radius:2px;
+  height:5px;
 }
 .cdi-fill{
   background:linear-gradient(90deg,rgba(78,52,8,1),rgba(172,132,40,1));
@@ -1984,6 +2032,11 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
   border-radius:2px;
   box-shadow:0 2px 14px rgba(0,0,0,0.55),0 0 28px rgba(0,0,0,0.35),inset 0 2px 5px rgba(0,0,0,0.95);
 }
+.boss-track::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,0.82);
+  pointer-events:none;z-index:5;
+}
 .boss-fill-bar{
   background:linear-gradient(90deg,rgba(28,3,3,1) 0%,rgba(78,8,8,1) 20%,rgba(132,20,20,1) 48%,rgba(178,38,28,1) 75%,rgba(208,65,48,1) 95%,rgba(228,95,75,1) 100%);
   transition:width 0.22s ease-out;
@@ -1992,7 +2045,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
   background:repeating-linear-gradient(90deg,transparent,transparent 22px,rgba(0,0,0,0.1) 22px,rgba(0,0,0,0.1) 23px);
 }
 .boss-bar-shine{display:none;}
-.boss-ghost{background:rgba(205,155,138,0.12);}
+.boss-ghost{background:linear-gradient(to right,rgba(218,212,208,0.58) 0%,rgba(185,180,178,0.30) 55%,rgba(148,145,142,0.05) 100%);}
 .boss-hp-num.show-num{color:rgba(188,168,122,0.48);text-shadow:none;letter-spacing:0.1em;}
 
 /* Boss stagger bar */
@@ -2004,7 +2057,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
   background:rgba(4,2,6,1);
   border:1px solid rgba(0,0,0,0.7);
   border-bottom-color:rgba(255,255,255,0.018);
-  border-radius:1px;
+  border-radius:999px;
   box-shadow:inset 0 1px 3px rgba(0,0,0,0.85);
 }
 .boss-stun-fill{
@@ -2057,12 +2110,18 @@ body:not(.mc-active) .boss-track{
   height:18px;
   background:rgba(6,2,4,1);
   border:none;
-  border-radius:2px;
+  border-radius:999px;
   box-shadow:
     0 2px 16px rgba(0,0,0,0.62),
     0 0 32px rgba(0,0,0,0.40),
     inset 0 2px 5px rgba(0,0,0,0.95),
     inset 0 -1px 0 rgba(255,180,140,0.05);
+}
+/* Crisp border overlay rendered above fill bars — same dark rim as canvas enemy bars */
+body:not(.mc-active) .boss-track::after{
+  content:'';position:absolute;inset:0;border-radius:999px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,0.82),inset 0 1px 0 rgba(255,200,170,0.10);
+  pointer-events:none;z-index:5;
 }
 .boss-fill-bar{
   background:linear-gradient(90deg,
@@ -2073,10 +2132,19 @@ body:not(.mc-active) .boss-track{
     rgba(228,82,58,1) 88%,
     rgba(248,118,82,1) 100%);
 }
-/* Bevel highlight on HP fill */
+/* Sheen sweep on HP fill */
 .boss-fill-bar::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:42%;
-  background:linear-gradient(180deg,rgba(255,210,180,0.20),rgba(255,210,180,0));
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(
+    105deg,
+    transparent 0%,transparent 38%,
+    rgba(255,210,190,0.08) 46%,
+    rgba(255,232,215,0.13) 50%,
+    rgba(255,210,190,0.08) 54%,
+    transparent 62%,transparent 100%
+  );
+  animation:hpSheen 9s cubic-bezier(0.45,0,0.55,1) infinite;
+  animation-delay:1.2s;
   pointer-events:none;
 }
 /* Subtle segmentation — more visible at this size */
@@ -2114,11 +2182,16 @@ body:not(.mc-active) .boss-stun-track{
   height:13px;
   background:rgba(8,4,2,1);
   border:none;
-  border-radius:2px;
+  border-radius:999px;
   box-shadow:
     0 1px 10px rgba(0,0,0,0.55),
     inset 0 1px 4px rgba(0,0,0,0.92),
     inset 0 -1px 0 rgba(255,200,80,0.04);
+}
+body:not(.mc-active) .boss-stun-track::after{
+  content:'';position:absolute;inset:0;border-radius:999px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,0.82),inset 0 1px 0 rgba(255,230,120,0.08);
+  pointer-events:none;z-index:5;
 }
 .boss-stun-fill{
   background:linear-gradient(90deg,
@@ -2130,8 +2203,17 @@ body:not(.mc-active) .boss-stun-track{
   box-shadow:inset 0 1px 1px rgba(255,230,140,0.18);
 }
 .boss-stun-fill::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:42%;
-  background:linear-gradient(180deg,rgba(255,235,160,0.22),rgba(255,235,160,0));
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(
+    105deg,
+    transparent 0%,transparent 38%,
+    rgba(255,240,160,0.07) 46%,
+    rgba(255,252,200,0.11) 50%,
+    rgba(255,240,160,0.07) 54%,
+    transparent 62%,transparent 100%
+  );
+  animation:hpSheen 9s cubic-bezier(0.45,0,0.55,1) infinite;
+  animation-delay:4.5s;
   pointer-events:none;
 }
 
@@ -2563,6 +2645,7 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
 <!-- ══ BOSS SELECTION ══ -->
 <div id="bossRushScreen" class="screen hidden">
   <div class="sel-title">BOSS SELECTION</div>
+  <div class="sel-divider"></div>
   <div class="sel-sub">Choose your quarry</div>
   <nav class="menu-nav" style="gap:5px;">
     <div id="bossCards"></div>
@@ -2577,6 +2660,7 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
 <!-- ══ STAGE SELECT ══ -->
 <div id="stageSelectScreen" class="screen hidden">
   <div class="sel-title">STAGE SELECT</div>
+  <div class="sel-divider"></div>
   <div class="sel-sub">Choose your battleground</div>
   <nav class="menu-nav" style="gap:5px;">
     <div id="stageCards"></div>
@@ -2592,6 +2676,7 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
 <div id="tutorialScreen" class="screen hidden">
   <div class="tut-wrap">
     <div class="tut-title">HOW TO PLAY</div>
+    <div class="sel-divider"></div>
     <div class="tut-sub">IRONVEIL · COMBAT COMPENDIUM</div>
 
     <div class="tut-grid">
@@ -2780,10 +2865,10 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
 
     <!-- tab bar -->
     <div class="prep-tabs">
-      <button class="prep-tab active" id="prepTab0" onclick="switchPrepTab(0)">⚡ STATS</button>
-      <button class="prep-tab" id="prepTab1" onclick="switchPrepTab(1)">⚔ WEAPON</button>
-      <button class="prep-tab" id="prepTab2" onclick="switchPrepTab(2)">✨ MAGIC</button>
-      <button class="prep-tab" id="prepTab3" onclick="switchPrepTab(3)">◈ ACCESSORY</button>
+      <button class="prep-tab active" id="prepTab0" onclick="switchPrepTab(0)">STATS</button>
+      <button class="prep-tab" id="prepTab1" onclick="switchPrepTab(1)">WEAPON</button>
+      <button class="prep-tab" id="prepTab2" onclick="switchPrepTab(2)">MAGIC</button>
+      <button class="prep-tab" id="prepTab3" onclick="switchPrepTab(3)">ACCESSORY</button>
     </div>
 
     <!-- panel: stats -->
@@ -2798,35 +2883,35 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
           <div class="prep-sh-badge" id="allocPts" style="display:block;text-align:right;margin:0 12px 8px 0;padding:4px 12px;">—</div>
           <div class="stat-rows-wrap">
             <div class="stat-row" id="statRow_str">
-              <div class="stat-icon">⚔</div>
+              <div class="stat-icon"></div>
               <div class="stat-info"><div class="stat-name">STRENGTH</div><div class="stat-desc">Weapon damage</div></div>
               <button class="stat-btn" onclick="allocStat('str',-1)" id="strMinus">−</button>
               <div class="stat-val" id="strVal"><span class="sv-total">1</span></div>
               <button class="stat-btn" onclick="allocStat('str',1)" id="strPlus">+</button>
             </div>
             <div class="stat-row" id="statRow_vit">
-              <div class="stat-icon">🛡</div>
+              <div class="stat-icon"></div>
               <div class="stat-info"><div class="stat-name">VITALITY</div><div class="stat-desc">Max health</div></div>
               <button class="stat-btn" onclick="allocStat('vit',-1)" id="vitMinus">−</button>
               <div class="stat-val" id="vitVal"><span class="sv-total">1</span></div>
               <button class="stat-btn" onclick="allocStat('vit',1)" id="vitPlus">+</button>
             </div>
             <div class="stat-row" id="statRow_end">
-              <div class="stat-icon">💪</div>
+              <div class="stat-icon"></div>
               <div class="stat-info"><div class="stat-name">ENDURANCE</div><div class="stat-desc">Max stamina</div></div>
               <button class="stat-btn" onclick="allocStat('end',-1)" id="endMinus">−</button>
               <div class="stat-val" id="endVal"><span class="sv-total">1</span></div>
               <button class="stat-btn" onclick="allocStat('end',1)" id="endPlus">+</button>
             </div>
             <div class="stat-row" id="statRow_agi">
-              <div class="stat-icon">🌀</div>
+              <div class="stat-icon"></div>
               <div class="stat-info"><div class="stat-name">AGILITY</div><div class="stat-desc">Stamina recovery</div></div>
               <button class="stat-btn" onclick="allocStat('agi',-1)" id="agiMinus">−</button>
               <div class="stat-val" id="agiVal"><span class="sv-total">1</span></div>
               <button class="stat-btn" onclick="allocStat('agi',1)" id="agiPlus">+</button>
             </div>
             <div class="stat-row" id="statRow_int">
-              <div class="stat-icon">✨</div>
+              <div class="stat-icon"></div>
               <div class="stat-info"><div class="stat-name">INTELLECT</div><div class="stat-desc">Spell power &amp; mana</div></div>
               <button class="stat-btn" onclick="allocStat('int',-1)" id="intMinus">−</button>
               <div class="stat-val" id="intVal"><span class="sv-total">1</span></div>
@@ -2867,7 +2952,7 @@ body:has(#prepScreen:not(.hidden)) #cineFog{display:none;}
 
     <!-- actions always visible -->
     <div class="prep-actions">
-      <button class="menu-btn prep-confirm-btn" id="prepConfirmBtn" onclick="confirmPrep()"><span>⚔ ENTER THE VEIL</span></button>
+      <button class="menu-btn prep-confirm-btn" id="prepConfirmBtn" onclick="confirmPrep()"><span>ENTER THE VEIL</span></button>
       <button class="menu-btn prep-back-btn" id="prepBackBtn" onclick="prepBack()">↩ BACK</button>
     </div>
 
@@ -3788,7 +3873,8 @@ let _portraitAnimIdx   = 0;
 // ────────────────────────────────────────────────────────────────────────────
 
 const GAME_SPEED = 1.0; // overall game speed multiplier — 1.0 = normal, 1.2 = 20% faster, 0.8 = 20% slower
-const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-14; // +20% fall gravity (0.334 × 1.20)
+const GRAV=0.401, FLOOR_PAD=88, JUMP_V=-14;
+const GND_SHADOW_OY = 30; // px to lift all contact shadows above floor line (keeps them under sprite feet) // +20% fall gravity (0.334 × 1.20)
 const ENEMY_GRAV_MULT=1.5; // enemies fall 50% faster than hero when airborne
 const AIR_ATK_GRAV_MULT   = 0.45; // reduced hangtime during air attacks
 const AIR_ATK_FREEZE_FRAMES = 8;   // minimal freeze — keeps air combat snappy
@@ -6151,7 +6237,10 @@ function startRun(){
   document.getElementById('menuScreen').classList.add('hidden');
   document.getElementById('prepScreen').classList.add('hidden');
   document.getElementById('bossRushScreen').classList.add('hidden');
+  document.getElementById('stageSelectScreen')?.classList.add('hidden');
   document.getElementById('hud').classList.remove('hidden');
+  // Hide gamepad hint bar — gameplay has no menu context
+  if(typeof updateGpHints==='function') updateGpHints();
   document.getElementById('cdBar').classList.add('visible');
   document.getElementById('dead').classList.remove('show');
   document.getElementById('bossBar').classList.remove('show');
@@ -6202,7 +6291,7 @@ function startRun(){
     staggeredEnemies=[];
     spawnedCount=0;
     bossSpawned=false;
-    document.getElementById('waveLabel').textContent='⚡ BOSS RUSH';
+    document.getElementById('waveLabel').textContent='BOSS SELECTION';
     setTimeout(()=>spawnBoss(true), 800);
   } else {
     // Build enemy queue: 20 enemies, every 5 is a new tier
@@ -6504,24 +6593,38 @@ function sparkBurst(x,y,n=10,gold=false){
   }
 }
 function floatText(x,y,txt,col='#fff',big=false,kind='dmg'){
-  let vy,vx,decay,scale,sDecay,dly;
-  if(kind==='xp'){
-    // XP — cool elegance, smooth motion, light emphasis (appears after damage)
-    vy=-(1.20+Math.random()*0.22); vx=(Math.random()-0.5)*0.55;
-    decay=0.0145; scale=1.18; sDecay=0.024; dly=5;
+  let vy,vx,decay,scale,sDecay,dly,vyDamp,vxDamp,holdFrames;
+  if(kind==='boss'){
+    // Boss reveal — slow, majestic, cinematic title-card rise
+    vy=-0.60; vx=0;
+    decay=0.0062; scale=2.2; sDecay=0.014; dly=0;
+    vyDamp=0.97; vxDamp=1.0; holdFrames=0;
+  } else if(kind==='xp'){
+    // XP — magical, energetic, floats with elegant ease
+    vy=-(1.10+Math.random()*0.18); vx=(Math.random()-0.5)*0.45;
+    decay=0.013; scale=1.22; sDecay=0.022; dly=6;
+    vyDamp=0.90; vxDamp=0.93; holdFrames=0;
   } else if(kind==='gold'){
-    // Gold — warm luxury, restrained but satisfying (appears after XP)
-    vy=-(1.45+Math.random()*0.28); vx=(Math.random()-0.5)*0.48;
-    decay=0.016; scale=1.24; sDecay=0.028; dly=12;
+    // Gold — weighted, luxurious, satisfying drop-then-rise
+    vy=-(1.35+Math.random()*0.25); vx=(Math.random()-0.5)*0.35;
+    decay=0.014; scale=1.30; sDecay=0.026; dly=14;
+    vyDamp=0.88; vxDamp=0.91; holdFrames=0;
   } else {
-    // 'dmg' — sharp, directional, immediate impact with squash/stretch
-    vy=-(2.1+Math.random()*0.55); vx=(Math.random()-0.5)*1.4;
-    decay=0.025; scale=big?2.20:1.82; sDecay=0.072; dly=0;
+    // 'dmg' — violent and immediate; crits hold briefly then launch
+    if(big){
+      vy=-(3.0+Math.random()*0.5); vx=(Math.random()-0.5)*0.5;
+      decay=0.020; scale=3.0; sDecay=0.095; holdFrames=4;
+    } else {
+      vy=-(2.4+Math.random()*0.6); vx=(Math.random()-0.5)*0.8;
+      decay=0.026; scale=2.1; sDecay=0.082; holdFrames=0;
+    }
+    dly=0; vyDamp=big?0.80:0.82; vxDamp=big?0.88:0.90;
   }
   particles.push({
     type:'text', x, y:y-10,
     vy, vx, text:txt, color:col,
-    life:1, decay, scale, sDecay, big, kind, dly,
+    life:1, decay, scale, sDecay, big, kind,
+    dly: dly||0, vyDamp, vxDamp, holdFrames: holdFrames||0,
   });
 }
 function spawnEnemyBarChips(e,prevHp,newHp){
@@ -7966,7 +8069,11 @@ function updateBossBar(e){
   const pct=Math.max(0,e.hp/e.maxHp)*100;
   const gpct=Math.max(0,e.ghostHp/e.maxHp)*100;
   document.getElementById('bossFill').style.width=pct+'%';
-  document.getElementById('bossGhostFill').style.width=gpct+'%';
+  // Position ghost to cover only the drain tail so the gradient anchors at the HP fill edge
+  const _ghostEl=document.getElementById('bossGhostFill');
+  const _tailPct=Math.max(0,gpct-pct);
+  _ghostEl.style.left=pct+'%';
+  _ghostEl.style.width=_tailPct+'%';
   const numEl=document.getElementById('bossHpNum');
   if(numEl){
     numEl.textContent=Math.max(0,Math.round(e.hp)).toLocaleString()+' / '+e.maxHp.toLocaleString();
@@ -8065,7 +8172,7 @@ function spawnGronk(isBossRush=false){
   document.getElementById('waveLabel').textContent='⚔ BOSS';
   updateKillBar(0,0);
   updateBossBar({hp,maxHp:hp,ghostHp:hp});
-  floatText(camX+canvas.width/2,floorY()-180,'⚡ GRONK ⚡','#ff4400',true);
+  floatText(camX+canvas.width/2,floorY()-180,'GRONK','#ff4400',true,'boss');
   triggerShake(35);rumble(600,1.0,1.0);
   enemies.push({
     id:eid++,x:cx,y:0,vx:0,vy:0,onGround:false,
@@ -8103,7 +8210,7 @@ function spawnShamaz(isBossRush=false){
   document.getElementById('waveLabel').textContent='⚔ BOSS';
   updateKillBar(0,0);
   updateBossBar({hp,maxHp:hp,ghostHp:hp});
-  floatText(camX+canvas.width/2,floorY()-180,'⚓ CAPTAIN SHAMAZ ⚓','#ffd060',true);
+  floatText(camX+canvas.width/2,floorY()-180,'CAPTAIN SHAMAZ','#ffd060',true,'boss');
   triggerShake(35);rumble(600,1.0,1.0);
   enemies.push({
     id:eid++,x:cx,y:0,vx:0,vy:0,onGround:false,
@@ -8139,7 +8246,7 @@ function spawnGartu(isBossRush=false){
   document.getElementById('waveLabel').textContent='⚔ BOSS';
   updateKillBar(0,0);
   updateBossBar({hp,maxHp:hp,ghostHp:hp});
-  floatText(camX+canvas.width/2,floorY()-200,'✦ CORRUPTED VASSAL GARTU ✦','#cc44ff',true);
+  floatText(camX+canvas.width/2,floorY()-200,'CORRUPTED VASSAL GARTU','#cc44ff',true,'boss');
   triggerShake(35);rumble(600,1.0,1.0);
   enemies.push({
     id:eid++,x:cx,y:0,vx:0,vy:0,onGround:false,
@@ -8175,7 +8282,7 @@ function spawnDrak(isBossRush=false){
   document.getElementById('waveLabel').textContent = '⚔ BOSS';
   updateKillBar(0,0);
   updateBossBar({hp,maxHp:hp,ghostHp:hp});
-  floatText(camX+canvas.width/2, floorY()-200, '🐉 Stuck Drake 🐉', '#44ff88', true);
+  floatText(camX+canvas.width/2, floorY()-200, 'STUCK DRAKE', '#44ff88', true, 'boss');
   triggerShake(40); rumble(700,1.0,1.0);
   playSfx('Resources/Audio/slam_land.wav', 1.0);
   // Wall-break debris — Drak crashes in from the right
@@ -8561,9 +8668,10 @@ function onEnemyKilled(e){
     bloodDecals.push({x:cx+(Math.random()-.5)*90,y:floorY()+30,rx:12+Math.random()*32,ry:4+Math.random()*10,alpha:0.8,decay:0.002});
   }
 
-  floatText(cx+58,e.y-12,`+${e.gold} G`,'#d8b878',false,'gold');
+  // Reward cascade: XP slightly left, Gold slightly right — spatial stagger + dly timing
+  floatText(e.x+EW/2+14, e.y-14, `+${e.gold} G`, '#d8b878', false, 'gold');
   const _expLabel=_expMult>1?`+${_scaledExp} XP  ×${_expMult.toFixed(1)}`:`+${_scaledExp} XP`;
-  floatText(cx+58,e.y-30,_expLabel,'#9cc6d6',false,'xp');
+  floatText(e.x+EW/2-8, e.y-28, _expLabel, '#9cc6d6', false, 'xp');
   document.getElementById('scoreEl').textContent=`✦ ${save.gold} G`;
   gainExp(_scaledExp);
 
@@ -8623,7 +8731,7 @@ function stageComplete(){
   const hasNext=!currentRunIsBossRush&&!!STAGES[currentStage+1];
   document.getElementById('scNextBtn').style.display=hasNext?'':'none';
   document.getElementById('scStageName').textContent=currentRunIsBossRush
-    ?`— Boss Rush —`
+    ?`— Boss Selection —`
     :`— ${(STAGES[currentStage]||{}).name||'Stage '+currentStage} —`;
   document.getElementById('scStats').innerHTML=
     `Kills this run: ${runKills}&nbsp;&nbsp;|&nbsp;&nbsp;Gold earned: ${runGold}<br>EXP earned: ${runExp}&nbsp;&nbsp;|&nbsp;&nbsp;Level: ${save.level}`;
@@ -8932,11 +9040,15 @@ function drawBG(){
   if(_sbg?._loaded){
     const scale=Math.max(W/_sbg.naturalWidth,H/_sbg.naturalHeight);
     const dw=_sbg.naturalWidth*scale,dh=_sbg.naturalHeight*scale;
-    const dx=(W-dw)/2,dy=(H-dh)/2;
+    // Micro-parallax: bg drifts slightly opposite to camera (6% factor)
+    const _pShift = dw>W ? Math.max(W-dw, Math.min(0, (W-dw)/2 - camX*0.06)) : (W-dw)/2;
+    const dx=_pShift,dy=(H-dh)/2;
     ctx.drawImage(_sbg,dx,dy,dw,dh);
     // Draw minimap on image-backed stages too
     if(!gameOver&&typeof enemies!=='undefined'&&enemies.length>0){
-      const mmW=Math.min(240,W-28),mmH=6,mmX=(W-mmW)/2,mmY=6;
+      const _bbEl=document.getElementById('bossBar');
+      const _bbH=(_bbEl?.classList.contains('show')&&canvas.offsetHeight>0)?Math.ceil(_bbEl.offsetHeight*H/canvas.offsetHeight)+4:6;
+      const mmW=Math.min(240,W-28),mmH=6,mmX=(W-mmW)/2,mmY=_bbH;
       const stageW=STAGE_RIGHT-STAGE_LEFT;
       ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.fill();
       const pPct=(player.x-STAGE_LEFT)/stageW;
@@ -8957,7 +9069,9 @@ function drawBG(){
 
   // ── DYNAMIC: minimap (enemy-position-dependent, must stay live) ──
   if(!gameOver&&typeof enemies!=='undefined'&&enemies.length>0){
-    const mmW=Math.min(240,W-28),mmH=6,mmX=(W-mmW)/2,mmY=6;
+    const _bbEl=document.getElementById('bossBar');
+    const _bbH=(_bbEl?.classList.contains('show')&&canvas.offsetHeight>0)?Math.ceil(_bbEl.offsetHeight*H/canvas.offsetHeight)+4:6;
+    const mmW=Math.min(240,W-28),mmH=6,mmX=(W-mmW)/2,mmY=_bbH;
     const stageW=STAGE_RIGHT-STAGE_LEFT;
     ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(mmX,mmY,mmW,mmH,3);ctx.fill();
     const pPct=(player.x-STAGE_LEFT)/stageW;
@@ -9098,6 +9212,25 @@ function _drawStageFX(){
   // Emissive torches/lanterns sit underneath atmospheric overlays so rain
   // and fog read through them naturally.
   _drawStageEmissive();
+  // ── Universal ambient dust motes (all stages) ─────────────────────────────
+  // Barely visible specs floating slowly upward — subliminal scale cue
+  ctx.save();
+  for(let i=0;i<14;i++){
+    const _dspd=8+(i%5)*2.5;
+    const _dph=(( t*_dspd/H)+i*0.273)%1;
+    const _dmx=((i*221+48)%canvas.width);
+    const _dmy=canvas.height*(1-_dph);
+    if(_dmy<canvas.height*0.04||_dmy>canvas.height*0.97) continue;
+    const _dal=Math.pow(Math.sin(_dph*Math.PI),2.2)*(0.06+(i%3)*0.018);
+    if(_dal<0.02) continue;
+    ctx.globalAlpha=_dal;
+    ctx.fillStyle='rgba(210,195,175,1)';
+    ctx.beginPath();
+    ctx.arc(_dmx+Math.sin(t*0.3+i)*12,_dmy,0.8+(i%3)*0.28,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.restore();
   if(currentStage===2){
     // ── Stage 2: Forest — rain ────────────────────────────────────
     ctx.save();
@@ -9165,6 +9298,59 @@ function _drawStageFX(){
     mistG.addColorStop(0.5,'rgba(180,200,220,0.07)');
     mistG.addColorStop(1,'rgba(180,200,220,0)');
     ctx.fillStyle=mistG; ctx.fillRect(0,flY-28,W,34);
+
+    // ── Falling leaves ────────────────────────────────────────────────
+    for(let i=0;i<28;i++){
+      const _lspd=22+(i%6)*8;
+      const _lph=((t*_lspd/H)+i*0.247)%1;
+      const _lx=((i*257+35)%W);
+      const _ly=_lph*H;
+      if(_ly<0||_ly>H*0.98) continue;
+      const _lal=Math.pow(Math.sin(_lph*Math.PI),1.4)*(0.15+Math.sin(i*0.9)*0.08);
+      if(_lal<0.04) continue;
+      ctx.save();
+      ctx.globalAlpha=_lal;
+      ctx.translate(_lx+Math.sin(t*1.4+i*0.8)*14,_ly);
+      ctx.rotate(Math.sin(t*2.2+i*1.1)*0.4);
+      ctx.fillStyle=`hsl(${30+(i%5)*16|0},70%,${38+(i%3)*8}%)`;
+      ctx.beginPath();
+      ctx.ellipse(0,0,2.5+(i%3)*0.7,1.3+(i%3)*0.4,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── Fireflies — additive glow dots ────────────────────────────────
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    for(let i=0;i<10;i++){
+      const _ffx=W*(0.06+(i*0.091)%0.88)+Math.sin(t*0.22+i*1.3)*38;
+      const _ffy=H*(0.35+(i*0.07)%0.48)+Math.sin(t*0.31+i*0.8)*22;
+      const _pulse=Math.pow(Math.max(0,Math.sin(t*1.8+i*2.1+Math.sin(t*0.5+i)*0.8)),2.5);
+      const _ffal=_pulse*(0.55+(i%3)*0.12);
+      if(_ffal<0.05) continue;
+      const _ffr=(1.5+(i%3)*0.5)*4;
+      const _ffg=ctx.createRadialGradient(_ffx,_ffy,0,_ffx,_ffy,_ffr);
+      _ffg.addColorStop(0,`rgba(210,255,120,${_ffal})`);
+      _ffg.addColorStop(0.3,`rgba(160,240,60,${_ffal*0.45})`);
+      _ffg.addColorStop(1,'rgba(80,200,20,0)');
+      ctx.fillStyle=_ffg;
+      ctx.beginPath(); ctx.arc(_ffx,_ffy,_ffr,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+    ctx.restore();
+
+    // ── Rolling fog wisps near floor ──────────────────────────────────
+    for(let i=0;i<3;i++){
+      const _wph=((t*(2.8+i*1.1)/W)+i*0.38)%1;
+      const _wx2=_wph*(W+200)-100;
+      const _wy2=flY-22+Math.sin(t*0.4+i*2.1)*7;
+      const _wal=0.042+Math.sin(t*0.28+i)*0.016;
+      const _wg=ctx.createRadialGradient(_wx2,_wy2,0,_wx2,_wy2,80+i*20);
+      _wg.addColorStop(0,`rgba(178,200,215,${_wal})`);
+      _wg.addColorStop(1,'rgba(178,200,215,0)');
+      ctx.fillStyle=_wg;
+      ctx.beginPath(); ctx.ellipse(_wx2,_wy2,140+i*30,18,0,0,Math.PI*2); ctx.fill();
+    }
 
     ctx.restore();
     return;
@@ -9348,6 +9534,24 @@ function _drawStageFX(){
       ctx.fillStyle=flashG; ctx.fillRect(0,0,W,H);
     }
 
+    // ── 7. Wind-blown debris scraps ───────────────────────────────────────────
+    for(let i=0;i<8;i++){
+      const _dspd3=175+(i%4)*90;
+      const _dph3=((t*_dspd3/W)+i*0.146)%1;
+      const _dw3=3+(i%3)*2.5,_dh3=1.5+(i%4);
+      const _dx3=_dph3*W;
+      const _dy3=H*(0.38+(i%5)*0.09)+Math.sin(t*1.2+i)*12;
+      const _dal3=Math.pow(Math.sin(_dph3*Math.PI),1.2)*(0.16+(i%3)*0.06);
+      if(_dal3<0.05) continue;
+      ctx.save();
+      ctx.globalAlpha=_dal3;
+      ctx.translate(_dx3,_dy3);
+      ctx.rotate(Math.sin(t*2.5+i)*0.3);
+      ctx.fillStyle=`rgba(${28+(i%3)*9},${18+(i%2)*7},${10+(i%4)*4},1)`;
+      ctx.fillRect(-_dw3/2,-_dh3/2,_dw3,_dh3);
+      ctx.restore();
+    }
+
     ctx.globalAlpha=1;
     ctx.restore();
     return;
@@ -9414,6 +9618,48 @@ function _drawStageFX(){
       pg.addColorStop(1,'rgba(0,100,0,0)');
       ctx.fillStyle=pg;
       ctx.beginPath(); ctx.arc(px,py,18,0,Math.PI*2); ctx.fill();
+    }
+
+    // 6. Water surface ripples — concentric rings expanding from floor
+    ctx.strokeStyle='rgba(80,200,60,1)'; ctx.lineWidth=0.8;
+    for(let i=0;i<4;i++){
+      const _rper=2.6+i*0.85;
+      const _rph=(t/_rper+i*0.25)%1;
+      const _rr=_rph*30;
+      const _ral=(1-_rph)*0.20;
+      if(_ral<0.03) continue;
+      const _rx4=W*(0.12+i*0.22);
+      ctx.save(); ctx.globalAlpha=_ral;
+      ctx.beginPath(); ctx.ellipse(_rx4,flY-2,_rr,_rr*0.26,0,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+
+    // 7. Bioluminescent wall patches — slow-breathing elliptical glow
+    const _bpDefs=[{x:W*0.06,y:flY-55},{x:W*0.44,y:flY-70},{x:W*0.88,y:flY-48}];
+    for(let i=0;i<_bpDefs.length;i++){
+      const {x:_bpx,y:_bpy}=_bpDefs[i];
+      const _bpal=0.032+Math.sin(t*0.55+i*2.1)*0.020;
+      const _bpg=ctx.createRadialGradient(_bpx,_bpy,0,_bpx,_bpy,42);
+      _bpg.addColorStop(0,`rgba(40,220,80,${Math.max(0,_bpal*2.2)})`);
+      _bpg.addColorStop(1,'rgba(0,80,30,0)');
+      ctx.fillStyle=_bpg;
+      ctx.beginPath(); ctx.ellipse(_bpx,_bpy,52,22,0,0,Math.PI*2); ctx.fill();
+    }
+
+    // 8. Rising bubbles — tiny circles floating up from floor
+    ctx.lineWidth=0.7;
+    for(let i=0;i<14;i++){
+      const _bspd=26+(i%5)*9;
+      const _bph=((t*_bspd/H)+i*0.19)%1;
+      const _bx4=((i*193+40)%W);
+      const _by4=flY-_bph*H*0.44;
+      if(_by4<flY*0.42||_by4>flY) continue;
+      const _bal=Math.pow(Math.sin(_bph*Math.PI),2)*0.26;
+      if(_bal<0.04) continue;
+      ctx.save(); ctx.globalAlpha=_bal;
+      ctx.strokeStyle='rgba(100,210,70,1)';
+      ctx.beginPath(); ctx.arc(_bx4+Math.sin(t*0.6+i)*6,_by4,1.4+(i%3)*0.7,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
     }
 
     ctx.globalAlpha=1;
@@ -9532,6 +9778,31 @@ function _drawStageFX(){
   haze.addColorStop(1,'rgba(88,128,200,0)');
   ctx.fillStyle=haze;
   ctx.fillRect(0,0,W,H*0.20);
+
+  // ── Star parallax — faint dots near top with depth-layered drift ──────────
+  for(let i=0;i<36;i++){
+    const _sx=((i*317+88-camX*(0.018+(i%3)*0.007))%(W+60)+W+60)%(W+60)-30;
+    const _sy=H*(0.01+(i*0.031)%0.36);
+    const _sal=(0.26+Math.sin(i*1.3)*0.16)*(0.28+Math.sin(t*0.55+i*0.9)*0.12);
+    if(_sal<0.04) continue;
+    ctx.globalAlpha=_sal;
+    ctx.fillStyle=i%5===0?'rgba(200,220,255,1)':'rgba(255,255,255,1)';
+    ctx.beginPath(); ctx.arc(_sx,_sy,0.65+(i%4)*0.32,0,Math.PI*2); ctx.fill();
+  }
+
+  // ── Engine exhaust — pale blue-white puffs rising from thruster ───────────
+  ctx.fillStyle='rgba(210,228,255,1)';
+  for(let i=0;i<5;i++){
+    const _espd=18+(i%3)*4;
+    const _eph=((t*_espd/H)+(i*0.22))%1;
+    const _ex=W*0.87+Math.sin(i*1.3)*10;
+    const _ey=H*0.64-_eph*H*0.26;
+    if(_ey<H*0.10||_ey>H*0.72) continue;
+    const _eal=Math.pow(Math.sin(_eph*Math.PI),1.8)*(0.042+(i%2)*0.018);
+    if(_eal<0.012) continue;
+    ctx.globalAlpha=_eal;
+    ctx.beginPath(); ctx.arc(_ex,_ey,12+_eph*20,0,Math.PI*2); ctx.fill();
+  }
 
   ctx.globalAlpha=1;
   ctx.restore();
@@ -10604,11 +10875,11 @@ const BOSS_ANIM_DEFS = {
     hitOffsetX:139, hitOffsetY:0,
     hitW:200, hitH:400,
     anims:{
-      idle:      { row:0, frames:6, fps:2 },
-      move:      { row:0, frames:6, fps:2 },
+      idle:      { row:0, frames:5, fps:2 },
+      move:      { row:0, frames:5, fps:2 },
       claw_wu:   { row:1, frames:1, fps:10 },
       claw_atk:  { row:2, frames:1, fps:16 },
-      beam_wu:   { row:3, frames:1, fps:10 },
+      beam_wu:   { row:3, frames:2, fps:12 },
       beam_fire: { row:4, frames:4, fps:5 },
       puke_wu:   { row:5, frames:2, fps:1 },
       puke_atk:  { row:6, frames:2, fps:1 },
@@ -10900,32 +11171,148 @@ function _drawEnemySprite(e,sx,sy){
 }
 
 // Windup telegraph overlay — used over sprites (procedural draw functions do this inline)
+// Boss thematic colours — used for windup reticle tinting
+const _BOSS_WINDUP_COLORS={GRONK:'#ff4400',SHAMAZ:'#ffd060',GARTU:'#cc44ff',DRAK:'#44ff88'};
+
 function _drawEnemyWindupTelegraph(e,sx,sy){
   const _lizardActive = e.type==='lizard' && (e.windupTimer>0 || e.atk);
   if(!e.windupTimer && !_lizardActive) return;
-  if(e.type==='drunkard') return; // ranged thrower — floor shadow doesn't apply
   const t=Date.now()/1000;
-  const _wRef=_eWindupRef(e);
-  // During the actual swing the timer is 0; treat progress as fully wound-up (1.0)
-  const windProg=e.windupTimer>0 ? 1-e.windupTimer/_wRef : 1.0;
-  const gPulse=0.10+0.08*Math.sin(t*10);
-  ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
-  ctx.fillStyle='#ff2200';
-  ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-  // Lizard: diamonds tick down each phase (◆◆◆◆ → ◆◆◆ → ◆◆ → ◆)
-  const _remaining = Math.max(1, 4-(e.comboPhase||0));
-  const sym=e.type==='lizard'?'◆'.repeat(_remaining)
-          :(e.type==='orc'&&e.comboPhase===0)?'◆◆':'◆';
-  const exSize=Math.round(18+5*windProg);
-  ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
-  ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
-  ctx.shadowColor='#ff3300';ctx.shadowBlur=18+10*windProg;
-  ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-  ctx.strokeText(sym,sx+eW(e)/2,sy-50);
-  ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-  ctx.fillText(sym,sx+eW(e)/2,sy-50);
-  ctx.restore();
+  // Use the actual per-pattern windup duration for bosses so windProg stays in [0,1]
+  const _wRef = e.boss ? _getBossWindupTotal(e) : _eWindupRef(e);
+  const windProg=e.windupTimer>0 ? Math.max(0, Math.min(1, 1-e.windupTimer/_wRef)) : 1.0;
+
+  // ── Always anchor to hitbox centre (never sprite-offset) ──────────────────
+  // For bosses: use _bossVisualAnchor so the indicator tracks the sprite art.
+  // For regular enemies: eSX/eSY gives the hitbox origin; add half-width for centre.
+  let _rcx, _rcy;
+  if(e.boss){
+    const {cx, vtop} = _bossVisualAnchor(e, sx);
+    _rcx = cx;
+    _rcy = vtop - 42;  // above boss sprite top
+  } else {
+    _rcx = eSX(e) - camX + eW(e)/2;  // hitbox centre X
+    _rcy = eSY(e) - 58;               // well above hitbox top
+  }
+
+  // Shamaz cannon and Drak beam have dedicated bar indicators drawn in their own functions
+  if(e.bossName==='SHAMAZ' && e.atkPattern===2) return;
+  if(e.bossName==='DRAK'   && e.atkPattern===1) return;
+
+  // ── Ranged vs melee classification ────────────────────────────────────────
+  const _isBossRanged = e.boss && (
+    (e.bossName==='GARTU')                          // all Gartu attacks are projectile
+  );
+  const _isRanged = e.type==='drunkard'
+    || !!(e.guardThrowPending && e.windupTimer>0)
+    || _isBossRanged;
+
+  // ── Boss colour override ──────────────────────────────────────────────────
+  const _bossCol = e.boss ? (_BOSS_WINDUP_COLORS[e.bossName]||'#ff8800') : null;
+
+  if(_isRanged){
+    // ── Projectile reticle: ring + crosshair + charge arc ────────────────
+    const _pulse=0.85+0.15*Math.sin(t*12);
+    const _ral=_pulse*(0.65+0.35*windProg);
+    const _rr=Math.max(2,(e.boss?16:12)+(e.boss?9:6)*windProg);
+    let _rcol, _rimCol;
+    if(_bossCol){
+      _rcol = _bossCol;
+      _rimCol = 'rgba(255,255,255,0.92)';
+    } else {
+      const _rhue=Math.round(44+12*windProg);
+      _rcol = `hsl(${_rhue},100%,${Math.round(60+8*windProg)}%)`;
+      _rimCol= `hsl(${_rhue},100%,88%)`;
+    }
+    ctx.save();
+    // Outer glow bloom
+    ctx.globalAlpha=_ral*0.55;
+    ctx.shadowColor=_rcol; ctx.shadowBlur=28+16*windProg;
+    ctx.strokeStyle=_rcol; ctx.lineWidth=3+windProg; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(_rcx,_rcy,_rr,0,Math.PI*2); ctx.stroke();
+    // Dim base ring
+    ctx.globalAlpha=_ral*0.35;
+    ctx.shadowBlur=0; ctx.lineWidth=1.5; ctx.strokeStyle=_rimCol;
+    ctx.beginPath(); ctx.arc(_rcx,_rcy,_rr,0,Math.PI*2); ctx.stroke();
+    // ── Clockwise charge arc — fills as windup progresses ────────────────
+    if(windProg>0.02){
+      const _arcCol = _bossCol || `hsl(${Math.round(44+12*windProg)},100%,65%)`;
+      ctx.globalAlpha = 0.55 + 0.4*windProg;
+      ctx.strokeStyle = _arcCol; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.shadowColor = _arcCol; ctx.shadowBlur = 14+10*windProg;
+      ctx.beginPath();
+      ctx.arc(_rcx,_rcy,_rr,-Math.PI/2,-Math.PI/2+Math.PI*2*windProg);
+      ctx.stroke();
+      // Final flash when nearly full
+      if(windProg>=0.85){
+        const _fp=(windProg-0.85)/0.15;
+        const _fpulse=0.5+0.4*Math.sin(t*28);
+        ctx.globalAlpha=_fp*_fpulse*0.9;
+        ctx.strokeStyle='#ffffff'; ctx.lineWidth=2.5;
+        ctx.shadowColor='rgba(255,255,255,0.9)'; ctx.shadowBlur=24;
+        ctx.beginPath(); ctx.arc(_rcx,_rcy,_rr+4*_fp,0,Math.PI*2); ctx.stroke();
+      }
+    }
+    // Centre dot + crosshair
+    ctx.globalAlpha=_ral;
+    ctx.shadowColor=_rimCol; ctx.shadowBlur=10;
+    ctx.fillStyle=_rimCol;
+    ctx.beginPath(); ctx.arc(_rcx,_rcy,3.5+1.5*windProg,0,Math.PI*2); ctx.fill();
+    const _gap=_rr*0.36, _reach=_rr+6;
+    ctx.lineWidth=1; ctx.strokeStyle=_rimCol; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.moveTo(_rcx-_reach,_rcy); ctx.lineTo(_rcx-_gap,_rcy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_rcx+_gap,_rcy);   ctx.lineTo(_rcx+_reach,_rcy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_rcx,_rcy-_reach); ctx.lineTo(_rcx,_rcy-_gap); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(_rcx,_rcy+_gap);   ctx.lineTo(_rcx,_rcy+_reach); ctx.stroke();
+    ctx.restore();
+    // ── Gartu chain indicators — ghost crosshairs for remaining shots ─────────
+    if(e.bossName==='GARTU'){
+      const _cLeft = e.gartuChainLeft || 1;
+      for(let _ci=1; _ci<_cLeft; _ci++){
+        const _gcx = _rcx + _ci*(_rr*2.2+5);
+        const _gcy = _rcy;
+        const _gr  = _rr * 0.56;
+        ctx.save();
+        ctx.globalAlpha = (0.42 - (_ci-1)*0.10) * _pulse;
+        ctx.strokeStyle = _bossCol||'#cc44ff';
+        ctx.shadowColor = _bossCol||'#cc44ff'; ctx.shadowBlur = 8;
+        ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.arc(_gcx,_gcy,_gr,0,Math.PI*2); ctx.stroke();
+        const _gg2=_gr*0.38, _gr2=_gr+4;
+        ctx.lineWidth=1.2; ctx.shadowBlur=4;
+        ctx.beginPath(); ctx.moveTo(_gcx-_gr2,_gcy); ctx.lineTo(_gcx-_gg2,_gcy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(_gcx+_gg2,_gcy); ctx.lineTo(_gcx+_gr2,_gcy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(_gcx,_gcy-_gr2); ctx.lineTo(_gcx,_gcy-_gg2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(_gcx,_gcy+_gg2); ctx.lineTo(_gcx,_gcy+_gr2); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  } else {
+    // ── Melee diamond above head ──────────────────────────────────────────
+    // Bosses skip the floor-ellipse (they have their own ground FX)
+    if(!e.boss){
+      const gPulse=0.10+0.08*Math.sin(t*10);
+      ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
+      ctx.fillStyle=_bossCol||'#ff2200';
+      ctx.beginPath();ctx.ellipse(_rcx+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+    const _remaining = Math.max(1, 4-(e.comboPhase||0));
+    const sym = e.type==='lizard' ? '◆'.repeat(_remaining)
+              : (e.type==='orc'&&e.comboPhase===0) ? '◆◆' : '◆';
+    const exSize = Math.round((e.boss?26:18)+5*windProg);
+    const _symBaseCol = _bossCol || '#ff3300';
+    ctx.save();
+    ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
+    ctx.font=`bold ${exSize}px 'IBM Plex Sans',sans-serif`;
+    ctx.textAlign='center';
+    ctx.shadowColor=_symBaseCol; ctx.shadowBlur=(e.boss?28:18)+10*windProg;
+    ctx.strokeStyle='rgba(0,0,0,0.88)';ctx.lineWidth=e.boss?5:4;ctx.lineJoin='round';
+    ctx.strokeText(sym,_rcx,_rcy);
+    ctx.fillStyle=e.boss ? _bossCol : `hsl(${Math.round(22-22*windProg)},100%,55%)`;
+    ctx.fillText(sym,_rcx,_rcy);
+    ctx.restore();
+  }
 }
 
 const _ETYPE_NAMES={goblin:'Goblin',orc:'Orc',pirate:'Pirate',drunkard:'Drunkard',guard:'Guard',royal_guard:'Royal Guard',heavy:'Heavy'};
@@ -11026,7 +11413,7 @@ function _tickBossAnim(e){
   if(e.bossAnimState!==ns){e.bossAnimState=ns;e.bossAnimFrame=0;e.bossAnimTick=0;}
   const anim=def.anims[ns]||def.anims.idle;
 
-  if((ns==='charge'||ns==='claw_wu'||ns==='beam_wu'||ns==='puke_wu'||ns==='roar_wu') && e.windupTimer>0){
+  if((ns==='charge'||ns==='claw_wu'||ns==='puke_wu'||ns==='roar_wu') && e.windupTimer>0){
     // Progress-driven: the charge/windup animation plays exactly once across the
     // windup window regardless of fps setting in BOSS_ANIM_DEFS.
     const total=_getBossWindupTotal(e);
@@ -11708,7 +12095,7 @@ function drawEnemy(e){
     const _osx=_hsx+(_def?(_def.offsetX||0)*e.facing:0);
     const _osy=_hsy+(_def?(_def.offsetY||0):0);
     _drawEnemyWindupTelegraph(e,_osx,_osy);
-    _drawEnemyHpBar(e,_osx+eW(e)/2-41,_osy-30,82,9,1,_ETYPE_NAMES[e.type]||(e.type||'Enemy'));
+    _drawEnemyHpBar(e,_osx+eW(e)/2-41,_osy-30,82,7,3.5,_ETYPE_NAMES[e.type]||(e.type||'Enemy'));
     _drawTargetIndicator(e,_osx,_osy);
     _drawStunStars(e,_osx,_osy);
     _drawEnemySwingOrb(e,sx,sy);
@@ -11802,9 +12189,9 @@ function drawEnemy(e){
   }
 
   // ── ENEMY HP BAR ── delegate to shared premium renderer
-  const bw=82,bh=9;
+  const bw=82,bh=7;
   const bx=sx+eW(e)/2-bw/2,by=sy-30;
-  const R=1;
+  const R=3.5;
   const _eName={orc:'Orc',goblin:'Goblin'}[e.type]||(e.type||'Enemy');
   _drawEnemyHpBar(e, bx, by, bw, bh, R, _eName);
 
@@ -11967,7 +12354,7 @@ function drawPirate(e){
     ctx.restore();
   }
   // HP bar + name
-  const bw=82,bh=9,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=7,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=3.5;
   _drawEnemyHpBar(e,bx,by_,bw,bh,R,'Pirate');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -12037,27 +12424,10 @@ function drawDrunkard(e){
   }
   ctx.restore();
   ctx.restore();
-  // ── TELEGRAPH ──
-  if(windingUp){
-    const t=Date.now()/1000;
-    const windProg=1-e.windupTimer/DRUNKARD_THROW_WINDUP;
-    const gPulse=0.10+0.08*Math.sin(t*10);
-    ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*windProg);
-    ctx.fillStyle='#ff6600';
-    ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*70,floorY()-3,90,9,0,0,Math.PI*2);ctx.fill();
-    ctx.restore();
-    const exSize=Math.round(18+5*windProg);
-    ctx.save();ctx.globalAlpha=(0.75+0.28*Math.sin(t*14))*(0.5+0.5*windProg);
-    ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
-    ctx.shadowColor='#ff6600';ctx.shadowBlur=18+10*windProg;
-    ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-    ctx.strokeText('◈',sx+eW(e)/2,sy-50);
-    ctx.fillStyle=`hsl(${Math.round(22-22*windProg)},100%,55%)`;
-    ctx.fillText('◈',sx+eW(e)/2,sy-50);
-    ctx.restore();
-  }
+  // ── TELEGRAPH (delegate to global function — consistent with sprite path) ──
+  _drawEnemyWindupTelegraph(e,sx,sy);
   // HP bar
-  const bw=82,bh=9,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=7,bx=sx+eW(e)/2-bw/2,by_=sy-30,R=3.5;
   _drawEnemyHpBar(e,bx,by_,bw,bh,R,'Drunkard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -12150,7 +12520,7 @@ function drawGuard(e){
     ctx.fillText(sym,sx+eW(e)/2,sy-50);
     ctx.restore();
   }
-  const bw=82,bh=9,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
+  const bw=82,bh=7,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=3.5;
   _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Guard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -12244,7 +12614,7 @@ function drawRoyalGuard(e){
     ctx.fillText(sym,sx+eW(e)/2,sy-54);
     ctx.restore();
   }
-  const bw=88,bh=9,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=1;
+  const bw=88,bh=7,bx_=sx+eW(e)/2-bw/2,by_=sy-30,R=3.5;
   _drawEnemyHpBar(e,bx_,by_,bw,bh,R,'Royal Guard');
   _drawTargetIndicator(e,sx,sy);
   _drawStunStars(e,sx,sy);
@@ -12387,32 +12757,18 @@ function drawShamaz(e){
       const grd=ctx.createLinearGradient(bx_,0,bx_+bw*wProg,0);
       grd.addColorStop(0,'#ff8800');grd.addColorStop(1,'#ffcc00');
       ctx.fillStyle=grd;ctx.beginPath();ctx.roundRect(bx_,by__,bw*wProg,bh,4);ctx.fill();
-      ctx.strokeStyle='rgba(255,180,0,0.4)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx_,by__,bw,bh,4);ctx.stroke();
+      ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=0.8;ctx.beginPath();ctx.roundRect(bx_+0.4,by__+0.4,bw-0.8,bh-0.8,4);ctx.stroke();
       // label
       _drawBossLabel('CHARGING CANNON',sx+eW(e)/2,sy-eH(e)*0.7,'#ffaa00');
-    } else {
-      const gPulse=0.10+0.08*Math.sin(t*10);
-      ctx.save();ctx.globalAlpha=gPulse*(0.22+0.6*wProg);
-      ctx.fillStyle='#ff6600';
-      ctx.beginPath();ctx.ellipse(sx+eW(e)/2+e.facing*44,floorY()-3,72,9,0,0,Math.PI*2);ctx.fill();
-      ctx.restore();
-      const sym=e.atkPattern===2?'◈':e.atkPattern===1?(['◆◆◆','◆◆','◆'][e.atkPhase]||'◆'):'◆';
-      const exSize=Math.round(18+5*wProg);
-      ctx.save();ctx.globalAlpha=0.55+0.4*Math.sin(t*14);
-      ctx.font=`bold ${exSize}px Cinzel,serif`;ctx.textAlign='center';
-      ctx.shadowColor='#ff6600';ctx.shadowBlur=18+10*wProg;
-      ctx.strokeStyle='rgba(0,0,0,0.85)';ctx.lineWidth=4;ctx.lineJoin='round';
-      ctx.strokeText(sym,sx+eW(e)/2,sy-60);
-      ctx.fillStyle=`hsl(${Math.round(30-30*wProg)},100%,55%)`;
-      ctx.fillText(sym,sx+eW(e)/2,sy-60);
-      ctx.restore();
     }
+    // Non-cannon melee symbol handled by _drawEnemyWindupTelegraph below
   }
 
   // ── SWING TRAIL ── weapon arc trail for deflect timing (replaces debug ellipse)
   _drawBossSwingTrail(e, sx, sy);
 
   updateBossBar(e);
+  _drawEnemyWindupTelegraph(e,sx,sy);
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
@@ -12505,9 +12861,7 @@ function drawGartu(e){
               :e.atkPattern===2?GARTU_WINDUP_NOVA
               :GARTU_WINDUP_HOMING;
     const wProg=Math.max(0,1-e.windupTimer/wRef);
-    const sym=e.atkPattern===2?'◈◈◈':e.atkPattern===3?'◈◈':e.atkPattern===1?'◈◈':'◈';
-    const tSym=Date.now()/1000;
-    // expanding magic circles
+    // expanding magic circles — unique mage casting visual
     ctx.save();
     ctx.globalAlpha=0.12+0.28*wProg;
     ctx.strokeStyle='#cc44ff'; ctx.lineWidth=2+wProg*2;
@@ -12517,21 +12871,11 @@ function drawGartu(e){
     ctx.lineWidth=1;
     ctx.beginPath(); ctx.arc(ecx,ecy+bob,14+28*wProg,0,Math.PI*2); ctx.stroke();
     ctx.restore();
-    // symbol — anchored to visual sprite top so it's always just above the art
-    const { cx:_gcx, vtop:_gvtop } = _bossVisualAnchor(e, sx);
-    const exSize=Math.round(18+6*wProg);
-    const pulse=0.55+0.4*Math.sin(tSym*14);
-    ctx.save(); ctx.globalAlpha=pulse;
-    ctx.font=`bold ${exSize}px Cinzel,serif`; ctx.textAlign='center';
-    ctx.shadowColor='#cc44ff'; ctx.shadowBlur=18+10*wProg;
-    ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText(sym,_gcx,_gvtop-10);
-    ctx.fillStyle=`hsl(${280+Math.round(20*wProg)},100%,${Math.round(60+15*wProg)}%)`;
-    ctx.fillText(sym,_gcx,_gvtop-10);
-    ctx.restore();
+    // Symbol above head handled by _drawEnemyWindupTelegraph (ranged ring+crosshair)
   }
 
   updateBossBar(e);
+  _drawEnemyWindupTelegraph(e,sx,sy);
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
@@ -12609,43 +12953,45 @@ function _drawDrakOverlays(e,sx,sy){
     ctx.strokeStyle=_wCol; ctx.lineWidth=3+_wp*6;
     ctx.beginPath(); ctx.ellipse(cx,cy,dw*0.55+_wp*12,dh*0.45+_wp*10,0,0,Math.PI*2); ctx.stroke();
     ctx.shadowBlur=0; ctx.globalAlpha=1;
-    const _labels=['CLAW','FIRE','PUKE','ROAR'];
-    const _tCol=e.atkPattern===1?'#ff7022':e.atkPattern===2?'#88ff44':e.atkPattern===3?'#ffee44':'#ff8844';
-    ctx.globalAlpha=0.6+_wp*0.4;
-    ctx.font=`bold ${Math.round(14+_wp*6)}px Cinzel,serif`;
-    ctx.textAlign='center';
-    ctx.fillStyle=_tCol;
-    ctx.shadowColor=_tCol; ctx.shadowBlur=16;
-    ctx.strokeStyle='rgba(0,0,0,0.9)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText(_labels[e.atkPattern]||'', cx, sy-18);
-    ctx.fillText(_labels[e.atkPattern]||'', cx, sy-18);
-    ctx.shadowBlur=0; ctx.globalAlpha=1;
+    // Beam: right-side screen-fixed bar vertically centered — bar has its own label
+    if(e.atkPattern===1){
+      const _bw=110, _bh=10;
+      const _bx=canvas.width-_bw-18, _by=canvas.height/2-_bh/2;
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=7; ctx.shadowOffsetY=2;
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.beginPath(); ctx.roundRect(_bx,_by,_bw,_bh,4); ctx.fill();
+      ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+      if(_wp>0){
+        const _grd=ctx.createLinearGradient(_bx,0,_bx+_bw*_wp,0);
+        _grd.addColorStop(0,'#228844'); _grd.addColorStop(1,'#44ff88');
+        ctx.fillStyle=_grd;
+        ctx.beginPath(); ctx.roundRect(_bx,_by,_bw*_wp,_bh,4); ctx.fill();
+      }
+      ctx.strokeStyle='rgba(0,0,0,0.75)'; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.roundRect(_bx+0.4,_by+0.4,_bw-0.8,_bh-0.8,4); ctx.stroke();
+      ctx.restore();
+      _drawBossLabel('CHARGING BEAM',_bx+_bw/2,_by-10,'#44ff88');
+    } else {
+      const _labels=['CLAW','','PUKE','ROAR'];
+      const _tCol=e.atkPattern===2?'#88ff44':e.atkPattern===3?'#ffee44':'#ff8844';
+      ctx.globalAlpha=0.6+_wp*0.4;
+      ctx.font=`bold ${Math.round(14+_wp*6)}px Cinzel,serif`;
+      ctx.textAlign='center';
+      ctx.fillStyle=_tCol;
+      ctx.shadowColor=_tCol; ctx.shadowBlur=16;
+      ctx.strokeStyle='rgba(0,0,0,0.9)'; ctx.lineWidth=4; ctx.lineJoin='round';
+      ctx.strokeText(_labels[e.atkPattern]||'', cx, sy-18);
+      ctx.fillText(_labels[e.atkPattern]||'', cx, sy-18);
+      ctx.shadowBlur=0; ctx.globalAlpha=1;
+    }
   }
 
-  // ── Claw windup melee indicator (◆)
-  if(windingUp&&e.atkPattern===0){
-    const _cWp=1-e.windupTimer/(e.clawWindup??DRAK_CLAW_WINDUP);
-    const _gt=t;
-    const _gPulse=0.10+0.08*Math.sin(_gt*10);
-    ctx.save();
-    ctx.globalAlpha=_gPulse*(0.22+0.6*_cWp);
-    ctx.fillStyle='#ff2200';
-    ctx.beginPath(); ctx.ellipse(sx+dw*0.08,floorY()-3,68,8,0,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-    const _exSize=Math.round(18+5*_cWp);
-    ctx.save();
-    ctx.globalAlpha=(0.75+0.28*Math.sin(_gt*14))*(0.5+0.5*_cWp);
-    ctx.font=`bold ${_exSize}px Cinzel,serif`; ctx.textAlign='center';
-    ctx.shadowColor='#ff3300'; ctx.shadowBlur=18+10*_cWp;
-    ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText('◆', sx+dw*0.25, sy-18);
-    ctx.fillStyle=`hsl(${Math.round(22-22*_cWp)},100%,55%)`;
-    ctx.fillText('◆', sx+dw*0.25, sy-18);
-    ctx.restore();
-  }
+  // Claw melee symbol handled by _drawEnemyWindupTelegraph below
 
   // ── Boss bar, stun, target indicator
   updateBossBar(e);
+  _drawEnemyWindupTelegraph(e,sx,sy);
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
@@ -12831,27 +13177,7 @@ function drawDrak(e){
     ctx.shadowBlur=0; ctx.globalAlpha=1;
   }
 
-  // ── Claw windup melee indicator (◆ diamond) ──────────────────
-  if(windingUp && e.atkPattern===0){
-    const _cWp=1-e.windupTimer/(e.clawWindup??DRAK_CLAW_WINDUP);
-    const _gt=Date.now()/1000;
-    const _gPulse=0.10+0.08*Math.sin(_gt*10);
-    ctx.save();
-    ctx.globalAlpha=_gPulse*(0.22+0.6*_cWp);
-    ctx.fillStyle='#ff2200';
-    ctx.beginPath(); ctx.ellipse(sx+dw*0.08,floorY()-3,68,8,0,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-    const _exSize=Math.round(18+5*_cWp);
-    ctx.save();
-    ctx.globalAlpha=(0.75+0.28*Math.sin(_gt*14))*(0.5+0.5*_cWp);
-    ctx.font=`bold ${_exSize}px Cinzel,serif`; ctx.textAlign='center';
-    ctx.shadowColor='#ff3300'; ctx.shadowBlur=18+10*_cWp;
-    ctx.strokeStyle='rgba(0,0,0,0.85)'; ctx.lineWidth=4; ctx.lineJoin='round';
-    ctx.strokeText('◆', sx+dw*0.25, sy-18);
-    ctx.fillStyle=`hsl(${Math.round(22-22*_cWp)},100%,55%)`;
-    ctx.fillText('◆', sx+dw*0.25, sy-18);
-    ctx.restore();
-  }
+  // Claw melee symbol handled by _drawEnemyWindupTelegraph below
 
   // ── Wall edge — dark stripe to sell the "sticking out of wall" illusion
   ctx.fillStyle='rgba(10,18,10,0.78)';
@@ -12860,6 +13186,7 @@ function drawDrak(e){
   ctx.restore();
 
   updateBossBar(e);
+  _drawEnemyWindupTelegraph(e,sx,sy);
   _drawStunStars(e,sx,sy);
   _drawTargetIndicator(e,sx,sy);
 }
@@ -12903,106 +13230,110 @@ function _drawElemBarsCanvas(e, bx, by, bw, bh){
   }
 }
 function _drawEnemyHpBar(e,bx,by_,bw,bh,R,name){
-  const hpf  = Math.max(0, e.hp / e.maxHp);
-  const gp   = Math.max(0, Math.min(1, e.ghostHp / e.maxHp));
+  const hpf    = Math.max(0, e.hp / e.maxHp);
+  const ghostF = Math.max(0, Math.min(1, e.ghostHp / e.maxHp));
   const fwFull = bw * hpf;
+  const gEnd   = bw * ghostF;
 
-  // ── Name — IBM Plex Sans SemiBold small-caps, soft shadow (no thick outline) ──
+  // ── Name — IBM Plex Sans Medium, soft ivory, with crisp black outline ──────
   ctx.save();
-  ctx.font = `600 10px 'IBM Plex Sans',sans-serif`;
+  ctx.font = `500 9px 'IBM Plex Sans',sans-serif`;
   ctx.textAlign = 'center';
-  // Soft atmospheric shadow halo replaces hard black outline
-  ctx.shadowColor = 'rgba(0,0,0,0.94)';
-  ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
-  ctx.fillStyle = 'rgba(220,200,170,0.88)';
-  // Small-caps treatment via letter spacing + uppercase
-  if('letterSpacing' in ctx) ctx.letterSpacing = '1.4px';
-  ctx.fillText((name||'').toUpperCase(), bx+bw/2, by_-5);
+  if('letterSpacing' in ctx) ctx.letterSpacing = '1.2px';
+  // Outline pass — same parameters as damage number outlines
+  ctx.lineJoin = 'round'; ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(0,0,0,0.92)'; ctx.shadowBlur = 0;
+  ctx.strokeText((name||'').toUpperCase(), bx+bw/2, by_-4);
+  // Fill pass — ivory with soft drop shadow depth
+  ctx.shadowColor = 'rgba(0,0,0,0.80)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+  ctx.fillStyle = 'rgba(210,188,155,0.80)';
+  ctx.fillText((name||'').toUpperCase(), bx+bw/2, by_-4);
   if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
   ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   ctx.restore();
 
   ctx.save();
 
-  // ── Track — deep, atmospheric, with inset shadow halo ──
-  // outer drop shadow gives the bar a "projected" feel without a hard border
-  ctx.shadowColor = 'rgba(0,0,0,0.72)';
-  ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
-  ctx.fillStyle = '#08020a';
-  ctx.beginPath(); ctx.roundRect(bx, by_, bw, bh, R); ctx.fill();
-  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  // ── Outer soft drop shadow ────────────────────────────────────────────────
+  ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 7; ctx.shadowOffsetY = 2;
 
-  // ── Ghost drain — warm ember taper, soft fade ──
-  if(gp > hpf){
-    const gw = bw*(gp-hpf);
-    const ggrad = ctx.createLinearGradient(bx+fwFull, 0, bx+fwFull+gw, 0);
-    ggrad.addColorStop(0,   'rgba(235,160,80,0.78)');
-    ggrad.addColorStop(0.5, 'rgba(210,120,60,0.52)');
-    ggrad.addColorStop(1,   'rgba(180,90,45,0.14)');
-    ctx.fillStyle = ggrad;
-    ctx.beginPath(); ctx.roundRect(bx+fwFull, by_, gw, bh, R); ctx.fill();
+  // ── Track — deep wine-black with vertical depth gradient ─────────────────
+  const _tg = ctx.createLinearGradient(0, by_, 0, by_+bh);
+  _tg.addColorStop(0,    '#12070A');
+  _tg.addColorStop(0.45, '#1A0A0F');
+  _tg.addColorStop(1,    '#090406');
+  ctx.fillStyle = _tg;
+  ctx.beginPath(); ctx.roundRect(bx, by_, bw, bh, R); ctx.fill();
+  ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+  // ── All fills clipped to track shape — no individual rounding on children ──
+  // This means: ghost's right edge and fill's right edge are always straight,
+  // clipped to the pill outline only at the bar's own left/right ends.
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(bx, by_, bw, bh, R); ctx.clip();
+
+  // ── Ghost drain — warm amber taper, no border-radius of its own ──────────
+  if(ghostF > hpf){
+    const _gg = ctx.createLinearGradient(bx+fwFull, 0, bx+gEnd, 0);
+    _gg.addColorStop(0,    'rgba(218,212,208,0.58)');
+    _gg.addColorStop(0.55, 'rgba(185,180,178,0.32)');
+    _gg.addColorStop(1,    'rgba(148,145,142,0.05)');
+    ctx.fillStyle = _gg;
+    ctx.fillRect(bx+fwFull, by_, gEnd-fwFull, bh);
   }
 
-  // ── HP fill — rich crimson, layered material ──
+  // ── HP fill — FFXVI restrained ember-crimson ──────────────────────────────
+  // Gradient anchored to FULL bar width so colour reads consistent at all HP levels
   if(hpf > 0){
+    const _fg = ctx.createLinearGradient(bx, 0, bx+bw, 0);
+    _fg.addColorStop(0.00, '#3A0D14');
+    _fg.addColorStop(0.35, '#6B1622');
+    _fg.addColorStop(0.75, '#B52A33');
+    _fg.addColorStop(1.00, '#E05A52');
+    ctx.fillStyle = _fg;
+    ctx.fillRect(bx, by_, fwFull, bh);
+
+    // ── Vertical material depth overlay ──────────────────────────────────────
+    const _vg = ctx.createLinearGradient(0, by_, 0, by_+bh);
+    _vg.addColorStop(0,   'rgba(255,195,175,0.12)');
+    _vg.addColorStop(0.5, 'rgba(255,195,175,0.02)');
+    _vg.addColorStop(1,   'rgba(0,0,0,0.30)');
+    ctx.fillStyle = _vg;
+    ctx.fillRect(bx, by_, fwFull, bh);
+
+    // ── Top-edge inset highlight — 1px specular line ──────────────────────
+    ctx.fillStyle = 'rgba(255,190,170,0.18)';
+    ctx.fillRect(bx, by_, fwFull, 1);
+  }
+
+  // ── Segment seams — 5 divisions, luminance-only, preserves chunking feel ──
+  const _nSeg = 5;
+  const _segW = bw / _nSeg;
+  for(let i=1; i<_nSeg; i++){
+    const tx = Math.round(bx + _segW*i);
+    if(tx < bx+fwFull){
+      ctx.fillStyle = 'rgba(255,185,155,0.08)';
+      ctx.fillRect(tx, by_, 1, bh);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(tx+1, by_, 1, bh);
+  }
+
+  ctx.restore(); // end clip
+
+  // ── Hit flash — soft luminance pulse ────────────────────────────────────
+  if(e.hitCD > 8 && hpf > 0){
     ctx.save();
     ctx.beginPath(); ctx.roundRect(bx, by_, fwFull, bh, R); ctx.clip();
-    // Base gradient — deep ember crimson → warm tip
-    const grad = ctx.createLinearGradient(bx, 0, bx+fwFull, 0);
-    grad.addColorStop(0.00, '#1a020a');
-    grad.addColorStop(0.25, '#5a040e');
-    grad.addColorStop(0.55, '#94101a');
-    grad.addColorStop(0.82, '#b8281e');
-    grad.addColorStop(1.00, '#d65030');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = `rgba(255,215,175,${Math.min(0.28, e.hitCD*0.009)})`;
     ctx.fillRect(bx, by_, fwFull, bh);
-    // Subtle bevel — top luminance highlight
-    const top = ctx.createLinearGradient(0, by_, 0, by_+bh*0.5);
-    top.addColorStop(0,'rgba(255,220,200,0.16)');
-    top.addColorStop(1,'rgba(255,220,200,0)');
-    ctx.fillStyle = top;
-    ctx.fillRect(bx, by_, fwFull, bh*0.5);
-    // Lower vignette — material depth
-    const bot = ctx.createLinearGradient(0, by_+bh*0.55, 0, by_+bh);
-    bot.addColorStop(0,'rgba(0,0,0,0)');
-    bot.addColorStop(1,'rgba(0,0,0,0.36)');
-    ctx.fillStyle = bot;
-    ctx.fillRect(bx, by_, fwFull, bh);
-    // Leading-edge ember luminance
-    const tipW = Math.min(3, fwFull);
-    const tip = ctx.createLinearGradient(bx+fwFull-tipW, 0, bx+fwFull, 0);
-    tip.addColorStop(0,'rgba(255,180,140,0)');
-    tip.addColorStop(1,'rgba(255,200,150,0.52)');
-    ctx.fillStyle = tip;
-    ctx.fillRect(bx+fwFull-tipW, by_, tipW, bh);
     ctx.restore();
   }
 
-  // ── Segment dividers — soft luminance, restrained rhythm ──
-  const segW = bw / 8;
-  ctx.fillStyle = 'rgba(255,220,200,0.10)';
-  for(let i=1; i<8; i++){
-    const tx = bx + segW*i;
-    // 1px wide divider that reads as material seam, not arcade outline
-    ctx.fillRect(tx, by_+1.5, 1, bh-3);
-  }
-  // Inner shadow seam alongside divider for crafted depth
-  ctx.fillStyle = 'rgba(0,0,0,0.22)';
-  for(let i=1; i<8; i++){
-    const tx = bx + segW*i;
-    ctx.fillRect(tx-1, by_+1.5, 1, bh-3);
-  }
-
-  // ── Hit flash overlay — soft luminance, not red wash ──
-  if(e.hitCD > 8){
-    ctx.fillStyle = `rgba(255,220,180,${Math.min(0.32, e.hitCD*0.010)})`;
-    ctx.beginPath(); ctx.roundRect(bx, by_, fwFull, bh, R); ctx.fill();
-  }
-
-  // ── Soft outer edge — replaces hard black border ──
-  ctx.strokeStyle = 'rgba(255,220,180,0.06)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(bx+0.5, by_+0.5, bw-1, bh-1, R); ctx.stroke();
+  // ── Bar outline — single crisp dark border ───────────────────────────────
+  ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.roundRect(bx+0.4, by_+0.4, bw-0.8, bh-0.8, R); ctx.stroke();
 
   ctx.restore();
   _drawElemBarsCanvas(e, bx, by_, bw, bh);
@@ -14105,12 +14436,29 @@ function _loopUpdate(){
           else if(e.atkPattern===1) fireGartuTriple(e);
           else if(e.atkPattern===2) fireGartuNova(e);
           else                      fireGartuHoming(e);
+          e.gartuChainLeft = (e.gartuChainLeft||1) - 1;
           e.atkPattern=_gartuNextPattern(e, adx);
-          const _gcd=e.phase2?Math.round(GARTU_ATK_COOLDOWN*0.80):GARTU_ATK_COOLDOWN;
-          e.atkCD=_gcd+(Math.random()*14|0);
+          if(e.gartuChainLeft > 0){
+            // Chain continues — short inter-shot pause before next windup
+            e.atkCD = 18 + (Math.random()*12|0);
+          } else {
+            // Chain exhausted — full cooldown, reset chain state
+            e.gartuChain = 0;
+            const _gcd=e.phase2?Math.round(GARTU_ATK_COOLDOWN*0.80):GARTU_ATK_COOLDOWN;
+            e.atkCD=_gcd+(Math.random()*14|0);
+          }
         }
       } else if(!e.atk){
         if(e.atkCD<=0){
+          // Initialise chain count only when starting a fresh sequence
+          if(!(e.gartuChainLeft > 0)){
+            const _cr=Math.random();
+            const _chainMax = e.phase2
+              ? (_cr<0.28?1:_cr<0.62?2:3)   // phase 2: more chains
+              : (_cr<0.48?1:_cr<0.80?2:3);   // phase 1: mostly 1–2
+            e.gartuChain     = _chainMax;
+            e.gartuChainLeft = _chainMax;
+          }
           const _wfBase=e.atkPattern===0?GARTU_WINDUP_BOLT
                        :e.atkPattern===1?GARTU_WINDUP_TRIPLE
                        :e.atkPattern===2?GARTU_WINDUP_NOVA
@@ -14962,9 +15310,16 @@ function _loopUpdate(){
     if(p.type==='blood'||p.type==='spark'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.life-=p.decay;}
     else if(p.type==='barChip'){p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.vx*=.95;p.rot+=p.rotV;p.life-=p.decay;}
     else if(p.type==='gore'){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.90;p.rot+=p.rotV;p.life-=p.decay;if(p.y>=floorY()){p.y=floorY();p.vy*=-0.15;p.vx*=0.5;}}
-    else if(p.type==='text'){if(p.dly>0){p.dly--;} else{p.x+=(p.vx||0);p.vx=(p.vx||0)*0.92;p.y+=p.vy;p.vy*=0.88;p.life-=p.decay;
-      // Exponential scale decay — fast impact pop, elegant settle (premium AAA feel)
-      // Combined with the linear floor of sDecay so it still resolves cleanly.
+    else if(p.type==='text'){if(p.dly>0){p.dly--;} else{
+      if(p.holdFrames>0){
+        // Crit hold — scale still pops, position locked (creates violent smear feel)
+        p.holdFrames--;
+      } else {
+        p.x+=(p.vx||0);p.vx=(p.vx||0)*(p.vxDamp||0.92);
+        p.y+=p.vy;p.vy*=(p.vyDamp||0.88);
+      }
+      p.life-=p.decay;
+      // Exponential scale decay — fast impact pop, elegant settle
       const _sOver=p.scale-1;
       p.scale = _sOver > 0.04 ? 1 + _sOver*0.86 : Math.max(1, p.scale-(p.sDecay||0.06));
     }}
@@ -15074,7 +15429,7 @@ function _loopUpdate(){
         player.hp=Math.max(0,player.hp-_sdmg);
         resetHitStreak(); player.hitCD=30;
         setHpBar(player.hp,player.maxHp);
-        floatText(player.x+PW/2,player.y-24,`-${_sdmg}`,'#66ff44',false);
+        floatText(player.x+PW/2,player.y+PH*0.35-22,`-${_sdmg}`,'#ff4040',false);
         player.slowTimer=Math.max(player.slowTimer||0,80); // slow effect
         if(player.hp<=0&&!player.dead){player.dead=true;setTimeout(onPlayerDead,900);}
       }
@@ -15101,7 +15456,7 @@ function _loopUpdate(){
         setTimeout(()=>{player.invuln=false;},2000);
         player.vx-=8; player.vy-=2;
         setHpBar(player.hp,player.maxHp);
-        floatText(player.x+PW/2,player.y-24,`-${_bdmg}`,'#44ffaa',false);
+        floatText(player.x+PW/2,player.y+PH*0.35-22,`-${_bdmg}`,'#ff4040',false);
         for(let _bpi=0;_bpi<12;_bpi++){
           const _bpa=Math.random()*Math.PI*2,_bps=2+Math.random()*5;
           particles.push({type:'spark',x:player.x+PW/2,y:player.y+PH*0.4,
@@ -15313,29 +15668,42 @@ function _loopDraw(){
   _drawStageFX(); // stage-specific atmospheric overlay (clouds, wind, etc.)
 
   // ── CONTACT SHADOWS — soft elliptical grounding under each sprite ──
-  // Drawn before sprites so they ground but don't overdraw the art.
-  // Uses wine-black (not pure black) for atmospheric depth.
+  // Fixed base radius for all regular entities; bosses 30% larger.
+  // Shadow Y tracks each sprite's visual bottom (stays on floor when airborne).
   if(typeof floorY === 'function'){
-    const _fy = floorY();
+    const _fy      = floorY();
+    const _BASE_RX = 18;          // horizontal radius for player + regular enemies
+    const _BASE_RY = _BASE_RX * 0.22;
     ctx.save();
-    ctx.fillStyle = 'rgba(14,8,22,0.42)';
+    ctx.fillStyle = 'rgba(14,8,22,1)';
+    // All shadows share this Y — the player's visual ground surface
+    const _groundY = _fy + (HERO_DRAW_H - HERO_OFFSET_Y);
     enemies.forEach(e => {
       if(e.dead) return;
-      const _csX = e.x + (typeof eW === 'function' ? eW(e)/2 : 14) - camX;
-      const _csY = _fy + 1;
-      // Width tied to sprite footprint, soft ellipse
-      const _csW = (typeof eW === 'function' ? eW(e) : 28) * 0.55;
+      if(e.boss && e.bossName==='DRAK') return;
+      const _csX = eSX(e) - camX + eW(e)/2;
+      const _rx  = e.boss ? _BASE_RX * 1.3 : _BASE_RX;
+      const _ry  = e.boss ? _BASE_RY * 1.3 : _BASE_RY;
+      const _air  = Math.max(0, _fy - (e.y + eH(e)));
+      const _fade = Math.max(0.08, 1 - _air / 180);
+      const _sc   = Math.max(0.35, 1 - _air / 260);
+      ctx.globalAlpha = 0.28 * _fade;
       ctx.beginPath();
-      ctx.ellipse(_csX, _csY, _csW, _csW*0.22, 0, 0, Math.PI*2);
+      ctx.ellipse(_csX, _groundY, _rx * _sc, _ry * _sc, 0, 0, Math.PI*2);
       ctx.fill();
     });
     // Player contact shadow
     if(player && !player.dead){
-      const _pcsX = player.x + (typeof PW !== 'undefined' ? PW/2 : 16) - camX;
+      const _pcsX = player.x + PW/2 - camX;
+      const _pair  = Math.max(0, _fy - (player.y + PH));
+      const _pfade = Math.max(0.08, 1 - _pair / 180);
+      const _psc   = Math.max(0.35, 1 - _pair / 260);
+      ctx.globalAlpha = 0.28 * _pfade;
       ctx.beginPath();
-      ctx.ellipse(_pcsX, _fy+1, 16, 4, 0, 0, Math.PI*2);
+      ctx.ellipse(_pcsX, _groundY, _BASE_RX * _psc, _BASE_RY * _psc, 0, 0, Math.PI*2);
       ctx.fill();
     }
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
 
@@ -15384,65 +15752,84 @@ function _loopDraw(){
       ctx.textAlign = 'center';
 
       if(kind==='xp'){
-        // XP — cool pale cyan, elegant, light emphasis
-        ctx.font = `600 13px 'IBM Plex Sans',sans-serif`;
-        // Two-pass: soft cool bloom + crisp foreground
-        ctx.shadowColor='rgba(110,180,200,0.40)'; ctx.shadowBlur=10;
+        // ── XP — Satoshi 700 — magical, energetic, cool bloom ──
+        ctx.font = `700 15px 'Satoshi','IBM Plex Sans',sans-serif`;
+        ctx.lineJoin='round'; ctx.lineWidth=2.5; ctx.strokeStyle='rgba(0,0,0,0.92)'; ctx.shadowBlur=0; ctx.strokeText(p.text,0,0);
+        ctx.shadowColor='rgba(100,200,255,0.45)'; ctx.shadowBlur=12;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
-        ctx.shadowColor='rgba(0,0,0,0.86)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1;
+        ctx.shadowColor='rgba(0,0,0,0.80)'; ctx.shadowBlur=3; ctx.shadowOffsetY=1;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
         ctx.shadowBlur=0; ctx.shadowOffsetY=0;
 
       } else if(kind==='gold'){
-        // Gold — warm muted brass, luxurious restraint
-        ctx.font = `600 14px 'IBM Plex Sans',sans-serif`;
-        // Two-pass: warm bloom + crisp foreground
-        ctx.shadowColor='rgba(220,180,90,0.42)'; ctx.shadowBlur=10;
+        // ── Gold — Satoshi 500 — weighted, luxurious, 3-pass ──
+        ctx.font = `500 17px 'Satoshi','IBM Plex Sans',sans-serif`;
+        ctx.lineJoin='round'; ctx.lineWidth=2.5; ctx.strokeStyle='rgba(0,0,0,0.92)'; ctx.shadowBlur=0; ctx.strokeText(p.text,0,0);
+        ctx.shadowColor='rgba(240,190,80,0.48)'; ctx.shadowBlur=14;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
-        ctx.shadowColor='rgba(0,0,0,0.86)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1;
+        ctx.shadowBlur=0;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowColor='rgba(30,12,0,0.90)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1.5;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
         ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+      } else if(kind==='boss'){
+        // ── Boss reveal — Cinzel 900 — regal, cinematic, title-card ──
+        ctx.font = `900 42px 'Cinzel',serif`;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '0.10em';
+        // Pass 1: black outline
+        ctx.lineJoin='round'; ctx.lineWidth=5; ctx.strokeStyle='rgba(0,0,0,0.96)'; ctx.shadowBlur=0; ctx.strokeText(p.text,0,0);
+        // Pass 2: deep wide bloom in boss color
+        ctx.shadowColor=p.color; ctx.shadowBlur=38;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        // Pass 3: tighter inner glow — saturation punch
+        ctx.shadowColor=p.color; ctx.shadowBlur=16;
+        ctx.fillText(p.text,0,0);
+        // Pass 4: crisp lit fill — slight bright tint for a "lit from within" read
+        ctx.shadowBlur=0;
+        ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.fillText(p.text,0,0);
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        // Pass 5: dark depth anchor
+        ctx.shadowColor='rgba(0,0,0,0.98)'; ctx.shadowBlur=6; ctx.shadowOffsetY=3;
+        ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
+        ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
 
       } else if(!hasDigit){
-        // Cinematic label text (STAGGERED, DEFLECT, BOSS SLAIN, etc.) — Cinzel, stylised
-        const sz = big ? 22 : 16;
-        ctx.font = `700 ${sz}px 'Cinzel',serif`;
-        // Soft luminous halo replaces hard black outline
-        ctx.shadowColor=p.color; ctx.shadowBlur=14;
+        // ── Combat callout label — Clash Display 600 — kinetic, weapon-like ──
+        const sz = big ? 26 : 18;
+        ctx.font = `600 ${sz}px 'Clash Display','IBM Plex Sans',sans-serif`;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '0.06em';
+        ctx.transform(1, 0, -0.04, 1, 0, 0);
+        ctx.lineJoin='round'; ctx.lineWidth=big?2.5:2; ctx.strokeStyle='rgba(0,0,0,0.90)'; ctx.shadowBlur=0; ctx.strokeText(p.text,0,0);
+        ctx.shadowColor=p.color; ctx.shadowBlur=16;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
-        ctx.shadowColor='rgba(0,0,0,0.88)'; ctx.shadowBlur=5; ctx.shadowOffsetY=2;
+        ctx.shadowColor='rgba(8,4,16,0.92)'; ctx.shadowBlur=5; ctx.shadowOffsetY=2;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
         ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
 
       } else {
-        // ── Numeric damage — premium AAA action-RPG treatment ──
-        // Tighter letterforms, warm burgundy depth (not pure black),
-        // ember crimson bloom on crits (not arcade red).
-        const sz = big ? 28 : 19;
-        ctx.font = `700 ${sz}px 'IBM Plex Sans',sans-serif`;
-        // Compact letterforms — premium, sharp
-        if('letterSpacing' in ctx) ctx.letterSpacing = '-0.4px';
+        // ── Numeric damage — Clash Display 600 — sharp, aggressive, modern ──
+        const sz = big ? 38 : 22;
+        ctx.font = `600 ${sz}px 'Clash Display','IBM Plex Sans',sans-serif`;
+        if('letterSpacing' in ctx) ctx.letterSpacing = '-0.5px';
+        ctx.transform(1, 0, -0.06, 1, 0, 0);
+        ctx.lineJoin='round'; ctx.lineWidth=big?3.5:2.5; ctx.strokeStyle='rgba(0,0,0,0.92)'; ctx.shadowBlur=0; ctx.strokeText(p.text,0,0);
         if(big){
-          // Crit / finisher — ember crimson bloom integrated into scene lighting
-          ctx.shadowColor='rgba(196,72,48,0.68)'; ctx.shadowBlur=18;
+          ctx.shadowColor='rgba(210,80,30,0.72)'; ctx.shadowBlur=22;
           ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
-          // Second pass for richer ember halo
-          ctx.shadowColor='rgba(228,108,72,0.42)'; ctx.shadowBlur=10;
+          ctx.shadowColor='rgba(240,130,60,0.48)'; ctx.shadowBlur=10;
           ctx.fillText(p.text,0,0);
-          // Thin luminous heated-copper rim
           ctx.shadowBlur=0;
-          ctx.lineWidth=1.2; ctx.strokeStyle='rgba(255,196,148,0.28)';
-          ctx.lineJoin='round'; ctx.strokeText(p.text,0,0);
+          ctx.lineWidth=0.9; ctx.strokeStyle='rgba(255,210,160,0.35)';
+          ctx.strokeText(p.text,0,0);
         } else {
-          // Normal hit — soft warm bloom fringe (not pure ivory glow)
-          ctx.shadowColor='rgba(220,176,128,0.30)'; ctx.shadowBlur=7;
+          ctx.shadowColor='rgba(230,190,130,0.28)'; ctx.shadowBlur=9;
           ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
         }
-        // ── Warm dark burgundy depth shadow (not harsh black) ──
-        // This is the material-integration pass — text reads as physically
-        // lit within the scene rather than UI-pasted-on-top.
-        ctx.shadowColor='rgba(28,8,12,0.94)';
-        ctx.shadowBlur=big?5:3; ctx.shadowOffsetY=big?2:1;
+        ctx.shadowColor='rgba(22,6,10,0.96)';
+        ctx.shadowBlur=big?5:4; ctx.shadowOffsetY=big?2:1.5;
         ctx.fillStyle=p.color; ctx.fillText(p.text,0,0);
         ctx.shadowBlur=0; ctx.shadowOffsetY=0;
         if('letterSpacing' in ctx) ctx.letterSpacing = '0px';
@@ -16032,6 +16419,12 @@ function updateGamepad() {
 }
 function _updateGamepadInner() {
   const gp = navigator.getGamepads()[0];
+  // Sync gp-active class — handles pads already connected when page loaded
+  const _gpNow = !!gp;
+  if (_gpNow !== document.body.classList.contains('gp-active')) {
+    document.body.classList.toggle('gp-active', _gpNow);
+    if (typeof updateGpHints === 'function') updateGpHints();
+  }
   if (!gp) return;
 
   const deadzone = 0.3;
@@ -16445,6 +16838,11 @@ function _gpBtn(type) {
 function updateGpHints() {
   const el = document.getElementById('gpHints');
   if (!el) return;
+  // Never show hints when no gamepad is connected or mobile controls are active
+  if (!document.body.classList.contains('gp-active') || document.body.classList.contains('mc-active')) {
+    el.style.display = 'none';
+    return;
+  }
   const isPaused  = document.getElementById('pauseScreen')?.classList.contains('show');
   const isDeadOpen = document.getElementById('dead')?.classList.contains('show');
   const sid = document.querySelector('.screen:not(.hidden)')?.id;
@@ -16833,6 +17231,7 @@ function _clearAllInput(){
   Object.keys(_mcPressed||{}).forEach(k=>delete _mcPressed[k]);
 }
 window.addEventListener('gamepadconnected', e => {
+  document.body.classList.add('gp-active');
   const status = document.getElementById('status');
   if (status) {
     status.textContent = `🎮 ${e.gamepad.id.slice(0, 30)}`;
@@ -16844,11 +17243,10 @@ window.addEventListener('gamepadconnected', e => {
       setTimeout(() => { status.style.display = 'none'; }, 600);
     }, 3000);
   }
-  const hints = document.getElementById('gpHints');
-  if (hints) hints.style.display = 'flex';
   updateGpHints();
 });
 window.addEventListener('gamepaddisconnected', () => {
+  document.body.classList.remove('gp-active');
   const status = document.getElementById('status');
   if (status) status.style.display = 'none';
   const hints = document.getElementById('gpHints');
