@@ -168,80 +168,64 @@ body.mc-active #pixiCanvas {
    On phones they overflow the viewport. This section makes the whole
    menu layout fluid and phone-friendly.
 ══════════════════════════════════════════════════════════════════ */
-@media (max-width: 600px) {
-
-  /* nav container: no horizontal overflow, reduced left indent */
-  .menu-nav {
-    padding-left: calc(var(--sal, 0px) + 14px) !important;
-    margin-top: clamp(calc(var(--sat, 0px) + 12px), 4vh, calc(var(--sat, 0px) + 36px)) !important;
-    width: 100% !important;
-    overflow: hidden !important;
-    gap: 2px !important;
-  }
-
-  /* button: full available width */
-  .mnb {
-    width: 100% !important;
-    max-width: calc(100vw - var(--sal, 0px) - var(--sar, 0px) - 14px) !important;
-  }
-
-  /* inner: fluid width, compact padding, mobile font size */
-  .mnb-inner {
-    min-width: 0 !important;
-    width: 100% !important;
-    padding: 12px 24px 12px 14px !important;
-    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
-    letter-spacing: 0.09em !important;
-    gap: 9px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  /* disable per-item staggered widths — all full width on mobile */
-  .menu-nav > button:nth-child(1) .mnb-inner,
-  .menu-nav > button:nth-child(2) .mnb-inner,
-  .menu-nav > button:nth-child(3) .mnb-inner,
-  .menu-nav > button:nth-child(5) .mnb-inner,
-  .menu-nav > button:nth-child(6) .mnb-inner,
-  .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
-
-  /* no width expansion on tap (mobile has no hover) */
-  .mnb:hover .mnb-inner,
-  .mnb.gamepad-focused .mnb-inner,
-  .mnb:focus-visible .mnb-inner {
-    min-width: 0 !important;
-    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
-    padding: 12px 24px 12px 14px !important;
-  }
-
-  /* soften skew so it doesn't push content off the right edge */
-  .mnb-bg  { transform: skewX(-5deg) !important; }
-  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
-  .mnb:hover .mnb-bar,
-  .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
-
-  /* title / subtitle */
-  .menu-title    { font-size: clamp(1.35rem, 7.2vw, 1.9rem) !important; letter-spacing: 0.06em !important; }
-  .menu-subtitle { font-size: 0.50rem !important; letter-spacing: 0.20em !important; }
-
-  /* save info */
-  .save-info { font-size: 0.56rem !important; padding: 0 12px !important; text-align: center !important; }
-
-  /* divider spacing */
-  .menu-divider { margin: 4px auto !important; }
-  .mnb-sep      { margin: 3px 0 !important; }
+/* Mobile menu layout — applies whenever mobile mode is active (any size/orientation),
+   not just narrow widths. Landscape phones are >600px wide so a width media query
+   would miss them and leave the elongated desktop menu bars. */
+/* Mobile menu — flat selectors for max browser support */
+body.mc-active .menu-nav {
+  padding-left: calc(var(--sal, 0px) + 14px) !important;
+  margin-top: clamp(calc(var(--sat, 0px) + 12px), 4vh, calc(var(--sat, 0px) + 36px)) !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  gap: 2px !important;
 }
+body.mc-active .mnb {
+  width: 100% !important;
+  max-width: calc(100vw - var(--sal, 0px) - var(--sar, 0px) - 14px) !important;
+}
+body.mc-active .mnb-inner {
+  min-width: 0 !important;
+  width: 100% !important;
+  padding: 11px 22px 11px 14px !important;
+  font-size: clamp(0.78rem, 2.6vw, 1.05rem) !important;
+  letter-spacing: 0.09em !important;
+  gap: 9px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+body.mc-active .menu-nav > button:nth-child(1) .mnb-inner,
+body.mc-active .menu-nav > button:nth-child(2) .mnb-inner,
+body.mc-active .menu-nav > button:nth-child(3) .mnb-inner,
+body.mc-active .menu-nav > button:nth-child(5) .mnb-inner,
+body.mc-active .menu-nav > button:nth-child(6) .mnb-inner,
+body.mc-active .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
+body.mc-active .mnb:hover .mnb-inner,
+body.mc-active .mnb.gamepad-focused .mnb-inner,
+body.mc-active .mnb:focus-visible .mnb-inner {
+  min-width: 0 !important;
+  font-size: clamp(0.78rem, 2.6vw, 1.05rem) !important;
+  padding: 11px 22px 11px 14px !important;
+}
+body.mc-active .mnb-bg  { transform: skewX(-5deg) !important; }
+body.mc-active .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+body.mc-active .mnb:hover .mnb-bar,
+body.mc-active .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
+body.mc-active .menu-title    { font-size: clamp(1.35rem, 5vw, 2.1rem) !important; letter-spacing: 0.06em !important; }
+body.mc-active .menu-subtitle { font-size: clamp(0.5rem, 1.6vw, 0.7rem) !important; letter-spacing: 0.20em !important; }
+body.mc-active .save-info { font-size: clamp(0.56rem, 1.6vw, 0.7rem) !important; padding: 0 12px !important; text-align: center !important; }
+body.mc-active .menu-divider { margin: 4px auto !important; }
+body.mc-active .mnb-sep      { margin: 3px 0 !important; }
 
 /* very small phones (≤ 375px) */
 @media (max-width: 375px) {
-  .mnb-inner {
+  body.mc-active .mnb-inner {
     font-size: clamp(0.70rem, 4.3vw, 0.86rem) !important;
     padding: 10px 18px 10px 12px !important;
     letter-spacing: 0.06em !important;
   }
-  .menu-title    { font-size: clamp(1.1rem, 6.8vw, 1.5rem) !important; }
-  .menu-subtitle { font-size: 0.44rem !important; }
+  body.mc-active .menu-title    { font-size: clamp(1.1rem, 6.8vw, 1.5rem) !important; }
+  body.mc-active .menu-subtitle { font-size: 0.44rem !important; }
 }
 
 /* ── ROTATE DEVICE OVERLAY ──
@@ -294,11 +278,6 @@ canvas{display:block;}
   position:fixed;
   overflow:hidden;
   background:#000;
-  /* transform creates a containing block for position:fixed children.
-     will-change ensures the compositing layer exists even at translate(0,0).
-     Without this, fixed children escape #viewport and use the browser viewport. */
-  transform: translateZ(0);
-  will-change: transform;
   /* JS scaleViewport() sets exact size & position */
 }
 /* The canvas always fills the viewport box — same 16:9 ratio, no distortion */
@@ -3987,10 +3966,6 @@ function scaleViewport(){
     vp.style.top    = Math.round((wh-vpH)/2)+'px';
     vp.style.left   = Math.round((ww-vpW)/2)+'px';
   }
-  // translateZ(0) guarantees all browsers create a compositing layer and treat
-  // #viewport as containing block for position:fixed children (.screen, #hud etc.)
-  // translate(0,0) can be optimised away by some mobile browsers; translateZ(0) cannot.
-  vp.style.transform = 'translateZ(0)';
   _applyResponsiveUI();
 }
 window.addEventListener('resize',()=>{ scaleViewport(); if(save&&save.mobileControls){ _applyHudScale(); } });
