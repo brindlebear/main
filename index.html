@@ -174,6 +174,88 @@ body.mc-active #pixiCanvas {
   image-rendering: pixelated !important;
   image-rendering: crisp-edges !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE MENU — phones ≤ 600px
+   .mnb items have hardcoded min-widths (400px+) designed for desktop.
+   On phones they overflow the viewport. This section makes the whole
+   menu layout fluid and phone-friendly.
+══════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* nav container: no horizontal overflow, reduced left indent */
+  .menu-nav {
+    padding-left: calc(var(--sal, 0px) + 14px) !important;
+    margin-top: clamp(calc(var(--sat, 0px) + 12px), 4vh, calc(var(--sat, 0px) + 36px)) !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    gap: 2px !important;
+  }
+
+  /* button: full available width */
+  .mnb {
+    width: 100% !important;
+    max-width: calc(100vw - var(--sal, 0px) - var(--sar, 0px) - 14px) !important;
+  }
+
+  /* inner: fluid width, compact padding, mobile font size */
+  .mnb-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 12px 24px 12px 14px !important;
+    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
+    letter-spacing: 0.09em !important;
+    gap: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* disable per-item staggered widths — all full width on mobile */
+  .menu-nav > button:nth-child(1) .mnb-inner,
+  .menu-nav > button:nth-child(2) .mnb-inner,
+  .menu-nav > button:nth-child(3) .mnb-inner,
+  .menu-nav > button:nth-child(5) .mnb-inner,
+  .menu-nav > button:nth-child(6) .mnb-inner,
+  .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
+
+  /* no width expansion on tap (mobile has no hover) */
+  .mnb:hover .mnb-inner,
+  .mnb.gamepad-focused .mnb-inner,
+  .mnb:focus-visible .mnb-inner {
+    min-width: 0 !important;
+    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
+    padding: 12px 24px 12px 14px !important;
+  }
+
+  /* soften skew so it doesn't push content off the right edge */
+  .mnb-bg  { transform: skewX(-5deg) !important; }
+  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+  .mnb:hover .mnb-bar,
+  .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
+
+  /* title / subtitle */
+  .menu-title    { font-size: clamp(1.35rem, 7.2vw, 1.9rem) !important; letter-spacing: 0.06em !important; }
+  .menu-subtitle { font-size: 0.50rem !important; letter-spacing: 0.20em !important; }
+
+  /* save info */
+  .save-info { font-size: 0.56rem !important; padding: 0 12px !important; text-align: center !important; }
+
+  /* divider spacing */
+  .menu-divider { margin: 4px auto !important; }
+  .mnb-sep      { margin: 3px 0 !important; }
+}
+
+/* very small phones (≤ 375px) */
+@media (max-width: 375px) {
+  .mnb-inner {
+    font-size: clamp(0.70rem, 4.3vw, 0.86rem) !important;
+    padding: 10px 18px 10px 12px !important;
+    letter-spacing: 0.06em !important;
+  }
+  .menu-title    { font-size: clamp(1.1rem, 6.8vw, 1.5rem) !important; }
+  .menu-subtitle { font-size: 0.44rem !important; }
+}
 </style>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -771,6 +853,38 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
     padding:0 20px;
     max-width:340px;
   }
+
+  /* ── .mnb (DMC-style menu items) in landscape phone ── */
+  .menu-nav {
+    padding-left: calc(var(--sal,0px) + 12px) !important;
+    margin-top: 6px !important;
+    gap: 1px !important;
+    overflow: hidden !important;
+  }
+  .mnb { width: 100% !important; }
+  .mnb-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 0.62rem !important;
+    padding: 7px 20px 7px 12px !important;
+    letter-spacing: 0.07em !important;
+    gap: 7px !important;
+  }
+  .menu-nav > button:nth-child(1) .mnb-inner,
+  .menu-nav > button:nth-child(2) .mnb-inner,
+  .menu-nav > button:nth-child(3) .mnb-inner,
+  .menu-nav > button:nth-child(5) .mnb-inner,
+  .menu-nav > button:nth-child(6) .mnb-inner,
+  .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
+  .mnb:hover .mnb-inner, .mnb.gamepad-focused .mnb-inner {
+    min-width: 0 !important;
+    font-size: 0.62rem !important;
+    padding: 7px 20px 7px 12px !important;
+  }
+  .mnb-bg  { transform: skewX(-5deg) !important; }
+  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+  .mnb:hover .mnb-bar, .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
+  .mnb-sep { margin: 2px 0 !important; }
 
   /* ── SETTINGS — two-column grid ── */
   #settingsScreen{min-height:100%;overflow-y:auto;}
