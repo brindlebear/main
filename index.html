@@ -96,15 +96,7 @@
   bottom: var(--cdb-bottom) !important;
   right:  var(--cdb-right)  !important;
 }
-body.mc-active #cdBar {
-  top:    var(--cdb-top-mc) !important;
-  bottom: auto !important;
-  right:  var(--cdb-right)  !important;
-}
-body.mc-active.boss-fighting #cdBar {
-  top: calc(var(--sat) + 206px) !important;
-  bottom: auto !important;
-}
+/* cdBar hidden entirely on mobile (see main stylesheet) */
 
 /* Combo HUD positions — clear old hardcoded values */
 .combo-hud                                              { top: var(--combo-top)         !important; }
@@ -1242,13 +1234,9 @@ body:not(.mc-active) .combo-hud{top:var(--combo-top,148px);}
 /* hide gpHints on mobile — cooldown bar still shown, repositioned */
 body.mc-active #gpHints{display:none!important;}
 /* Mobile cdBar — same column layout, right side, below combo meter */
-body.mc-active #cdBar{
-  top:var(--cdb-top-mc,172px);bottom:auto;right:var(--cdb-right,24px);
-}
-body.mc-active #cdBar .cdi-key,
-body.mc-active #cdBar .cdi-btn{display:none!important;}
-/* Shift down when boss bar is visible */
-body.mc-active.boss-fighting #cdBar{top:calc(var(--sat,0px) + 206px);}
+/* On mobile the touch buttons already represent these actions — the cooldown
+   hint bar (SPECIAL/MAGIC/LAUNCH labels) just overlaps the controls, so hide it. */
+body.mc-active #cdBar{ display:none !important; }
 /* ── Input-mode visibility rules ── */
 /* gpHints bar only renders when a gamepad is connected */
 body:not(.gp-active) #gpHints{display:none!important;}
@@ -30433,22 +30421,44 @@ openDB().then(()=>{
 });
 initMobileControls();
 
-// On mobile, fullscreen + orientation lock require a user gesture. Fire on the
-// first touch/click. Mobile mode itself is already decided in loadSave().
-function _mobileEnterImmersive(){
+// On mobile, fullscreen + orientation lock require a user gesture (see _tryImmersive below).
+document.addEventListener('touchstart',function _ftMob(){
+  preloadAllSfx();
+  document.removeEventListener('touchstart',_ftMob);
+},{once:true,passive:true});
+
+// Fullscreen + orientation lock MUST come from a real user gesture. A passive
+// document touchstart is unreliable on mobile browsers, so bind to the END of
+// a real tap (touchend) and to click, non-passive, and keep trying until it
+// succeeds (some browsers reject the first attempt during scroll/menu transitions).
+let _immersiveDone = false;
+function _tryImmersive(){
+  if(_immersiveDone) return;
   if(!save || !save.mobileControls) return;
+  let ok = false;
   if(!isFullscreen()){
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if(req){ try { const p = req.call(el); if(p&&p.then) p.catch(()=>{}); } catch(e){} }
-  }
+    if(req){
+      try {
+        const p = req.call(el);
+        if(p && p.then){ p.then(()=>{ ok=true; }).catch(()=>{}); }
+        ok = true; // assume gesture accepted; if not, we retry on next tap
+      } catch(e){ ok = false; }
+    }
+  } else { ok = true; }
   _lockOrientation();
+  if(ok){
+    _immersiveDone = true;
+    document.removeEventListener('touchend', _tryImmersive, true);
+    document.removeEventListener('click', _tryImmersive, true);
+    document.removeEventListener('pointerup', _tryImmersive, true);
+  }
 }
-document.addEventListener('touchstart',function _ftMob(){
-  preloadAllSfx();
-  _mobileEnterImmersive();
-  document.removeEventListener('touchstart',_ftMob);
-},{once:true,passive:true});
+// Capture phase (true) so it runs even when a button handler stops propagation.
+document.addEventListener('touchend',  _tryImmersive, true);
+document.addEventListener('click',     _tryImmersive, true);
+document.addEventListener('pointerup', _tryImmersive, true);
 
 // ══════════════════════════════════════════
 //  WEAPON EDITOR
