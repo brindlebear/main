@@ -3533,12 +3533,6 @@ body:has(#settingsScreen:not(.hidden)) #cineLetterBot{display:none;}
         <div class="diff-locked-note">Only changeable from the main menu</div>
       </div>
       <div class="settings-divider"></div>
-      <div class="settings-section-lbl">Mobile Controls</div>
-      <button class="menu-btn settings-fs-btn" id="mobileCtrlBtn" onclick="toggleMobileControls()">
-        <span>📱</span><span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
-      </button>
-      <div class="diff-desc">Touch HUD for phones in landscape</div>
-      <div class="settings-divider"></div>
       <div class="settings-section-lbl">Controller Layout</div>
       <button class="menu-btn settings-fs-btn" onclick="toggleControllerLayout()">
         <span>🎮</span><span id="ctrlLayoutLabel">CONTROLLER: XBOX</span>
@@ -4145,6 +4139,30 @@ function calcStRegen(){ return 0.40 + save.stats.agi*0.07; }
 function calcMaxMp(){ return 45 + (save.stats.int||1)*18; }
 function calcMpRegen(){ return 0.10 + (save.stats.int||1)*0.012; }
 
+// ── DEVICE DETECTION ──
+// True for phones/tablets (iOS, Android, touch laptops in tablet mode).
+// Combines multiple independent signals so it survives "Desktop site" mode,
+// where the userAgent is spoofed to desktop but the hardware pointer is not.
+function _isMobileDevice(){
+  // 1. UA test — fast path for normal mobile browsers
+  const ua = navigator.userAgent || navigator.vendor || '';
+  const uaMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(ua);
+  // 2. iPadOS 13+ reports as desktop Safari — detect via touch + Mac platform
+  const iPadOS = navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1;
+  // 3. Hardware pointer — survives Desktop-site spoofing
+  let coarse = false, noHover = false;
+  try {
+    coarse  = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+  } catch(e){}
+  // 4. Touch capability
+  const touchPts = (navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0) > 0;
+  const hasTouch = ('ontouchstart' in window) || touchPts;
+  // Decision: any strong mobile signal wins. A true touch screen (coarse pointer
+  // AND no hover) is the most reliable; UA/iPad are fast confirmations.
+  return !!(uaMobile || iPadOS || (coarse && noHover) || (hasTouch && coarse));
+}
+
 async function loadSave(){
   try {
     const s=await dbGet('save');
@@ -4154,26 +4172,11 @@ async function loadSave(){
     equipSpell(save.spell||'fireball');
     equipAccessory(save.accessories||[]);
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
-  // ── Auto-enable mobile controls on touch devices ──
-  // Runs every load UNTIL the player makes an explicit choice (mobileControlsSet).
-  // Uses pointer:coarse + touch-point signals which survive "Desktop site" mode
-  // far better than userAgent sniffing (which is spoofed to desktop in that mode).
-  if(!save.mobileControlsSet){
-    let coarse = false, noHover = false;
-    try {
-      coarse  = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-      noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
-    } catch(e){}
-    const touchPts = (navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0) > 0;
-    const hasTouch = ('ontouchstart' in window) || touchPts;
-    const smallSide = Math.min(window.screen?.width||9999, window.screen?.height||9999) < 950;
-    // A device is "mobile" if it has a coarse pointer / no hover (real touch screen),
-    // OR it exposes touch points on a physically small screen.
-    const isTouch = coarse || noHover || (hasTouch && smallSide);
-    save.mobileControls = !!isTouch;
-    // Leave mobileControlsSet falsy so detection keeps running until the user
-    // explicitly toggles — this self-corrects if the first detection was wrong.
-  }
+  // ── DEFINITIVE DEVICE MODE ──
+  // Mobile (phone/tablet/iOS/Android) → mobile controls forced ON.
+  // Desktop → mobile controls forced OFF (mouse/keyboard + controller only).
+  // This is decided fresh every load and is NOT user-overridable.
+  save.mobileControls = _isMobileDevice();
   _smoothRender = !!save.smoothRender;
   _syncSmoothRenderBtn();
   _updateControllerLayout();
@@ -30157,12 +30160,9 @@ if(window.visualViewport){
     if(save && save.mobileControls){ scaleViewport(); _applyHudScale(); _checkOrientationFallback(); }
   });
 }
-function toggleMobileControls(){
-  save.mobileControls=!save.mobileControls;
-  save.mobileControlsSet=true; // explicit user choice — auto-detect won't override
-  _syncMobileBtn();_applyHudScale();_applyResponsiveUI();_syncHudSizeDisplays();scaleViewport();writeSave();
-  if(save.mobileControls) _lockOrientation(); else _unlockOrientation();
-}
+// Mobile controls are auto-detected at boot and not user-toggleable.
+// Kept as a no-op so any stray references don't throw.
+function toggleMobileControls(){ /* removed — mobile mode is automatic */ }
 function _updateControllerLayout(){
   const ps=(save.controllerLayout||'xbox')==='ps';
   document.body.classList.toggle('ps-ctrl',ps);
@@ -30184,11 +30184,8 @@ function toggleControllerLayout(){
   writeSave();
 }
 function _syncMobileBtn(){
-  const on=!!save.mobileControls;
-  const lbl=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
-  const l=document.getElementById('mobileCtrlLabel'); if(l) l.textContent=lbl;
-  const p=document.getElementById('pauseMobileCtrlLabel'); if(p) p.textContent=(on?'MOBILE: ON':'MOBILE: OFF');
-  // Refresh the unified pause HUD row value to match current mode
+  // Mobile mode is automatic now — the settings toggle was removed.
+  // Kept for callers; just refreshes the HUD size row.
   _syncHudSizeDisplays();
 }
 function togglePhaseIndicator(){
@@ -30426,7 +30423,7 @@ updateGamepad();
 openDB().then(()=>{
   loadSave().then(()=>{
     scaleViewport();_applyHudScale();_applyResponsiveUI();
-    if(save.mobileControls) _lockOrientation();
+    if(save.mobileControls){ _lockOrientation(); _checkOrientationFallback(); }
     showMenu();
   }).catch(()=>{
     scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
@@ -30435,50 +30432,22 @@ openDB().then(()=>{
   scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
 });
 initMobileControls();
-// ── DIAGNOSTIC: surface device detection so we can debug mobile issues ──
-// Tap the green box (top-left) to dismiss. Remove this block once mobile works.
-(function _showDiag(){
-  try {
-    const d = document.getElementById('diagOverlay');
-    if(!d) return;
-    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    const noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
-    const vv = window.visualViewport;
-    d.innerHTML =
-      'TAP TO CLOSE<br>'+
-      'mobileControls: '+(save?save.mobileControls:'?')+'<br>'+
-      'mcSet: '+(save?save.mobileControlsSet:'?')+'<br>'+
-      'pointer:coarse: '+coarse+'<br>'+
-      'hover:none: '+noHover+'<br>'+
-      'maxTouchPoints: '+(navigator.maxTouchPoints||0)+'<br>'+
-      'ontouchstart: '+('ontouchstart' in window)+'<br>'+
-      'innerW×H: '+window.innerWidth+'×'+window.innerHeight+'<br>'+
-      'screen: '+screen.width+'×'+screen.height+'<br>'+
-      'visualVP: '+(vv?Math.round(vv.width)+'×'+Math.round(vv.height):'n/a')+'<br>'+
-      'dpr: '+window.devicePixelRatio+'<br>'+
-      'fullscreen: '+isFullscreen();
-    d.style.display = 'block';
-  } catch(e){}
-})();
-// Auto-fullscreen fires on first touch when mobile controls are active
-// (auto-enabled on touch devices). Must be a user gesture per browser policy.
-document.addEventListener('touchstart',function _ft(){
-  preloadAllSfx();
-  // A real touchstart event proves this is a touch device — enable mobile controls
-  // if they weren't already (covers Desktop-site mode where detection failed),
-  // and request fullscreen. Both must happen inside this user gesture.
-  if(!save.mobileControlsSet && !save.mobileControls){
-    save.mobileControls = true;
-    _syncMobileBtn(); _applyHudScale(); _applyResponsiveUI(); scaleViewport();
-    _lockOrientation();
-    writeSave();
-  }
+
+// On mobile, fullscreen + orientation lock require a user gesture. Fire on the
+// first touch/click. Mobile mode itself is already decided in loadSave().
+function _mobileEnterImmersive(){
+  if(!save || !save.mobileControls) return;
   if(!isFullscreen()){
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if(req){ try { req.call(el).catch(()=>{}); } catch(e){} }
+    if(req){ try { const p = req.call(el); if(p&&p.then) p.catch(()=>{}); } catch(e){} }
   }
-  document.removeEventListener('touchstart',_ft);
+  _lockOrientation();
+}
+document.addEventListener('touchstart',function _ftMob(){
+  preloadAllSfx();
+  _mobileEnterImmersive();
+  document.removeEventListener('touchstart',_ftMob);
 },{once:true,passive:true});
 
 // ══════════════════════════════════════════
@@ -32348,9 +32317,6 @@ window.addEventListener('keydown',e=>{
 }
 </script>
 <!-- Rotate device overlay — shown on mc-active portrait when OS lock unavailable -->
-<!-- Diagnostic — tap to dismiss. Shows what the device reports for debugging. -->
-<div id="diagOverlay" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;z-index:99999;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:8px 10px;max-width:90vw;line-height:1.5;pointer-events:all;border-bottom-right-radius:8px;"></div>
-
 <div id="rotateOverlay">
   <div class="rot-icon">📱</div>
   <div class="rot-text">Rotate to landscape</div>
