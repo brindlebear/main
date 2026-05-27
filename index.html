@@ -50,6 +50,7 @@
   /* ── Pause button ── */
   --pause-top:  calc(var(--sat) + 8px);
   --pause-left: calc(var(--sal) + 10px);
+  --pause-right: calc(var(--sar) + 10px);
 
   /* ── Boss bar — top-centre ── */
   --boss-bar-top: var(--sat);
@@ -92,8 +93,9 @@ body.mc-active #viewport {
   right: var(--streak-right) !important;
 }
 #pauseBtn {
-  top:  var(--pause-top)  !important;
-  left: var(--pause-left) !important;
+  top:   var(--pause-top)   !important;
+  right: var(--pause-right) !important;
+  left:  auto               !important;
 }
 #bossBar { top: var(--boss-bar-top) !important; }
 
@@ -1440,8 +1442,8 @@ body.boss-fighting.boss-has-status .combo-hud{top:var(--combo-top-mc-boss,154px)
 body.boss-fighting.boss-has-status:not(.mc-active) .combo-hud{top:var(--combo-top-boss-st,238px);}
 
 /* ── PAUSE ── */
-#pauseBtn{position:fixed;top:var(--pause-top,8px);left:var(--pause-left,10px);right:auto;transform:none;z-index:15;pointer-events:all;
-  width:32px;height:32px;border-radius:6px;border:1px solid rgba(200,160,80,0.25);
+#pauseBtn{position:fixed;top:var(--pause-top,8px);right:var(--pause-right,10px);left:auto;transform:none;z-index:15;pointer-events:all;
+  width:36px;height:36px;border-radius:8px;border:1px solid rgba(200,160,80,0.25);
   background:rgba(8,6,3,0.55);backdrop-filter:blur(4px);
   color:rgba(200,160,80,0.6);font-size:0.9rem;cursor:pointer;display:none;
   align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
@@ -11506,13 +11508,20 @@ function _tickPixiMobileControls(){
     const fillAlpha = p ? 0.38 : _mcParseAlpha(b.col);
     const strokeCol = p ? 0xffd73c : 0xffffff;
     const strokeAlpha = p ? 0.95 : 0.50;
-    g.circle(b.x, b.y, b.r)
+    // Draw as ellipse compensating for canvas→screen scale distortion.
+    // b.rx/ry are canvas-space radii that appear circular after CSS scaling.
+    const erx = b.rx ?? b.r;
+    const ery = b.ry ?? b.r;
+    g.ellipse(b.x, b.y, erx, ery)
      .fill({ color: fillCol, alpha: fillAlpha })
      .stroke({ width: p ? 2.5 : 1.5, color: strokeCol, alpha: strokeAlpha });
     // Label
     const lbl = _pixiMobileCtlLabelPool[labelIdx++];
     if(lbl.text !== b.label) lbl.text = b.label;
-    const fontSize = Math.round(b.r * 0.58);
+    // Use the smaller of rx/ry (both in canvas-space) to size the font,
+    // so the label fits inside the visible circle on screen.
+    const labelR = Math.min(b.rx ?? b.r, b.ry ?? b.r);
+    const fontSize = Math.round(labelR * 0.62);
     if(lbl.style.fontSize !== fontSize) lbl.style.fontSize = fontSize;
     lbl.x = b.x;
     lbl.y = b.y + 1;
@@ -11526,20 +11535,21 @@ function _tickPixiMobileControls(){
     if(_mb){
       const charges = player.mpCD > 0 ? 0
                     : (player.pfCharges > 0 && player.pfWindow > 0 ? 1 : 2);
-      const bx = _mb.x + _mb.r * 0.65;
-      const by = _mb.y - _mb.r * 0.65;
-      const br = _mb.r * 0.38;
+      const bx = _mb.x + (_mb.rx??_mb.r) * 0.65;
+      const by = _mb.y - (_mb.ry??_mb.r) * 0.65;
+      const brx = (_mb.rx??_mb.r) * 0.38;
+      const bry = (_mb.ry??_mb.r) * 0.38;
       const badgeCol = charges === 2 ? 0xa064ff
                      : charges === 1 ? 0xff8c14
                                      : 0x3c3c3c;
       const badgeAlpha = charges === 0 ? 0.80 : 0.92;
-      g.circle(bx, by, br)
+      g.ellipse(bx, by, brx, bry)
        .fill({ color: badgeCol, alpha: badgeAlpha })
        .stroke({ width: 1, color: 0xffffff, alpha: 0.55 });
       const badge = _pixiMobileCtlBadgePool[badgeIdx++];
       const txt = String(charges);
       if(badge.text !== txt) badge.text = txt;
-      const fontSize = Math.round(br * 1.5);
+      const fontSize = Math.round(Math.min(brx,bry) * 1.5);
       if(badge.style.fontSize !== fontSize) badge.style.fontSize = fontSize;
       badge.x = bx;
       badge.y = by + 1;
@@ -18959,7 +18969,7 @@ let DRAK_ATK_COOLDOWN     = 82;   // cooldown after each attack
 // ══════════════════════════════════════════
 let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,deflect:false,grapple:false};
 let jumpEdge=false, atkEdge=false, evadeEdge=false, deflectEdge=false, prevLaunchHeld=false, launchHoldFrames=0, prevSpHeld=false;
-let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false;
+let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false, _mcAtkHeld=false;
 let _airDownSlashNeedsRehold=false; // blocks air-downslash until attack button is released after upward slash
 let _airDownSlashNeedsAtkRehold=false; // blocks upwardSlash from auto-firing when attack is still held on Headbreaker landing
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
@@ -25474,7 +25484,7 @@ function _loopUpdate(){
   player._moveMag = _moveMag;
   const jump=keys['ArrowUp']||keys['w']||keys['W']||keys[' ']||btnS.jump;
   // Raw held state — true every frame the attack button is physically depressed.
-  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld;
+  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld||_mcAtkHeld;
   // Air Downward Slash: hold attack while airborne and not mid-attack animation.
   // _airDownSlashNeedsRehold blocks it if the button was continuously held from an upward slash —
   // player must release and re-press to confirm intent.
@@ -29883,16 +29893,16 @@ function _applyHudScale(){
   const rm = v => (v * s).toFixed(2) + 'rem';
   if(mob){
     r.style.setProperty('--hud-pad', px(6));    r.style.setProperty('--hud-w', vw(18));
-    r.style.setProperty('--hud-minw', px(110)); r.style.setProperty('--hud-maxw', px(170));
-    r.style.setProperty('--hud-p', `${px(4)} ${px(8)}`); r.style.setProperty('--hud-gap', px(3));
-    r.style.setProperty('--hud-icon', rm(0.55)); r.style.setProperty('--hud-icon-w', px(11));
-    r.style.setProperty('--hud-icon-lbl', rm(0.32));
-    r.style.setProperty('--hud-bar-h', px(5));  r.style.setProperty('--hud-val', rm(0.48));
-    r.style.setProperty('--hud-val-w', px(22)); r.style.setProperty('--hud-lv', rm(0.44));
-    r.style.setProperty('--hud-score', rm(0.38));
-    r.style.setProperty('--hud-level', rm(0.73)); r.style.setProperty('--hud-wave', rm(0.73));
-    r.style.setProperty('--hud-potion', rm(0.9));
-    r.style.setProperty('--hud-exp-h', px(4));
+    r.style.setProperty('--hud-minw', px(130)); r.style.setProperty('--hud-maxw', px(200));
+    r.style.setProperty('--hud-p', `${px(6)} ${px(10)}`); r.style.setProperty('--hud-gap', px(5));
+    r.style.setProperty('--hud-icon', rm(0.60)); r.style.setProperty('--hud-icon-w', px(13));
+    r.style.setProperty('--hud-icon-lbl', rm(0.34));
+    r.style.setProperty('--hud-bar-h', px(8));  r.style.setProperty('--hud-val', rm(0.52));
+    r.style.setProperty('--hud-val-w', px(26)); r.style.setProperty('--hud-lv', rm(0.48));
+    r.style.setProperty('--hud-score', rm(0.42));
+    r.style.setProperty('--hud-level', rm(0.76)); r.style.setProperty('--hud-wave', rm(0.76));
+    r.style.setProperty('--hud-potion', rm(0.95));
+    r.style.setProperty('--hud-exp-h', px(5));
     r.style.setProperty('--boss-bar-w-px', px(220));
     r.style.setProperty('--boss-track-h', px(6));   r.style.setProperty('--boss-name-sz', rm(0.50));
     r.style.setProperty('--boss-num-sz', rm(0.50));  r.style.setProperty('--boss-stun-lbl-sz', rm(0.38));
@@ -29950,30 +29960,45 @@ function _buildMcLayout(){
   const scX = sW/cW, scY = sH/cH;
   _mcPixelScale = Math.min(scX,scY);
   const W=cW, H=cH;
-  const sizeFactor = Math.max(0.72, Math.min(1.3, sH/730));
-  const r    = Math.round(H*0.085*sizeFactor);
-  const rBig = Math.round(H*0.105*sizeFactor);
-  const rSm  = Math.round(H*0.072*sizeFactor);
-  const pad  = Math.round(H*0.052), gap=Math.round(r*2.55);
-  const gapSm = Math.round(rSm*2.55);
+  // Target button sizes in SCREEN pixels (feel/comfort), then convert to canvas units.
+  // This avoids the oval problem: we define radius in screen-px, then compute
+  // separate canvas-x and canvas-y radii that appear circular after CSS scaling.
+  const sizeFactor = Math.max(0.85, Math.min(1.3, sH/730));
+  // Screen-pixel target radii — deliberately larger than before
+  const rScrMove = Math.round(52 * sizeFactor);   // left/right movement — largest
+  const rScrAtk  = Math.round(60 * sizeFactor);   // attack — biggest of all
+  const rScrSm   = Math.round(40 * sizeFactor);   // utility buttons
+  // Convert screen radii → canvas radii (use average to keep hitbox fair)
+  const r    = Math.round(rScrMove / ((scX+scY)/2));
+  const rBig = Math.round(rScrAtk  / ((scX+scY)/2));
+  const rSm  = Math.round(rScrSm   / ((scX+scY)/2));
+  // Per-axis ellipse radii so buttons appear circular on screen
+  // rx * scX = ry * scY = screen radius  →  rx = screenR/scX, ry = screenR/scY
+  const toRx = (rScr) => rScr / scX;
+  const toRy = (rScr) => rScr / scY;
+  const pad  = Math.round(H*0.048);
+  // Gap proportional to screen radii (spacing in canvas units)
+  const gap   = Math.round((rScrMove * 2.4) / ((scX+scY)/2));
+  const gapSm = Math.round((rScrSm   * 2.4) / ((scX+scY)/2));
   const cs = getComputedStyle(document.documentElement);
   const safB = Math.round((parseFloat(cs.getPropertyValue('--sab'))||0)/scY);
   const safL = Math.round((parseFloat(cs.getPropertyValue('--sal'))||0)/scX);
   const safR = Math.round((parseFloat(cs.getPropertyValue('--sar'))||0)/scX);
   const lx=pad+safL+r, ly=H-pad-safB-r;
   const rx=W-pad-safR-rBig, ry=H-pad-safB-rBig;
+  // Store ellipse radii on each button so the renderer can draw true circles
   _mcBtns=[
-    {id:'l',      x:lx,       y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.28)'},
-    {id:'r',      x:lx+gap,   y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.28)'},
-    {id:'grapple',x:lx,       y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.28)'},
-    {id:'deflect',x:lx+gap,   y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,100,20,0.28)'},
-    {id:'target', x:lx,       y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.28)'},
-    {id:'jump',   x:rx,       y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.28)'},
-    {id:'atk',    x:rx,       y:ry,          r:rBig, label:'⚔',col:'rgba(220,60,60,0.35)'},
-    {id:'magic',  x:rx-gap,   y:ry,          r:rSm,  label:'✨',col:'rgba(120,80,220,0.28)'},
-    {id:'evade',  x:rx-gap,   y:ry-gap,      r:rSm,  label:'💨',col:'rgba(60,140,220,0.28)'},
-    {id:'launch', x:rx-gap*2, y:ry,          r:rSm,  label:'↑', col:'rgba(40,180,130,0.28)'},
-    {id:'sp',     x:rx-gap*2, y:ry-gapSm,    r:rSm,  label:'★', col:'rgba(255,160,20,0.30)'},
+    {id:'l',      x:lx,       y:ly,          r:r,    rx:toRx(rScrMove), ry:toRy(rScrMove), label:'◀',col:'rgba(255,255,255,0.28)'},
+    {id:'r',      x:lx+gap,   y:ly,          r:r,    rx:toRx(rScrMove), ry:toRy(rScrMove), label:'▶',col:'rgba(255,255,255,0.28)'},
+    {id:'grapple',x:lx,       y:ly-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🪝',col:'rgba(255,200,60,0.28)'},
+    {id:'deflect',x:lx+gap,   y:ly-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🛡',col:'rgba(255,100,20,0.28)'},
+    {id:'target', x:lx,       y:ly-gap-gapSm,r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🎯',col:'rgba(60,200,255,0.28)'},
+    {id:'jump',   x:rx,       y:ry-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'▲',col:'rgba(255,255,255,0.28)'},
+    {id:'atk',    x:rx,       y:ry,          r:rBig, rx:toRx(rScrAtk),  ry:toRy(rScrAtk),  label:'⚔',col:'rgba(220,60,60,0.35)'},
+    {id:'magic',  x:rx-gap,   y:ry,          r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'✨',col:'rgba(120,80,220,0.28)'},
+    {id:'evade',  x:rx-gap,   y:ry-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'💨',col:'rgba(60,140,220,0.28)'},
+    {id:'launch', x:rx-gap*2, y:ry,          r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'↑', col:'rgba(40,180,130,0.28)'},
+    {id:'sp',     x:rx-gap*2, y:ry-gapSm,    r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'★', col:'rgba(255,160,20,0.30)'},
   ];
   const topmost=Math.min(..._mcBtns.map(b=>b.y-b.r));
   const ctrlH_screen=Math.round((H-topmost)*scY)+(parseFloat(cs.getPropertyValue('--sab'))||0)+16;
@@ -29992,7 +30017,7 @@ function _mcOn(id){
   if(id==='l'||id==='r') btnS.walkMag = undefined;
   if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
-  else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
+  else if(id==='atk'){atkEdge=true;_mcAtkHeld=true;}else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
   else if(id==='deflect'){deflectEdge=true;btnS.deflect=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
@@ -30003,6 +30028,7 @@ function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
+  else if(id==='atk')_mcAtkHeld=false;
   else if(id==='deflect')btnS.deflect=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
@@ -30127,8 +30153,8 @@ function _applyResponsiveUI(){
   r.style.setProperty('--streak-right', streakRight + 'px');
 
   // ── Pause button — top-left ──
-  r.style.setProperty('--pause-top',  Math.round(sat + 8  * sScale) + 'px');
-  r.style.setProperty('--pause-left', Math.round(sal + 10 * sScale) + 'px');
+  r.style.setProperty('--pause-top',   Math.round(sat + 8  * sScale) + 'px');
+  r.style.setProperty('--pause-right', Math.round(sar + 10 * sScale) + 'px');
 
   // ── Boss bar — flush to top safe area ──
   r.style.setProperty('--boss-bar-top', sat + 'px');
@@ -30233,7 +30259,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('blur', _clearAllInput);
 
 function _clearAllInput(){
-  keys={}; _rmbHeld=false;
+  keys={}; _rmbHeld=false; _mcAtkHeld=false;
   btnS.l=btnS.r=btnS.jump=btnS.sp=btnS.magic=btnS.launch=btnS.evade=btnS.grapple=btnS.deflect=false;
   jumpEdge=false; atkEdge=false; evadeEdge=false; deflectEdge=false;
   // Clear any stuck mobile touch mappings
