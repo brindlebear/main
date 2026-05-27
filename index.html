@@ -495,6 +495,108 @@ body.mc-active #bossRushScreen .mnb-inner{
   color:rgba(225,195,130,0.92)!important;
 }
 
+/* ════════ ALL REMAINING SCREENS — MOBILE (mc-active only) ════════ */
+
+/* Shared: every screen scrolls, fits within safe area, compact title */
+body.mc-active #tutorialScreen,
+body.mc-active #settingsScreen,
+body.mc-active #prepScreen,
+body.mc-active #pauseScreen,
+body.mc-active #dead,
+body.mc-active #stageCompleteScreen{
+  justify-content:flex-start!important;
+  overflow-y:auto!important; overflow-x:hidden!important;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 14px) calc(env(safe-area-inset-left,0px) + 14px)!important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ---- HOW TO PLAY ---- */
+body.mc-active #tutorialScreen .tut-wrap{ max-width:100%!important; width:100%!important; }
+body.mc-active #tutorialScreen .tut-title{ font-size:clamp(1.2rem,4vw,1.8rem)!important; margin-bottom:3px!important; }
+body.mc-active #tutorialScreen .tut-sub{ font-size:clamp(0.5rem,1.6vw,0.62rem)!important; }
+body.mc-active #tutorialScreen .tut-grid{
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr))!important;
+  gap:8px!important; margin-bottom:10px!important;
+}
+body.mc-active #tutorialScreen .tut-card{ padding:11px 13px!important; border-radius:9px!important; }
+body.mc-active #tutorialScreen .tut-card-title{ font-size:0.85rem!important; }
+body.mc-active #tutorialScreen .tut-row{ padding:4px 0!important; gap:8px!important; }
+body.mc-active #tutorialScreen .tut-keys{ width:88px!important; }
+body.mc-active #tutorialScreen .tut-desc{ font-size:0.68rem!important; }
+body.mc-active #tutorialScreen .tut-key{ font-size:0.6rem!important; padding:2px 5px!important; }
+body.mc-active #tutorialScreen .tut-pill{ font-size:0.55rem!important; }
+
+/* ---- SETTINGS ---- */
+body.mc-active #settingsScreen .settings-wrap{
+  max-height:none!important; width:100%!important; max-width:560px!important;
+  margin:0 auto!important; padding:4px 0 20px!important; gap:7px!important;
+}
+body.mc-active #settingsScreen .sel-title{ font-size:clamp(1.3rem,4vw,1.9rem)!important; }
+body.mc-active #settingsScreen .settings-fs-btn,
+body.mc-active #settingsScreen .menu-btn{ width:min(92vw,420px)!important; }
+
+/* ---- PREP (loadout before a run) ---- */
+body.mc-active #prepScreen .prep-wrap{
+  width:100%!important; max-width:100%!important; max-height:none!important;
+  padding:0 0 24px!important; margin:0 auto!important;
+}
+body.mc-active #prepScreen .prep-title{ font-size:clamp(1.1rem,3.6vw,1.6rem)!important; }
+/* Prep loadout — keep portrait + stats side by side, scaled to fit landscape phone */
+body.mc-active #prepScreen .prep-stats-layout{ flex-direction:row!important; gap:6px!important; padding:6px 0 4px!important; }
+body.mc-active #prepScreen .prep-portrait-col{ width:clamp(120px,22vw,200px)!important; padding:4px 10px!important; }
+body.mc-active #prepScreen .stat-rows-wrap{ padding:0 8px!important; gap:5px!important; }
+body.mc-active #prepScreen .stat-row{ padding:8px 10px!important; gap:8px!important; }
+body.mc-active #prepScreen .stat-name{ font-size:0.85rem!important; }
+body.mc-active #prepScreen .stat-desc{ font-size:0.62rem!important; }
+body.mc-active #prepScreen .stat-btn{ width:34px!important; height:34px!important; font-size:1.1rem!important; }
+body.mc-active #prepScreen .stat-val{ min-width:44px!important; font-size:0.95rem!important; }
+body.mc-active #prepScreen .prep-tabs{ padding:0 4px!important; }
+body.mc-active #prepScreen .prep-tab{ padding:8px 10px!important; font-size:0.72rem!important; min-width:64px!important; }
+body.mc-active #prepScreen .prep-actions{ padding:8px 12px 0!important; gap:6px!important; }
+body.mc-active #prepScreen .prep-confirm-btn{ padding:12px 16px!important; font-size:0.92rem!important; letter-spacing:0.2em!important; }
+
+/* ---- PAUSE ---- */
+body.mc-active #pauseScreen{ align-items:center!important; gap:8px!important; }
+body.mc-active #pauseScreen .pause-header h2{ font-size:clamp(1.4rem,5vw,2rem)!important; margin:0!important; }
+body.mc-active #pauseScreen .psub{ font-size:0.55rem!important; margin:2px 0 6px!important; }
+body.mc-active #pauseScreen .pause-nav,
+body.mc-active #pauseScreen .pause-util,
+body.mc-active #pauseScreen .pause-nav-bottom{ width:min(86vw,360px)!important; }
+
+/* ---- DEAD ---- */
+body.mc-active #dead{ align-items:center!important; gap:10px!important; }
+body.mc-active #dead h1{ font-size:clamp(1.5rem,5.5vw,2.2rem)!important; }
+body.mc-active #dead .dead-nav{ width:min(86vw,360px)!important; }
+
+/* ---- STAGE COMPLETE ---- */
+body.mc-active #stageCompleteScreen{ align-items:center!important; gap:8px!important; }
+body.mc-active #stageCompleteScreen h1{ font-size:clamp(1.4rem,5vw,2rem)!important; }
+body.mc-active #stageCompleteScreen .sc-nav{ width:min(86vw,360px)!important; }
+
+/* Pause / Dead / Stage-complete buttons: clean full-width tiles (drop skew bar) */
+body.mc-active #pauseScreen .mnb,
+body.mc-active #dead .mnb,
+body.mc-active #stageCompleteScreen .mnb{ width:100%!important; max-width:none!important; min-width:0!important; margin:3px 0!important; }
+body.mc-active #pauseScreen .mnb-bar,
+body.mc-active #dead .mnb-bar,
+body.mc-active #stageCompleteScreen .mnb-bar{ display:none!important; }
+body.mc-active #pauseScreen .mnb-bg,
+body.mc-active #dead .mnb-bg,
+body.mc-active #stageCompleteScreen .mnb-bg{
+  transform:none!important; inset:0!important; border-radius:10px!important;
+  border:1px solid rgba(200,160,80,0.28)!important;
+  background:linear-gradient(150deg,rgba(40,26,10,0.9),rgba(16,10,4,0.85))!important;
+}
+body.mc-active #pauseScreen .mnb-danger .mnb-bg,
+body.mc-active #dead .mnb-danger .mnb-bg{ border-left:3px solid rgba(210,80,80,0.6)!important; }
+body.mc-active #pauseScreen .mnb-inner,
+body.mc-active #dead .mnb-inner,
+body.mc-active #stageCompleteScreen .mnb-inner{
+  min-width:0!important; width:100%!important; justify-content:center!important;
+  padding:13px!important; font-size:clamp(0.82rem,2.4vw,1.05rem)!important;
+  color:rgba(225,195,130,0.92)!important;
+}
+
 .mnb:hover .mnb-icon,.mnb.gamepad-focused .mnb-icon,.mnb:focus-visible .mnb-icon{opacity:1;transform:scale(1.14);}
 
 /* ── HOVER PULSE ── Weak breathing brightness on the active button's
