@@ -217,6 +217,35 @@ body.mc-active .save-info { font-size: clamp(0.56rem, 1.6vw, 0.7rem) !important;
 body.mc-active .menu-divider { margin: 4px auto !important; }
 body.mc-active .mnb-sep      { margin: 3px 0 !important; }
 
+/* FALLBACK: any touch device (coarse pointer) gets de-elongated menu bars,
+   even if the JS mobile detection (body.mc-active) somehow didn't apply.
+   This guarantees the menu never shows the desktop 400px+ min-width bars on touch. */
+@media (pointer: coarse) {
+  .menu-nav { width: 100% !important; overflow: hidden !important; padding-left: calc(var(--sal,0px) + 14px) !important; }
+  .mnb { width: 100% !important; max-width: calc(100vw - var(--sal,0px) - var(--sar,0px) - 14px) !important; }
+  .mnb-inner,
+  .menu-nav > button:nth-child(1) .mnb-inner,
+  .menu-nav > button:nth-child(2) .mnb-inner,
+  .menu-nav > button:nth-child(3) .mnb-inner,
+  .menu-nav > button:nth-child(5) .mnb-inner,
+  .menu-nav > button:nth-child(6) .mnb-inner,
+  .menu-nav > button:nth-child(7) .mnb-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: clamp(0.78rem, 2.6vw, 1.05rem) !important;
+    padding: 11px 22px 11px 14px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .mnb:hover .mnb-inner, .mnb.gamepad-focused .mnb-inner, .mnb:focus-visible .mnb-inner {
+    min-width: 0 !important;
+    padding: 11px 22px 11px 14px !important;
+  }
+  .mnb-bg  { transform: skewX(-5deg) !important; }
+  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+}
+
 /* very small phones (≤ 375px) */
 @media (max-width: 375px) {
   body.mc-active .mnb-inner {
@@ -287,6 +316,15 @@ canvas{display:block;}
    to #c. Pixi mirrors #c as a texture each frame and composites everything.
    Once all input bindings migrate, #c can be hidden or removed. */
 #c{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;image-rendering:pixelated;image-rendering:crisp-edges;z-index:1;}
+/* SAFEGUARD: game canvases must never be transformed, filtered, hidden, or
+   composited away by any mobile/responsive rule — that blanks WebGL on mobile GPUs. */
+#c, #pixiCanvas{
+  transform:none !important;
+  filter:none !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  display:block !important;
+}
 /* PixiJS canvas — the final visible output, ABOVE #c (z-index:2). Renders
    the canvas mirror + any migrated systems. pointer-events:none lets
    clicks fall through to #c underneath. */
@@ -5693,13 +5731,10 @@ function _tickPixiHero(){
   _pixiHeroContainer.y = player.y + PH;
   _pixiHeroContainer.scale.x = facing * squashX;
   _pixiHeroContainer.scale.y = squashY;
-  // ── INVULN BLINK — 6 Hz alternating on/off during the iframe window ───────
-  // player.invuln is true for 2 s after being hit (set by _bossHitPlayer /
-  // projectile hit handler). The hurt animation only covers ~1.2 s (hitCD 72→18);
-  // the remaining ~0.8 s the character looks normal with no blink — this was the
-  // "goes invisible" gap. Now the full 2-second window blinks at ~6 Hz (80 ms on/off).
-  _pixiHeroContainer.alpha =
-    (player.invuln && !player.dead && Math.floor(Date.now() / 80) % 2 === 0) ? 0 : 1;
+  // Hero is always fully visible. (A previous i-frame blink that set alpha to 0
+  // on a timer was removed — it could leave the character invisible if the
+  // setTimeout-based invuln flag failed to clear.)
+  _pixiHeroContainer.alpha = 1;
 }
 
 // ── PIXI: SWORD SPRITE + TRAIL (Sessions 9 + 12 — full cutover) ──────────
