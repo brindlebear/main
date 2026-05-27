@@ -3943,14 +3943,27 @@ function scaleViewport(){
   const ww=window.innerWidth, wh=window.innerHeight;
   const isMobile=!!save.mobileControls;
   if(isMobile){
-    // Mobile: fill entire screen. Use dvw/dvh via CSS (set in responsive system).
-    // JS just ensures the element dimensions match in case dvh isn't available.
     const dw = window.visualViewport ? window.visualViewport.width  : ww;
     const dh = window.visualViewport ? window.visualViewport.height : wh;
-    vp.style.width  = dw + 'px';
-    vp.style.height = dh + 'px';
-    vp.style.top    = '0';
-    vp.style.left   = '0';
+    const isLandscape = dw > dh;
+    if(isLandscape){
+      // Landscape mobile: letterbox to 16:9 so the game isn't stretched.
+      // Pillarbox (black bars on sides) if screen is wider than 16:9,
+      // or crop top/bottom if taller than 16:9 (rare in landscape).
+      const vpW = Math.min(dw, Math.round(dh*16/9));
+      const vpH = Math.min(dh, Math.round(dw*9/16));
+      vp.style.width  = vpW + 'px';
+      vp.style.height = vpH + 'px';
+      vp.style.top    = Math.round((dh - vpH) / 2) + 'px';
+      vp.style.left   = Math.round((dw - vpW) / 2) + 'px';
+    } else {
+      // Portrait mobile: fill screen — some vertical stretching is acceptable
+      // and avoids distracting black bars on tall phones.
+      vp.style.width  = dw + 'px';
+      vp.style.height = dh + 'px';
+      vp.style.top    = '0';
+      vp.style.left   = '0';
+    }
     vp.style.transform = 'translate(0,0)';
   } else {
     // Desktop: largest 16:9 rect that fits, centred
@@ -11418,7 +11431,10 @@ const _pixiMobileCtlLabelPool = [];
 const _pixiMobileCtlBadgePool = [];
 function _initPixiMobileControls(){
   _pixiMobileCtlContainer = new PIXI.Container();
-  _pixiLayers.ui.addChild(_pixiMobileCtlContainer);
+  // MUST be on the overlay layer (not ui) — the ui layer gets x=camPosX applied
+  // each frame, which shifts touch buttons left as the camera scrolls right.
+  // The overlay layer is never camera-offset, so buttons stay screen-locked.
+  _pixiLayers.overlay.addChild(_pixiMobileCtlContainer);
   // Graphics for circles + badge backgrounds (cleared per tick)
   _pixiMobileCtlGfx = new PIXI.Graphics();
   _pixiMobileCtlContainer.addChild(_pixiMobileCtlGfx);
