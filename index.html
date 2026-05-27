@@ -4154,16 +4154,25 @@ async function loadSave(){
     equipSpell(save.spell||'fireball');
     equipAccessory(save.accessories||[]);
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
-  // ── Auto-enable mobile controls on touch devices (first run only) ──
-  // If the player has never explicitly toggled the setting, detect a phone/tablet
-  // and turn mobile controls on automatically so the responsive layout, landscape
-  // lock, and fullscreen all engage without manual setup.
-  if(typeof save.mobileControlsSet === 'undefined'){
-    const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
-                 && /Mobi|Android|iPhone|iPad|iPod|Tablet|Touch/i.test(navigator.userAgent || '')
-                 || (('ontouchstart' in window) && Math.min(screen.width, screen.height) < 900);
+  // ── Auto-enable mobile controls on touch devices ──
+  // Runs every load UNTIL the player makes an explicit choice (mobileControlsSet).
+  // Uses pointer:coarse + touch-point signals which survive "Desktop site" mode
+  // far better than userAgent sniffing (which is spoofed to desktop in that mode).
+  if(!save.mobileControlsSet){
+    let coarse = false, noHover = false;
+    try {
+      coarse  = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+    } catch(e){}
+    const touchPts = (navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0) > 0;
+    const hasTouch = ('ontouchstart' in window) || touchPts;
+    const smallSide = Math.min(window.screen?.width||9999, window.screen?.height||9999) < 950;
+    // A device is "mobile" if it has a coarse pointer / no hover (real touch screen),
+    // OR it exposes touch points on a physically small screen.
+    const isTouch = coarse || noHover || (hasTouch && smallSide);
     save.mobileControls = !!isTouch;
-    save.mobileControlsSet = false; // not an explicit user choice yet
+    // Leave mobileControlsSet falsy so detection keeps running until the user
+    // explicitly toggles — this self-corrects if the first detection was wrong.
   }
   _smoothRender = !!save.smoothRender;
   _syncSmoothRenderBtn();
@@ -30426,16 +30435,48 @@ openDB().then(()=>{
   scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
 });
 initMobileControls();
+// ── DIAGNOSTIC: surface device detection so we can debug mobile issues ──
+// Tap the green box (top-left) to dismiss. Remove this block once mobile works.
+(function _showDiag(){
+  try {
+    const d = document.getElementById('diagOverlay');
+    if(!d) return;
+    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+    const vv = window.visualViewport;
+    d.innerHTML =
+      'TAP TO CLOSE<br>'+
+      'mobileControls: '+(save?save.mobileControls:'?')+'<br>'+
+      'mcSet: '+(save?save.mobileControlsSet:'?')+'<br>'+
+      'pointer:coarse: '+coarse+'<br>'+
+      'hover:none: '+noHover+'<br>'+
+      'maxTouchPoints: '+(navigator.maxTouchPoints||0)+'<br>'+
+      'ontouchstart: '+('ontouchstart' in window)+'<br>'+
+      'innerW×H: '+window.innerWidth+'×'+window.innerHeight+'<br>'+
+      'screen: '+screen.width+'×'+screen.height+'<br>'+
+      'visualVP: '+(vv?Math.round(vv.width)+'×'+Math.round(vv.height):'n/a')+'<br>'+
+      'dpr: '+window.devicePixelRatio+'<br>'+
+      'fullscreen: '+isFullscreen();
+    d.style.display = 'block';
+  } catch(e){}
+})();
 // Auto-fullscreen fires on first touch when mobile controls are active
 // (auto-enabled on touch devices). Must be a user gesture per browser policy.
 document.addEventListener('touchstart',function _ft(){
   preloadAllSfx();
-  // Auto-fullscreen on first touch when mobile controls are enabled.
-  // Must be triggered from a user gesture to satisfy browser autoplay/fullscreen policy.
-  if(save && save.mobileControls && !isFullscreen()){
+  // A real touchstart event proves this is a touch device — enable mobile controls
+  // if they weren't already (covers Desktop-site mode where detection failed),
+  // and request fullscreen. Both must happen inside this user gesture.
+  if(!save.mobileControlsSet && !save.mobileControls){
+    save.mobileControls = true;
+    _syncMobileBtn(); _applyHudScale(); _applyResponsiveUI(); scaleViewport();
+    _lockOrientation();
+    writeSave();
+  }
+  if(!isFullscreen()){
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-    if(req) req.call(el).catch(()=>{});
+    if(req){ try { req.call(el).catch(()=>{}); } catch(e){} }
   }
   document.removeEventListener('touchstart',_ft);
 },{once:true,passive:true});
@@ -32307,6 +32348,9 @@ window.addEventListener('keydown',e=>{
 }
 </script>
 <!-- Rotate device overlay — shown on mc-active portrait when OS lock unavailable -->
+<!-- Diagnostic — tap to dismiss. Shows what the device reports for debugging. -->
+<div id="diagOverlay" onclick="this.style.display='none'" style="display:none;position:fixed;top:0;left:0;z-index:99999;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:8px 10px;max-width:90vw;line-height:1.5;pointer-events:all;border-bottom-right-radius:8px;"></div>
+
 <div id="rotateOverlay">
   <div class="rot-icon">📱</div>
   <div class="rot-text">Rotate to landscape</div>
