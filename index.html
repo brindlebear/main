@@ -76,14 +76,6 @@
 }
 
 /* ── 2. VIEWPORT covers full screen including notch areas ── */
-body.mc-active #viewport {
-  /* Portrait default — JS scaleViewport() overrides these in landscape */
-  width:  100dvw;
-  height: 100dvh;
-  top:  0;
-  left: 0;
-}
-
 /* ── 3. HUD ELEMENTS — safe-area-inset anchored ── */
 .hud-panel {
   top:  var(--hud-top)  !important;
@@ -302,6 +294,11 @@ canvas{display:block;}
   position:fixed;
   overflow:hidden;
   background:#000;
+  /* transform creates a containing block for position:fixed children.
+     will-change ensures the compositing layer exists even at translate(0,0).
+     Without this, fixed children escape #viewport and use the browser viewport. */
+  transform: translateZ(0);
+  will-change: transform;
   /* JS scaleViewport() sets exact size & position */
 }
 /* The canvas always fills the viewport box — same 16:9 ratio, no distortion */
@@ -3980,9 +3977,6 @@ function scaleViewport(){
     const dh = window.visualViewport ? window.visualViewport.height : wh;
     const isLandscape = dw > dh;
     if(isLandscape){
-      // Landscape mobile: letterbox to 16:9 so the game isn't stretched.
-      // Pillarbox (black bars on sides) if screen is wider than 16:9,
-      // or crop top/bottom if taller than 16:9 (rare in landscape).
       const vpW = Math.min(dw, Math.round(dh*16/9));
       const vpH = Math.min(dh, Math.round(dw*9/16));
       vp.style.width  = vpW + 'px';
@@ -3990,24 +3984,23 @@ function scaleViewport(){
       vp.style.top    = Math.round((dh - vpH) / 2) + 'px';
       vp.style.left   = Math.round((dw - vpW) / 2) + 'px';
     } else {
-      // Portrait mobile: fill screen — some vertical stretching is acceptable
-      // and avoids distracting black bars on tall phones.
       vp.style.width  = dw + 'px';
       vp.style.height = dh + 'px';
       vp.style.top    = '0';
       vp.style.left   = '0';
     }
-    vp.style.transform = 'translate(0,0)';
   } else {
-    // Desktop: largest 16:9 rect that fits, centred
     const vpW=Math.min(ww, Math.round(wh*16/9));
     const vpH=Math.min(wh, Math.round(ww*9/16));
     vp.style.width  = vpW+'px';
     vp.style.height = vpH+'px';
     vp.style.top    = Math.round((wh-vpH)/2)+'px';
     vp.style.left   = Math.round((ww-vpW)/2)+'px';
-    vp.style.transform = 'translate(0,0)';
   }
+  // translateZ(0) guarantees all browsers create a compositing layer and treat
+  // #viewport as containing block for position:fixed children (.screen, #hud etc.)
+  // translate(0,0) can be optimised away by some mobile browsers; translateZ(0) cannot.
+  vp.style.transform = 'translateZ(0)';
   _applyResponsiveUI();
 }
 window.addEventListener('resize',()=>{ scaleViewport(); if(save&&save.mobileControls){ _applyHudScale(); } });
@@ -4122,7 +4115,19 @@ function updateFsButton(){
   const lbl2=document.getElementById('fsLabel2');
   if(lbl2) lbl2.textContent=full?'EXIT FULLSCREEN':'FULLSCREEN';
 }
-document.addEventListener('fullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
+document.addEventListener('fullscreenchange',()=>{
+  scaleViewport(); updateFsButton();
+  // Re-enter fullscreen if user exits while mobile controls are active
+  if(!isFullscreen() && save && save.mobileControls){
+    setTimeout(()=>{
+      if(!isFullscreen() && save && save.mobileControls){
+        const el=document.documentElement;
+        const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+        if(req) req.call(el).catch(()=>{});
+      }
+    }, 800);
+  }
+});
 document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
 
 function calcMaxHp(){ return 120 + save.stats.vit*22; }
@@ -30397,6 +30402,13 @@ initMobileControls();
 // Sfx preload kept (fires once on first interaction to satisfy autoplay policies).
 document.addEventListener('touchstart',function _ft(){
   preloadAllSfx();
+  // Auto-fullscreen on first touch when mobile controls are enabled.
+  // Must be triggered from a user gesture to satisfy browser autoplay/fullscreen policy.
+  if(save && save.mobileControls && !isFullscreen()){
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if(req) req.call(el).catch(()=>{});
+  }
   document.removeEventListener('touchstart',_ft);
 },{once:true,passive:true});
 
