@@ -288,12 +288,14 @@ body.mc-active.portrait-locked #rotateOverlay { display: flex; }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:21.6px;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;-webkit-user-select:none;user-select:none;font-family:'Jost','IBM Plex Sans',sans-serif;display:flex;align-items:center;justify-content:center;}
-/* touch-action:none only during gameplay (when pauseBtn is visible = in-game).
-   Menus and overlays always allow touch scroll. */
-body:not(:has(#pauseBtn.visible)){touch-action:pan-y;}
-body:has(#pauseBtn.visible){touch-action:none;}
+/* touch-action:none only during active gameplay (body.in-game set by JS).
+   Menus and overlays always allow vertical touch scroll. */
+body{touch-action:pan-y;}
+body.in-game{touch-action:none;}
 /* Screens and their scrollable children always allow vertical scroll */
 .screen, .screen *{touch-action:pan-y;}
+/* Scrollable screen containers get momentum scrolling on iOS */
+.screen{-webkit-overflow-scrolling:touch;}
 canvas{display:block;}
 /* ── GAME VIEWPORT — letterboxed 16:9 on desktop, full-screen on mobile ── */
 #viewport{
@@ -4152,6 +4154,17 @@ async function loadSave(){
     equipSpell(save.spell||'fireball');
     equipAccessory(save.accessories||[]);
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
+  // ── Auto-enable mobile controls on touch devices (first run only) ──
+  // If the player has never explicitly toggled the setting, detect a phone/tablet
+  // and turn mobile controls on automatically so the responsive layout, landscape
+  // lock, and fullscreen all engage without manual setup.
+  if(typeof save.mobileControlsSet === 'undefined'){
+    const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0))
+                 && /Mobi|Android|iPhone|iPad|iPod|Tablet|Touch/i.test(navigator.userAgent || '')
+                 || (('ontouchstart' in window) && Math.min(screen.width, screen.height) < 900);
+    save.mobileControls = !!isTouch;
+    save.mobileControlsSet = false; // not an explicit user choice yet
+  }
   _smoothRender = !!save.smoothRender;
   _syncSmoothRenderBtn();
   _updateControllerLayout();
@@ -19232,6 +19245,7 @@ function showMenu(){
   document.getElementById('bossBar').classList.remove('show');
   document.body.classList.remove('boss-fighting');
   document.getElementById('pauseBtn').classList.remove('visible');
+  document.body.classList.remove('in-game');
   document.getElementById('pauseScreen').classList.remove('show');
   paused=false;
   updateSaveInfo();
@@ -19410,6 +19424,7 @@ function startRun(){
   document.getElementById('bossBar').classList.remove('show');
   document.body.classList.remove('boss-fighting');
   document.getElementById('pauseBtn').classList.add('visible');
+  document.body.classList.add('in-game');
   paused=false;
 
   runKills=0; runGold=0; runExp=0;
@@ -22409,6 +22424,7 @@ function stageComplete(){
   gameOver=true;
   cancelAnimationFrame(frameId);
   document.getElementById('pauseBtn').classList.remove('visible');
+  document.body.classList.remove('in-game');
   document.getElementById('pauseScreen').classList.remove('show');
   // Mark stage cleared in save
   if(!(save.clearedStages||[]).includes(currentStage)){
@@ -30134,6 +30150,7 @@ if(window.visualViewport){
 }
 function toggleMobileControls(){
   save.mobileControls=!save.mobileControls;
+  save.mobileControlsSet=true; // explicit user choice — auto-detect won't override
   _syncMobileBtn();_applyHudScale();_applyResponsiveUI();_syncHudSizeDisplays();scaleViewport();writeSave();
   if(save.mobileControls) _lockOrientation(); else _unlockOrientation();
 }
@@ -30409,8 +30426,8 @@ openDB().then(()=>{
   scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
 });
 initMobileControls();
-// Auto fullscreen DISABLED — user opted out. The fsBtn in Settings still works.
-// Sfx preload kept (fires once on first interaction to satisfy autoplay policies).
+// Auto-fullscreen fires on first touch when mobile controls are active
+// (auto-enabled on touch devices). Must be a user gesture per browser policy.
 document.addEventListener('touchstart',function _ft(){
   preloadAllSfx();
   // Auto-fullscreen on first touch when mobile controls are enabled.
