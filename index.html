@@ -365,6 +365,22 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
   .mnb-ghost:hover .mnb-inner,.mnb-ghost.gamepad-focused .mnb-inner{ min-width:0!important; }
 }
 
+/* Loading overlay — shown while stage assets finish downloading */
+#loadingOverlay{
+  display:none; position:fixed; inset:0; z-index:99998;
+  background:radial-gradient(ellipse at center, #0a0c16 0%, #03040a 100%);
+  flex-direction:column; align-items:center; justify-content:center; gap:22px;
+  font-family:'Cinzel',serif; color:#d4b870;
+}
+#loadingOverlay .load-spin{
+  width:46px; height:46px; border-radius:50%;
+  border:3px solid rgba(212,184,112,0.18);
+  border-top-color:#d4b870;
+  animation:loadSpin 0.9s linear infinite;
+}
+#loadingOverlay .load-txt{ font-size:0.95rem; letter-spacing:0.45em; opacity:0.8; padding-left:0.45em; }
+@keyframes loadSpin{ to{ transform:rotate(360deg); } }
+
 /* Rotate-to-landscape prompt — only on touch devices held in portrait */
 #rotateOverlay{ display:none; }
 @media (pointer: coarse) and (orientation: portrait){
@@ -1208,8 +1224,8 @@ body.boss-fighting.boss-has-status .combo-hud{top:154px;}
 body.boss-fighting.boss-has-status:not(.mc-active) .combo-hud{top:238px;}
 
 /* ── PAUSE ── */
-#pauseBtn{position:fixed;top:8px;left:10px;right:auto;transform:none;z-index:15;pointer-events:all;
-  width:32px;height:32px;border-radius:6px;border:1px solid rgba(200,160,80,0.25);
+#pauseBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(env(safe-area-inset-right,0px) + 10px);left:auto;transform:none;z-index:15;pointer-events:all;
+  width:38px;height:38px;border-radius:8px;border:1px solid rgba(200,160,80,0.25);
   background:rgba(8,6,3,0.55);backdrop-filter:blur(4px);
   color:rgba(200,160,80,0.6);font-size:0.9rem;cursor:pointer;display:none;
   align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
@@ -18754,7 +18770,7 @@ let DRAK_ATK_COOLDOWN     = 82;   // cooldown after each attack
 // ══════════════════════════════════════════
 let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,deflect:false,grapple:false};
 let jumpEdge=false, atkEdge=false, evadeEdge=false, deflectEdge=false, prevLaunchHeld=false, launchHoldFrames=0, prevSpHeld=false;
-let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false;
+let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false, _mcAtkHeld=false;
 let _airDownSlashNeedsRehold=false; // blocks air-downslash until attack button is released after upward slash
 let _airDownSlashNeedsAtkRehold=false; // blocks upwardSlash from auto-firing when attack is still held on Headbreaker landing
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
@@ -18969,6 +18985,7 @@ function showMenu(){
 function pauseGame(){
   if(gameOver||paused) return;
   paused=true;
+  _clearAllInput();
   writeSave();
   updateFsButton();
   _syncMobileBtn();
@@ -19118,6 +19135,45 @@ async function confirmReset(){
 //  GAME LOOP / RUN INIT
 // ══════════════════════════════════════════
 function startRun(){
+  // ── ASSET LOAD GATE ──
+  // On mobile/slow connections the stage background and hero sprite sheets may
+  // not be downloaded yet. Entering now shows a blank/black stage. Wait for the
+  // essential assets, showing a brief loading overlay, then start for real.
+  const _bgReady   = !(typeof _stageBgs !== 'undefined' && _stageBgs[currentStage]) || _stageBgs[currentStage]._loaded;
+  const _heroReady = (typeof heroLoaded === 'undefined' || heroLoaded) && (typeof heroLoaded2 === 'undefined' || heroLoaded2);
+  if(!_bgReady || !_heroReady){
+    _showLoadingOverlay();
+    let _waited = 0;
+    const _poll = setInterval(()=>{
+      _waited += 80;
+      const bgOk   = !(typeof _stageBgs !== 'undefined' && _stageBgs[currentStage]) || _stageBgs[currentStage]._loaded;
+      const heroOk = (typeof heroLoaded === 'undefined' || heroLoaded) && (typeof heroLoaded2 === 'undefined' || heroLoaded2);
+      // Proceed when ready, or give up waiting after 8s (start anyway).
+      if((bgOk && heroOk) || _waited > 8000){
+        clearInterval(_poll);
+        _hideLoadingOverlay();
+        _startRunNow();
+      }
+    }, 80);
+    return;
+  }
+  _startRunNow();
+}
+function _showLoadingOverlay(){
+  let el = document.getElementById('loadingOverlay');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.innerHTML = '<div class="load-spin"></div><div class="load-txt">LOADING</div>';
+    document.body.appendChild(el);
+  }
+  el.style.display = 'flex';
+}
+function _hideLoadingOverlay(){
+  const el = document.getElementById('loadingOverlay');
+  if(el) el.style.display = 'none';
+}
+function _startRunNow(){
   _menuAmbStop();
   _menuMusicStop();
   _stopPortraitAnim();
@@ -25269,7 +25325,7 @@ function _loopUpdate(){
   player._moveMag = _moveMag;
   const jump=keys['ArrowUp']||keys['w']||keys['W']||keys[' ']||btnS.jump;
   // Raw held state — true every frame the attack button is physically depressed.
-  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld;
+  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld||_mcAtkHeld;
   // Air Downward Slash: hold attack while airborne and not mid-attack animation.
   // _airDownSlashNeedsRehold blocks it if the button was continuously held from an upward slash —
   // player must release and re-press to confirm intent.
@@ -29773,7 +29829,7 @@ function _mcOn(id){
   if(id==='l'||id==='r') btnS.walkMag = undefined;
   if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
-  else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
+  else if(id==='atk'){atkEdge=true;_mcAtkHeld=true;}else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
   else if(id==='deflect'){deflectEdge=true;btnS.deflect=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
@@ -29784,6 +29840,7 @@ function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
+  else if(id==='atk')_mcAtkHeld=false;
   else if(id==='deflect')btnS.deflect=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
@@ -29910,7 +29967,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('blur', _clearAllInput);
 
 function _clearAllInput(){
-  keys={}; _rmbHeld=false;
+  keys={}; _rmbHeld=false; _mcAtkHeld=false;
   btnS.l=btnS.r=btnS.jump=btnS.sp=btnS.magic=btnS.launch=btnS.evade=btnS.grapple=btnS.deflect=false;
   jumpEdge=false; atkEdge=false; evadeEdge=false; deflectEdge=false;
   // Clear any stuck mobile touch mappings
