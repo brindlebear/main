@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>THE VEILBREAKER</title>
 <link rel="icon" type="image/svg+xml" href="Resources/GFX/Sprite/favicon.svg">
 <!-- Typography per VEILDIRECTIONS.md:
@@ -19,15 +22,289 @@
      guarantees this runs AFTER pixi.js, so PIXI.filters extends the base. -->
 <script src="https://cdn.jsdelivr.net/npm/pixi-filters@6.1.4/dist/browser/pixi-filters.min.js" defer></script>
 <style>
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE UI SYSTEM — THE VEILBREAKER
+   Single source of truth for all UI sizing, spacing, and positioning.
+   All positions flow from CSS custom properties updated by _applyResponsiveUI().
+   Safe areas respected throughout via env(safe-area-inset-*).
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. SAFE AREA FOUNDATION ── */
+:root {
+  --sat: env(safe-area-inset-top,    0px);
+  --sar: env(safe-area-inset-right,  0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left,   0px);
+
+  /* ── Responsive scale factor (written by JS _applyResponsiveUI) ── */
+  --ui-scale: 1;
+
+  /* ── HUD panel — top-left ── */
+  --hud-top:    calc(var(--sat) + 8px);
+  --hud-left:   calc(var(--sal) + 8px);
+
+  /* ── Streak — top-right ── */
+  --streak-top:   calc(var(--sat) + 10px);
+  --streak-right: calc(var(--sar) + 14px);
+
+  /* ── Pause button ── */
+  --pause-top:  calc(var(--sat) + 8px);
+  --pause-left: calc(var(--sal) + 10px);
+  --pause-right: calc(var(--sar) + 10px);
+
+  /* ── Boss bar — top-centre ── */
+  --boss-bar-top: var(--sat);
+
+  /* ── Cooldown bar — bottom-right (desktop) or top-right (mobile) ── */
+  --cdb-bottom: calc(var(--sab) + 28px);
+  --cdb-right:  calc(var(--sar) + 24px);
+  --cdb-top-mc: calc(var(--sat) + 172px);
+
+  /* ── Combo HUD cascade ── */
+  --combo-top:          148px;
+  --combo-top-mc:       calc(var(--sat) + 120px);
+  --combo-top-mc-boss:  calc(var(--sat) + 154px);
+  --combo-top-boss:     calc(var(--sat) + 200px);
+  --combo-top-boss-st:  calc(var(--sat) + 238px);
+
+  /* ── Screen containers ── */
+  --screen-pt: calc(var(--sat) + clamp(3vh, 5.5vh, 9vh));
+  --screen-pb: calc(var(--sab) + 12px);
+
+  /* ── Estimated touch-control height (overwritten by JS) ── */
+  --mc-ctrl-h: 200px;
+}
+
+/* ── 2. VIEWPORT covers full screen including notch areas ── */
+/* ── 3. HUD ELEMENTS — safe-area-inset anchored ── */
+.hud-panel {
+  top:  var(--hud-top)  !important;
+  left: var(--hud-left) !important;
+}
+#streakHud {
+  top:   var(--streak-top)   !important;
+  right: var(--streak-right) !important;
+}
+#pauseBtn {
+  top:   var(--pause-top)   !important;
+  right: var(--pause-right) !important;
+  left:  auto               !important;
+}
+#bossBar { top: var(--boss-bar-top) !important; }
+
+#cdBar {
+  bottom: var(--cdb-bottom) !important;
+  right:  var(--cdb-right)  !important;
+}
+body.mc-active #cdBar {
+  top:    var(--cdb-top-mc) !important;
+  bottom: auto !important;
+  right:  var(--cdb-right)  !important;
+}
+body.mc-active.boss-fighting #cdBar {
+  top: calc(var(--sat) + 206px) !important;
+  bottom: auto !important;
+}
+
+/* Combo HUD positions — clear old hardcoded values */
+.combo-hud                                              { top: var(--combo-top)         !important; }
+body.mc-active .combo-hud                              { top: var(--combo-top-mc)       !important; }
+body.boss-fighting .combo-hud                          { top: var(--combo-top-mc)       !important; }
+body.mc-active.boss-fighting .combo-hud               { top: var(--combo-top-mc)       !important; }
+body.boss-fighting.boss-has-status .combo-hud          { top: var(--combo-top-mc-boss)  !important; }
+body.mc-active.boss-fighting.boss-has-status .combo-hud { top: var(--combo-top-mc-boss) !important; }
+body:not(.mc-active) .combo-hud                        { top: var(--combo-top-boss)     !important; }
+body:not(.mc-active).boss-fighting .combo-hud          { top: var(--combo-top-boss)     !important; }
+body:not(.mc-active).boss-fighting.boss-has-status .combo-hud { top: var(--combo-top-boss-st) !important; }
+
+body.mc-active #streakHud { top: calc(var(--sat) + 54px) !important; }
+
+/* ── 4. SCREENS — safe-area padding ── */
+.screen {
+  padding-top:    var(--screen-pt) !important;
+  padding-bottom: var(--screen-pb) !important;
+}
+.menu-nav {
+  padding-left: clamp(calc(var(--sal) + 24px), calc(var(--sal) + 9vw), calc(var(--sal) + 130px)) !important;
+  margin-top: clamp(calc(var(--sat) + 42px), 9vh, calc(var(--sat) + 88px)) !important;
+}
+#pauseScreen, #dead, #stageCompleteScreen {
+  padding-top:    calc(var(--sat) + 10px)  !important;
+  padding-bottom: calc(var(--sab) + 10px)  !important;
+  padding-left:   calc(var(--sal) + 0px)   !important;
+  padding-right:  calc(var(--sar) + 0px)   !important;
+}
+
+/* ── 5. DIALOGUE / FLOATING TEXT ── */
+.dialogue-box, #dialogueBox, .dialogue-wrap, #dialogue {
+  margin-left:  max(var(--sal), 12px) !important;
+  margin-right: max(var(--sar), 12px) !important;
+  bottom: calc(var(--sab) + 12px)     !important;
+}
+
+/* ── 6. HUD bottom padding avoids touch controls ── */
+body.mc-active #hud {
+  padding-bottom: calc(var(--sab) + var(--mc-ctrl-h)) !important;
+}
+
+/* ── 7. LANDSCAPE PHONE — shrink HUD to reclaim vertical space ── */
+@media (max-height: 430px) and (orientation: landscape) {
+  body.mc-active .hud-panel  { transform: scale(0.78); transform-origin: top left; }
+  body.mc-active #streakHud  { transform: scale(0.78); transform-origin: top right; }
+  body.mc-active #bossBar    { transform: scale(0.80); transform-origin: top center; }
+  body.mc-active #cdBar      { transform: scale(0.80); transform-origin: top right; }
+}
+
+/* ── 8. SMALL PHONES (<390px wide) ── */
+@media (max-width: 390px) {
+  html { font-size: 18.5px; }
+}
+@media (max-width: 320px) {
+  html { font-size: 16px; }
+}
+
+/* ── 9. PIXEL ART — always crisp ── */
+body.mc-active canvas,
+body.mc-active #pixiCanvas {
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE MENU — phones ≤ 600px
+   .mnb items have hardcoded min-widths (400px+) designed for desktop.
+   On phones they overflow the viewport. This section makes the whole
+   menu layout fluid and phone-friendly.
+══════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* nav container: no horizontal overflow, reduced left indent */
+  .menu-nav {
+    padding-left: calc(var(--sal, 0px) + 14px) !important;
+    margin-top: clamp(calc(var(--sat, 0px) + 12px), 4vh, calc(var(--sat, 0px) + 36px)) !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    gap: 2px !important;
+  }
+
+  /* button: full available width */
+  .mnb {
+    width: 100% !important;
+    max-width: calc(100vw - var(--sal, 0px) - var(--sar, 0px) - 14px) !important;
+  }
+
+  /* inner: fluid width, compact padding, mobile font size */
+  .mnb-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 12px 24px 12px 14px !important;
+    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
+    letter-spacing: 0.09em !important;
+    gap: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* disable per-item staggered widths — all full width on mobile */
+  .menu-nav > button:nth-child(1) .mnb-inner,
+  .menu-nav > button:nth-child(2) .mnb-inner,
+  .menu-nav > button:nth-child(3) .mnb-inner,
+  .menu-nav > button:nth-child(5) .mnb-inner,
+  .menu-nav > button:nth-child(6) .mnb-inner,
+  .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
+
+  /* no width expansion on tap (mobile has no hover) */
+  .mnb:hover .mnb-inner,
+  .mnb.gamepad-focused .mnb-inner,
+  .mnb:focus-visible .mnb-inner {
+    min-width: 0 !important;
+    font-size: clamp(0.80rem, 4.6vw, 1.0rem) !important;
+    padding: 12px 24px 12px 14px !important;
+  }
+
+  /* soften skew so it doesn't push content off the right edge */
+  .mnb-bg  { transform: skewX(-5deg) !important; }
+  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+  .mnb:hover .mnb-bar,
+  .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
+
+  /* title / subtitle */
+  .menu-title    { font-size: clamp(1.35rem, 7.2vw, 1.9rem) !important; letter-spacing: 0.06em !important; }
+  .menu-subtitle { font-size: 0.50rem !important; letter-spacing: 0.20em !important; }
+
+  /* save info */
+  .save-info { font-size: 0.56rem !important; padding: 0 12px !important; text-align: center !important; }
+
+  /* divider spacing */
+  .menu-divider { margin: 4px auto !important; }
+  .mnb-sep      { margin: 3px 0 !important; }
+}
+
+/* very small phones (≤ 375px) */
+@media (max-width: 375px) {
+  .mnb-inner {
+    font-size: clamp(0.70rem, 4.3vw, 0.86rem) !important;
+    padding: 10px 18px 10px 12px !important;
+    letter-spacing: 0.06em !important;
+  }
+  .menu-title    { font-size: clamp(1.1rem, 6.8vw, 1.5rem) !important; }
+  .menu-subtitle { font-size: 0.44rem !important; }
+}
+
+/* ── ROTATE DEVICE OVERLAY ──
+   Shown on mobile controls + portrait orientation when OS lock is unavailable */
+#rotateOverlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(2, 3, 10, 0.97);
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px;
+  font-family: 'Jost', sans-serif;
+  color: #d4b870;
+  text-align: center;
+  padding: 24px;
+}
+#rotateOverlay .rot-icon {
+  font-size: 3.5rem;
+  animation: rotPulse 1.8s ease-in-out infinite;
+}
+#rotateOverlay .rot-text {
+  font-size: 1.0rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+@keyframes rotPulse {
+  0%,100% { transform: rotate(0deg);   opacity: 1;    }
+  40%      { transform: rotate(-90deg); opacity: 0.65; }
+  60%      { transform: rotate(-90deg); opacity: 1;    }
+}
+/* Show only when mobile controls on AND portrait */
+body.mc-active.portrait-locked #rotateOverlay { display: flex; }
+</style>
+<style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:21.6px;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Jost','IBM Plex Sans',sans-serif;display:flex;align-items:center;justify-content:center;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;-webkit-user-select:none;user-select:none;font-family:'Jost','IBM Plex Sans',sans-serif;display:flex;align-items:center;justify-content:center;}
+/* touch-action:none only during gameplay (when pauseBtn is visible = in-game).
+   Menus and overlays always allow touch scroll. */
+body:not(:has(#pauseBtn.visible)){touch-action:pan-y;}
+body:has(#pauseBtn.visible){touch-action:none;}
+/* Screens and their scrollable children always allow vertical scroll */
+.screen, .screen *{touch-action:pan-y;}
 canvas{display:block;}
 /* ── GAME VIEWPORT — letterboxed 16:9 on desktop, full-screen on mobile ── */
 #viewport{
   position:fixed;
   overflow:hidden;
   background:#000;
+  /* transform creates a containing block for position:fixed children.
+     will-change ensures the compositing layer exists even at translate(0,0).
+     Without this, fixed children escape #viewport and use the browser viewport. */
+  transform: translateZ(0);
+  will-change: transform;
   /* JS scaleViewport() sets exact size & position */
 }
 /* The canvas always fills the viewport box — same 16:9 ratio, no distortion */
@@ -65,7 +342,10 @@ canvas{display:block;}
 .diff-desc{font-size:0.68rem;letter-spacing:0.12em;color:rgba(200,170,100,0.6);text-align:center;width:280px;}
 
 /* ══ SCREENS ══ */
-.screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:linear-gradient(160deg,#03050e 0%,#06091a 50%,#02040b 100%);}
+.screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:linear-gradient(160deg,#03050e 0%,#06091a 50%,#02040b 100%);
+  padding-top:var(--sat,0px);padding-bottom:var(--sab,0px);
+  padding-left:var(--sal,0px);padding-right:var(--sar,0px);
+}
 .screen.hidden{display:none!important;}
 
 /* scanlines */
@@ -74,7 +354,7 @@ canvas{display:block;}
 /* ── MAIN MENU ── */
 #menuScreen{
   gap:clamp(5px,1.1vh,11px);
-  padding-top:clamp(3vh,5.5vh,9vh);
+  padding-top:clamp(calc(var(--sat,0px) + 3vh), calc(var(--sat,0px) + 5.5vh), calc(var(--sat,0px) + 9vh));
   justify-content:flex-start;
   background-image:url('Resources/GFX/Stage/menu_bg.png');
   background-size:cover;
@@ -310,7 +590,7 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
 /* ══ PARALLELOGRAM MAIN MENU NAV ══ */
 #menuScreen{align-items:flex-start;padding-left:0;justify-content:flex-start;}
 #menuScreen .menu-title,#menuScreen .menu-subtitle,#menuScreen .menu-divider{align-self:center;}
-.menu-nav{display:flex;flex-direction:column;gap:4px;align-items:flex-start;width:100%;padding-left:clamp(36px,9vw,130px);position:relative;z-index:1;margin-top:clamp(42px,9vh,88px);}
+.menu-nav{display:flex;flex-direction:column;gap:4px;align-items:flex-start;width:100%;padding-left:clamp(calc(var(--sal,0px) + 36px),9vw,calc(var(--sal,0px) + 130px));position:relative;z-index:1;margin-top:clamp(42px,9vh,88px);}
 /* Wrapper button — no intrinsic bg */
 .mnb{position:relative;display:flex;align-items:stretch;background:none;border:none;padding:0;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;}
 /* Skewed parallelogram background */
@@ -453,7 +733,7 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
 .stage-card-sub{font-size:0.7rem;letter-spacing:0.14em;color:rgba(200,170,130,0.65);margin-top:2px;}
 .stage-card-badge{font-size:1.15rem;opacity:0.75;}
 /* ── Stage Complete overlay ── */
-#stageCompleteScreen{position:fixed;inset:0;background:rgba(0,10,2,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
+#stageCompleteScreen{position:fixed;inset:0;background:rgba(0,10,2,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:calc(var(--sat,0px) + 24px) var(--sar,0px) calc(var(--sab,0px) + 24px) var(--sal,0px);}
 #stageCompleteScreen.show{opacity:1;pointer-events:all;}
 /* Stage-complete heading — warm amber (was arcade-green #40dd80 with neon glow) */
 /* Stage Complete heading — restrained shadow (was 80px composite — too heavy) */
@@ -526,7 +806,7 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
 /* ── PHONE PORTRAIT — compact pause/dead/settings ── */
 @media (max-width:600px) and (orientation:portrait){
   /* Main menu — portrait */
-  #menuScreen{gap:clamp(8px,2vh,18px)!important;padding-top:clamp(6vh,10vh,16vh)!important;}
+  #menuScreen{gap:clamp(8px,2vh,18px)!important;padding-top:clamp(calc(var(--sat,0px) + 6vh),calc(var(--sat,0px) + 10vh),calc(var(--sat,0px) + 16vh))!important;}
   .menu-title{font-size:clamp(1.5rem,9vw,2.4rem)!important;}
   .menu-subtitle{font-size:0.58rem!important;letter-spacing:0.18em!important;}
   .menu-btn{min-width:clamp(180px,60vw,260px)!important;width:auto!important;font-size:0.8rem!important;letter-spacing:0.1em!important;padding:11px 20px!important;}
@@ -534,7 +814,7 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
   .menu-secondary-row{width:auto!important;gap:8px;}
   .save-info{font-size:0.62rem!important;padding:0 16px;line-height:1.5;}
   /* Pause screen */
-  #pauseScreen{gap:9px;padding:14px 0;}
+  #pauseScreen{gap:9px;padding:calc(var(--sat,0px) + 14px) 0 calc(var(--sab,0px) + 14px);}
   #pauseScreen h2{font-size:1.3rem!important;margin-bottom:0;}
   #pauseScreen .psub{margin:-4px 0 4px;font-size:0.55rem;}
   #pauseScreen button:not(.diff-btn):not(.hud-adj-btn):not(.mnb){padding:9px 28px;font-size:0.78rem;width:min(260px,82vw);}
@@ -542,13 +822,13 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
   .pause-divider{width:min(260px,82vw);}
   .pause-section-lbl{width:min(260px,82vw);}
   /* Dead screen */
-  #dead{gap:11px;padding:14px 0;}
+  #dead{gap:11px;padding:calc(var(--sat,0px) + 14px) 0 calc(var(--sab,0px) + 14px);}
   #dead h1{font-size:1.5rem!important;}
   #dead button:not(.mnb){padding:10px 32px;font-size:0.78rem;}
   /* prep screen — portrait: scrollable, portrait image stacks above stats */
   #prepScreen{justify-content:flex-start;overflow-y:auto;padding:0;}
-  .prep-wrap{width:100%;max-height:none;padding-bottom:20px;}
-  .prep-header{padding:10px 14px 8px;}
+  .prep-wrap{width:100%;max-height:none;padding-bottom:calc(var(--sab,0px) + 20px);}
+  .prep-header{padding:calc(var(--sat,0px) + 10px) 14px 8px;}
   .prep-title{font-size:1.1rem!important;}
   .prep-stats-layout{flex-direction:column;gap:8px;padding:8px 12px 0;}
   .prep-portrait-col{width:100%;max-width:130px;margin:0 auto;padding:0;}
@@ -576,13 +856,16 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
     align-items:center;
     justify-content:center;
     gap:0!important;
-    padding:0;
+    padding-top:var(--sat,0px)!important;
+    padding-bottom:var(--sab,0px)!important;
+    padding-left:var(--sal,0px)!important;
+    padding-right:var(--sar,0px)!important;
   }
 
   /* ── MAIN MENU ── */
   #menuScreen{
-    padding-top:6px!important;
-    padding-bottom:6px;
+    padding-top:calc(var(--sat,0px) + 6px)!important;
+    padding-bottom:calc(var(--sab,0px) + 6px);
     gap:4px!important;
     min-height:100%;
   }
@@ -608,6 +891,38 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
     padding:0 20px;
     max-width:340px;
   }
+
+  /* ── .mnb (DMC-style menu items) in landscape phone ── */
+  .menu-nav {
+    padding-left: calc(var(--sal,0px) + 12px) !important;
+    margin-top: 6px !important;
+    gap: 1px !important;
+    overflow: hidden !important;
+  }
+  .mnb { width: 100% !important; }
+  .mnb-inner {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 0.62rem !important;
+    padding: 7px 20px 7px 12px !important;
+    letter-spacing: 0.07em !important;
+    gap: 7px !important;
+  }
+  .menu-nav > button:nth-child(1) .mnb-inner,
+  .menu-nav > button:nth-child(2) .mnb-inner,
+  .menu-nav > button:nth-child(3) .mnb-inner,
+  .menu-nav > button:nth-child(5) .mnb-inner,
+  .menu-nav > button:nth-child(6) .mnb-inner,
+  .menu-nav > button:nth-child(7) .mnb-inner { min-width: 0 !important; }
+  .mnb:hover .mnb-inner, .mnb.gamepad-focused .mnb-inner {
+    min-width: 0 !important;
+    font-size: 0.62rem !important;
+    padding: 7px 20px 7px 12px !important;
+  }
+  .mnb-bg  { transform: skewX(-5deg) !important; }
+  .mnb-bar { transform: scaleY(0.35) skewX(-5deg) !important; }
+  .mnb:hover .mnb-bar, .mnb.gamepad-focused .mnb-bar { transform: scaleY(1) skewX(-5deg) !important; }
+  .mnb-sep { margin: 2px 0 !important; }
 
   /* ── SETTINGS — two-column grid ── */
   #settingsScreen{min-height:100%;overflow-y:auto;}
@@ -704,16 +1019,16 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
   .weapon-grid{padding:0 12px;}
 
   /* ── PAUSE & DEAD ── */
-  #pauseScreen{gap:6px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:10px;}
+  #pauseScreen{gap:6px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:calc(var(--sat,0px) + 10px);}
   #pauseScreen button:not(.diff-btn):not(.hud-adj-btn):not(.mnb){padding:6px 18px;font-size:0.62rem;width:155px;}
   #pauseScreen .hud-adj-row{width:155px;}
   .pause-divider{width:155px;}
   .pause-section-lbl{width:155px;font-size:0.44rem;}
-  #dead{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:12px;}
+  #dead{gap:7px;min-height:100%;overflow-y:auto;justify-content:flex-start;padding-top:calc(var(--sat,0px) + 12px);}
   #dead button:not(.mnb){padding:6px 18px;font-size:0.66rem;}
 
   /* ── STAGE COMPLETE ── */
-  #stageCompleteScreen{overflow-y:auto;justify-content:flex-start;padding:10px 0;gap:7px;}
+  #stageCompleteScreen{overflow-y:auto;justify-content:flex-start;padding:calc(var(--sat,0px) + 10px) 0 calc(var(--sab,0px) + 10px);gap:7px;}
   #stageCompleteScreen h1{font-size:1.15rem!important;letter-spacing:0.12em;animation:none;}
   #stageCompleteScreen .sc-stage-name{font-size:0.52rem;margin-top:-4px;}
   #stageCompleteScreen .sc-stats{font-size:0.58rem;line-height:1.5;}
@@ -733,13 +1048,13 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
 #prepPanel1,#prepPanel2,#prepPanel3{padding:0;}
 
 /* ── HUD ── */
-#hud{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:10;}
+#hud{position:fixed;top:var(--sat,0px);left:var(--sal,0px);right:var(--sar,0px);bottom:var(--sab,0px);pointer-events:none;z-index:10;}
 #hud.hidden{display:none!important;}
 
 /* ── STAT PANEL (top-left) ── */
 .hud-panel{
   position:absolute;
-  top:var(--hud-pad,10px);left:var(--hud-pad,10px);
+  top:var(--hud-top,var(--hud-pad,10px));left:var(--hud-left,var(--hud-pad,10px));
   width:var(--hud-w,22vw);
   min-width:var(--hud-minw,160px);
   max-width:var(--hud-maxw,280px);
@@ -833,7 +1148,7 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
   pointer-events:none;z-index:10;display:none;
   text-align:center;
 }
-body:not(.mc-active) .combo-hud{top:148px;}
+body:not(.mc-active) .combo-hud{top:var(--combo-top,148px);}
 .combo-inner{
   display:inline-flex;flex-direction:column;align-items:center;gap:3px;
   padding:4px 16px 4px;
@@ -873,7 +1188,7 @@ body:not(.mc-active) .combo-hud{top:148px;}
 
 /* ── STREAK HUD (top-right) ── */
 #streakHud{
-  position:fixed;top:10px;right:14px;display:none;
+  position:fixed;top:var(--streak-top,10px);right:var(--streak-right,14px);display:none;
   text-align:right;pointer-events:none;z-index:10;min-width:80px;
 }
 #streakInner{
@@ -917,7 +1232,7 @@ body:not(.mc-active) .combo-hud{top:148px;}
 
 /* ── COOLDOWN BAR (bottom-right) ── */
 #cdBar{
-  position:fixed;bottom:var(--cdi-bar-b,28px);right:var(--cdi-bar-r,24px);
+  position:fixed;bottom:var(--cdb-bottom,var(--cdi-bar-b,28px));right:var(--cdb-right,var(--cdi-bar-r,24px));
   display:none;flex-direction:column;gap:var(--cdi-bar-gap,12px);
   pointer-events:none;z-index:10;
 }
@@ -926,12 +1241,12 @@ body:not(.mc-active) .combo-hud{top:148px;}
 body.mc-active #gpHints{display:none!important;}
 /* Mobile cdBar — same column layout, right side, below combo meter */
 body.mc-active #cdBar{
-  top:172px;bottom:auto;right:24px;
+  top:var(--cdb-top-mc,172px);bottom:auto;right:var(--cdb-right,24px);
 }
 body.mc-active #cdBar .cdi-key,
 body.mc-active #cdBar .cdi-btn{display:none!important;}
 /* Shift down when boss bar is visible */
-body.mc-active.boss-fighting #cdBar{top:206px;}
+body.mc-active.boss-fighting #cdBar{top:calc(var(--sat,0px) + 206px);}
 /* ── Input-mode visibility rules ── */
 /* gpHints bar only renders when a gamepad is connected */
 body:not(.gp-active) #gpHints{display:none!important;}
@@ -1002,7 +1317,7 @@ body.ps-ctrl .cdi-btn.x-btn{background:linear-gradient(160deg,#484848,#242424);c
 /* Legacy MP bar rules removed (Session 21) — see `.bar-inner.mana` at
  * L~1989 which is the active hud-panel-scoped lapis-lazuli style. */
 /* ── BOSS HP BAR ─────────────────────────────────────────── */
-#bossBar{position:fixed;top:0;left:50%;transform:translateX(-50%);
+#bossBar{position:fixed;top:var(--boss-bar-top,var(--sat,0px));left:50%;transform:translateX(-50%);
   width:min(260px,60vw);
   padding:5px 12px 8px;
   border-radius:0 0 5px 5px;
@@ -1156,15 +1471,15 @@ body:not(.mc-active) .boss-elem-icon{font-size:var(--boss-elem-icon-sz,0.85rem);
 body:not(.mc-active) .boss-proc-pip{font-size:var(--boss-proc-pip-sz,0.66rem);padding:2px 7px;}
 
 /* ── COMBO HUD shift when boss bar is active ── */
-body.boss-fighting .combo-hud{top:120px;}
-body.boss-fighting:not(.mc-active) .combo-hud{top:200px;}
+body.boss-fighting .combo-hud{top:var(--combo-top-mc,120px);}
+body.boss-fighting:not(.mc-active) .combo-hud{top:var(--combo-top-boss,200px);}
 /* Extra push when boss status bars are visible */
-body.boss-fighting.boss-has-status .combo-hud{top:154px;}
-body.boss-fighting.boss-has-status:not(.mc-active) .combo-hud{top:238px;}
+body.boss-fighting.boss-has-status .combo-hud{top:var(--combo-top-mc-boss,154px);}
+body.boss-fighting.boss-has-status:not(.mc-active) .combo-hud{top:var(--combo-top-boss-st,238px);}
 
 /* ── PAUSE ── */
-#pauseBtn{position:fixed;top:8px;left:10px;right:auto;transform:none;z-index:15;pointer-events:all;
-  width:32px;height:32px;border-radius:6px;border:1px solid rgba(200,160,80,0.25);
+#pauseBtn{position:fixed;top:var(--pause-top,8px);right:var(--pause-right,10px);left:auto;transform:none;z-index:15;pointer-events:all;
+  width:36px;height:36px;border-radius:8px;border:1px solid rgba(200,160,80,0.25);
   background:rgba(8,6,3,0.55);backdrop-filter:blur(4px);
   color:rgba(200,160,80,0.6);font-size:0.9rem;cursor:pointer;display:none;
   align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
@@ -1174,11 +1489,11 @@ body:not(.mc-active) #pauseBtn{display:none!important;}
 /* Explicit show on mobile so the !important cascade can't shadow it */
 body.mc-active #pauseBtn.visible{display:flex!important;}
 /* Streak HUD clears the pause button on mobile */
-body.mc-active #streakHud{top:54px;}
+body.mc-active #streakHud{top:var(--streak-top,54px);}
 #pauseScreen{position:fixed;inset:0;background:rgba(0,0,0,0.97);backdrop-filter:blur(8px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:12px;z-index:25;opacity:0;pointer-events:none;transition:opacity 0.2s;
-  overflow-y:auto;padding:28px 0;}
+  overflow-y:auto;padding:calc(var(--sat,0px) + 28px) var(--sar,0px) calc(var(--sab,0px) + 28px) var(--sal,0px);}
 #pauseScreen.show{opacity:1;pointer-events:all;}
 #pauseScreen h2{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.2rem);
   color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 24px rgba(200,140,30,0.5);margin:0 0 4px;}
@@ -1209,7 +1524,7 @@ body.mc-active #streakHud{top:54px;}
 .hud-adj-val{color:#e8c880;font-size:0.85rem;letter-spacing:0.06em;}
 
 /* ── DEAD ── */
-#dead{position:fixed;inset:0;background:rgba(0,0,0,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:24px 0;}
+#dead{position:fixed;inset:0;background:rgba(0,0,0,1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity 0.7s;overflow-y:auto;padding:calc(var(--sat,0px) + 24px) var(--sar,0px) calc(var(--sab,0px) + 24px) var(--sal,0px);}
 #dead.show{opacity:1;pointer-events:all;}
 /* Death heading — restrained ember (was 30px bright red) */
 #dead h1{font-family:'Cinzel',serif;font-size:clamp(1.6rem,6vw,2.8rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 20px rgba(180,40,30,0.50),0 2px 6px rgba(0,0,0,0.65);animation:dpulse 1.1s ease-in-out infinite alternate;}
@@ -1361,7 +1676,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .bos-badge{opacity:0.52;flex-shrink:0;padding-left:10px;}
 
 /* Boss Rush / Stage Select screens — same left-aligned layout as main menu */
-#bossRushScreen,#stageSelectScreen{align-items:flex-start;padding-left:0;justify-content:flex-start;padding-top:clamp(3vh,5.5vh,9vh);gap:clamp(4px,1vh,10px);}
+#bossRushScreen,#stageSelectScreen{align-items:flex-start;padding-left:var(--sal,0px);justify-content:flex-start;padding-top:clamp(calc(var(--sat,0px) + 3vh),calc(var(--sat,0px) + 5.5vh),calc(var(--sat,0px) + 9vh));gap:clamp(4px,1vh,10px);}
 #bossRushScreen .menu-nav,#stageSelectScreen .menu-nav{margin-top:clamp(12px,2.5vh,28px);}
 
 /* Stage cards — keep the background image, just modernise heavily */
@@ -1377,7 +1692,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 #stageCards{display:flex;flex-direction:column;gap:4px;}
 
 /* ── PAUSE SCREEN ── */
-#pauseScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;}
+#pauseScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--sat,0px) + 8px) calc(var(--sar,0px) + 16px) clamp(calc(var(--sab,0px) + 80px),calc(var(--sab,0px) + 18vh),calc(var(--sab,0px) + 160px)) calc(var(--sal,0px) + 16px);gap:0;overflow-x:hidden;}
 .pause-header{width:min(420px,90vw);margin-bottom:clamp(10px,2vh,22px);}
 #pauseScreen h2{font-family:'Cinzel',serif;font-size:clamp(1.2rem,3vw,1.8rem);color:#c8a050;letter-spacing:0.22em;text-shadow:0 0 16px rgba(200,140,30,0.32),0 1px 4px rgba(0,0,0,0.55);margin:0 0 3px;}
 #pauseScreen .psub{font-size:0.54rem;letter-spacing:0.26em;color:rgba(200,160,80,0.28);margin:0;}
@@ -1394,7 +1709,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .pause-nav-bottom{margin-top:clamp(16px,3vh,32px);padding-top:clamp(10px,2vh,18px);border-top:1px solid rgba(130,100,40,0.18);}
 
 /* ── DEAD SCREEN ── */
-#dead{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(10,0,0,1) 0%,rgba(3,0,0,1) 100%);}
+#dead{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--sat,0px) + 8px) calc(var(--sar,0px) + 16px) clamp(calc(var(--sab,0px) + 80px),calc(var(--sab,0px) + 18vh),calc(var(--sab,0px) + 160px)) calc(var(--sal,0px) + 16px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(10,0,0,1) 0%,rgba(3,0,0,1) 100%);}
 #dead h1{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#8b0000;letter-spacing:0.18em;text-shadow:0 0 22px rgba(180,40,30,0.50),0 2px 6px rgba(0,0,0,0.65);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:8px;text-align:center;}
 #dead .dead-stats{font-size:0.68rem;letter-spacing:0.14em;color:rgba(200,162,90,0.85);line-height:2.2;margin-bottom:clamp(12px,2.5vh,28px);width:min(480px,92vw);text-align:center;}
 .dead-nav{display:flex;flex-direction:column;gap:4px;align-items:center;width:min(480px,92vw);}
@@ -1405,7 +1720,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .dead-nav .mnb:hover .mnb-bg,.dead-nav .mnb.gamepad-focused .mnb-bg{background:linear-gradient(108deg,rgba(28,5,2,0.97),rgba(12,2,1,0.92));border-left-color:rgba(235,86,40,0.74);}
 
 /* ── STAGE COMPLETE ── */
-#stageCompleteScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 16px clamp(80px,18vh,160px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(0,10,3,1),rgba(0,3,1,1));}
+#stageCompleteScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--sat,0px) + 8px) calc(var(--sar,0px) + 16px) clamp(calc(var(--sab,0px) + 80px),calc(var(--sab,0px) + 18vh),calc(var(--sab,0px) + 160px)) calc(var(--sal,0px) + 16px);gap:0;overflow-x:hidden;background:linear-gradient(160deg,rgba(0,10,3,1),rgba(0,3,1,1));}
 #stageCompleteScreen h1{font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2.6rem);color:#e8c89c;letter-spacing:0.18em;text-shadow:0 0 22px rgba(255,165,80,0.32),0 2px 6px rgba(0,0,0,0.55);animation:dpulse 1.3s ease-in-out infinite alternate;width:min(480px,92vw);margin-bottom:4px;text-align:center;}
 #stageCompleteScreen .sc-stage-name{font-size:0.66rem;letter-spacing:0.28em;color:rgba(220,180,135,0.78);text-transform:uppercase;margin-bottom:6px;width:min(480px,92vw);text-align:center;}
 #stageCompleteScreen .sc-stats{font-size:0.68rem;letter-spacing:0.14em;color:rgba(200,162,90,0.85);line-height:2.2;text-align:center;margin-bottom:clamp(14px,3vh,32px);width:min(480px,92vw);}
@@ -1417,7 +1732,7 @@ body.ps-ctrl .gp-y{background:linear-gradient(160deg,#484848,#242424);color:#1a9
 .sc-nav .mnb:hover .mnb-bg,.sc-nav .mnb.gamepad-focused .mnb-bg{background:linear-gradient(108deg,rgba(4,22,10,0.97),rgba(2,10,5,0.92));border-left-color:rgba(60,200,118,0.74);}
 
 /* ── SETTINGS polish ── */
-#settingsScreen{justify-content:flex-start;padding-top:clamp(3vh,5.5vh,9vh);}
+#settingsScreen{justify-content:flex-start;padding-top:clamp(calc(var(--sat,0px) + 3vh),calc(var(--sat,0px) + 5.5vh),calc(var(--sat,0px) + 9vh));padding-left:var(--sal,0px);padding-right:var(--sar,0px);}
 .settings-section-lbl{font-size:0.56rem;letter-spacing:0.34em;color:rgba(185,148,60,0.52);text-align:left;width:auto;margin-bottom:0;padding-left:2px;}
 .settings-divider{background:linear-gradient(90deg,rgba(200,160,60,0.28),rgba(200,160,60,0.08),transparent);}
 /* Settings tabs — mirrors the prep-screen tab pattern so the visual
@@ -3664,24 +3979,37 @@ function scaleViewport(){
   const ww=window.innerWidth, wh=window.innerHeight;
   const isMobile=!!save.mobileControls;
   if(isMobile){
-    // Mobile: fill entire screen, no letterbox
-    vp.style.width =ww+'px';
-    vp.style.height=wh+'px';
-    vp.style.top   ='0';
-    vp.style.left  ='0';
-    vp.style.transform='translate(0,0)'; // keep transform so position:fixed children stay contained
+    const dw = window.visualViewport ? window.visualViewport.width  : ww;
+    const dh = window.visualViewport ? window.visualViewport.height : wh;
+    const isLandscape = dw > dh;
+    if(isLandscape){
+      const vpW = Math.min(dw, Math.round(dh*16/9));
+      const vpH = Math.min(dh, Math.round(dw*9/16));
+      vp.style.width  = vpW + 'px';
+      vp.style.height = vpH + 'px';
+      vp.style.top    = Math.round((dh - vpH) / 2) + 'px';
+      vp.style.left   = Math.round((dw - vpW) / 2) + 'px';
+    } else {
+      vp.style.width  = dw + 'px';
+      vp.style.height = dh + 'px';
+      vp.style.top    = '0';
+      vp.style.left   = '0';
+    }
   } else {
-    // Desktop: largest 16:9 rect that fits, centred — black bars handled by body background:#000
     const vpW=Math.min(ww, Math.round(wh*16/9));
     const vpH=Math.min(wh, Math.round(ww*9/16));
-    vp.style.width =vpW+'px';
-    vp.style.height=vpH+'px';
-    vp.style.top   =Math.round((wh-vpH)/2)+'px';
-    vp.style.left  =Math.round((ww-vpW)/2)+'px';
-    vp.style.transform='translate(0,0)'; // identity transform — creates containing block for fixed children
+    vp.style.width  = vpW+'px';
+    vp.style.height = vpH+'px';
+    vp.style.top    = Math.round((wh-vpH)/2)+'px';
+    vp.style.left   = Math.round((ww-vpW)/2)+'px';
   }
+  // translateZ(0) guarantees all browsers create a compositing layer and treat
+  // #viewport as containing block for position:fixed children (.screen, #hud etc.)
+  // translate(0,0) can be optimised away by some mobile browsers; translateZ(0) cannot.
+  vp.style.transform = 'translateZ(0)';
+  _applyResponsiveUI();
 }
-window.addEventListener('resize',scaleViewport);
+window.addEventListener('resize',()=>{ scaleViewport(); if(save&&save.mobileControls){ _applyHudScale(); } });
 let _settingsFrom = 'menu'; // 'menu' | 'pause'
 
 function showSettings(){
@@ -3793,7 +4121,19 @@ function updateFsButton(){
   const lbl2=document.getElementById('fsLabel2');
   if(lbl2) lbl2.textContent=full?'EXIT FULLSCREEN':'FULLSCREEN';
 }
-document.addEventListener('fullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
+document.addEventListener('fullscreenchange',()=>{
+  scaleViewport(); updateFsButton();
+  // Re-enter fullscreen if user exits while mobile controls are active
+  if(!isFullscreen() && save && save.mobileControls){
+    setTimeout(()=>{
+      if(!isFullscreen() && save && save.mobileControls){
+        const el=document.documentElement;
+        const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+        if(req) req.call(el).catch(()=>{});
+      }
+    }, 800);
+  }
+});
 document.addEventListener('webkitfullscreenchange',()=>{ scaleViewport(); updateFsButton(); });
 
 function calcMaxHp(){ return 120 + save.stats.vit*22; }
@@ -4110,8 +4450,23 @@ let _pixiApp       = null;
 let _pixiReady     = false;
 let _pixiCanvasMirror = null;   // PIXI.Sprite that mirrors HTMLCanvas #c
 let _pixiCanvasTexture = null;  // PIXI.Texture wrapping #c's CanvasSource
-let _pixiBloomFilter = null;    // AdvancedBloomFilter on the canvas mirror
+let _pixiBloomFilter = null;    // AdvancedBloomFilter on the canvas mirror (legacy ref)
 let _pixiBloomReady  = false;   // true once filter is attached
+// ── PIXI: CINEMATIC POST ─────────────────────────────────────────────────────
+let _pixiPostColorMultGfx   = null;  // color grade — multiply (cool darks)
+let _pixiPostColorAddGfx    = null;  // color grade — add (warm highlights)
+let _pixiPostBossVigSprite  = null;  // boss arena radial vignette sprite
+let _pixiPostBossMulGfx     = null;  // boss arena multiply violet wash
+let _pixiPostFgSilhSprite   = null;  // foreground silhouette (baked static)
+let _pixiPostLowHpSprite    = null;  // low-HP red radial vignette sprite
+let _pixiPostLightningGfx   = null;  // lightning white flash Graphics
+let _pixiPostBossIntroNameR = null;  // boss intro — red channel shadow Text
+let _pixiPostBossIntroNameB = null;  // boss intro — blue channel shadow Text
+let _pixiPostBossIntroName  = null;  // boss intro — main name Text
+let _pixiPostBossIntroSub   = null;  // boss intro — subtitle Text
+let _pixiPostBloomFilter    = null;  // PIXI.filters.AdvancedBloomFilter on stage
+let _pixiPostRgbSplitFilter = null;  // PIXI.filters.RGBSplitFilter for chromatic ab
+let _pixiPostTiltFilter     = null;  // PIXI.BlurFilter on _pixiBgSprite for tilt-shift DOF
 // Eight layer containers in render order (back → front).
 // Naming matches the migration brief so each system has an obvious home.
 // During migration, `background` ALSO holds the canvas-mirror sprite — every
@@ -4235,6 +4590,8 @@ function _initPixi(){
     _initPixiEnemySwingOrb();      // Enemy swing arc + thrust orb         → vfx layer   (Session 20)
     _initPixiPhaseFlash();         // Boss phase-transition cream flash    → overlay layer (Session 20)
     _initPixiWindupTelegraph();    // Enemy windup ground oval + reticle   → vfx layer   (Session 20)
+    _initPixiAirSmashShockwave();  // Air-smash impact shockwave rings      → vfx layer
+    _initPixiCinematicPost();      // Cinematic post pass (color grade, vignettes, bloom, chromatic ab, tilt-shift, boss intro) → overlay + stage filters
     // Sparks: migrated via _initPixiParticles → _tickPixiParticles (Session 11).
     // The `particles[]` array is the single source of truth; the canvas draw
     // loop has `if(_pixiReady) return;` so it's a fallback only. Weapon hit
@@ -4640,6 +4997,306 @@ function _initPixiTiltShift(){
   _pixiLayers.background.addChild(_pixiTiltSprite);
 }
 
+// ── PIXI: CINEMATIC POST PASS ────────────────────────────────────────────────
+// Migrated from _applyCinematicPost (canvas). All fullscreen overlay effects
+// now live on the 'overlay' layer (z 7 — topmost, above HUD sprites).
+// Stage-level post filters (bloom, RGB split) applied to app.stage.
+//
+//  Systems moved here:
+//   • Per-stage color grade  (multiply + add blend rects)
+//   • Boss arena vignette    (pre-baked radial dark sprite + multiply wash)
+//   • Foreground silhouette  (pre-baked static bottom/side gradient sprite)
+//   • Low-HP red vignette    (pre-baked radial red sprite, alpha driven by HP%)
+//   • Lightning flash        (white Graphics rect, alpha driven by timer)
+//   • Boss intro card        (PIXI.Text name + subtitle + chromatic shadows)
+//   • Tilt-shift DOF         (BlurFilter on _pixiBgSprite, top-fade effect)
+//   • Bloom                  (AdvancedBloomFilter on app.stage)
+//   • Chromatic aberration   (RGBSplitFilter on app.stage, driven by _chromaticAb)
+function _initPixiCinematicPost(){
+  const W = 1280, H = 720;
+  const OVR = _pixiLayers.overlay;
+
+  // ── COLOR GRADE ────────────────────────────────────────────────────────────
+  _pixiPostColorMultGfx = new PIXI.Graphics();
+  _pixiPostColorMultGfx.blendMode = 'multiply';
+  OVR.addChild(_pixiPostColorMultGfx);
+  _pixiPostColorAddGfx = new PIXI.Graphics();
+  _pixiPostColorAddGfx.blendMode = 'add';
+  OVR.addChild(_pixiPostColorAddGfx);
+
+  // ── BOSS ARENA RADIAL VIGNETTE (pre-baked) ─────────────────────────────────
+  {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const rg = g.createRadialGradient(W*0.5, H*0.54, W*0.22, W*0.5, H*0.54, W*0.66);
+    rg.addColorStop(0.0,  'rgba(0,0,0,0)');
+    rg.addColorStop(0.55, 'rgba(14,4,12,0.45)');
+    rg.addColorStop(1.0,  'rgba(6,2,8,1.0)');
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    _pixiPostBossVigSprite = new PIXI.Sprite(PIXI.Texture.from(c));
+    _pixiPostBossVigSprite.width  = W;
+    _pixiPostBossVigSprite.height = H;
+    _pixiPostBossVigSprite.alpha  = 0;
+    OVR.addChild(_pixiPostBossVigSprite);
+  }
+  // Boss arena multiply colour wash (cold violet tint over full frame)
+  _pixiPostBossMulGfx = new PIXI.Graphics();
+  _pixiPostBossMulGfx.blendMode = 'multiply';
+  OVR.addChild(_pixiPostBossMulGfx);
+
+  // ── FOREGROUND SILHOUETTE (static, baked once) ─────────────────────────────
+  {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const band = g.createLinearGradient(0, H*0.78, 0, H);
+    band.addColorStop(0,    'rgba(8,4,12,0)');
+    band.addColorStop(0.55, 'rgba(8,4,12,0.18)');
+    band.addColorStop(1,    'rgba(4,2,8,0.42)');
+    g.fillStyle = band; g.fillRect(0, H*0.78, W, H*0.22);
+    const lft = g.createLinearGradient(0, 0, W*0.10, 0);
+    lft.addColorStop(0, 'rgba(6,3,10,0.22)');
+    lft.addColorStop(1, 'rgba(6,3,10,0)');
+    g.fillStyle = lft; g.fillRect(0, 0, W*0.10, H);
+    const rgt = g.createLinearGradient(W*0.90, 0, W, 0);
+    rgt.addColorStop(0, 'rgba(6,3,10,0)');
+    rgt.addColorStop(1, 'rgba(6,3,10,0.22)');
+    g.fillStyle = rgt; g.fillRect(W*0.90, 0, W*0.10, H);
+    _pixiPostFgSilhSprite = new PIXI.Sprite(PIXI.Texture.from(c));
+    _pixiPostFgSilhSprite.width  = W;
+    _pixiPostFgSilhSprite.height = H;
+    OVR.addChild(_pixiPostFgSilhSprite);
+  }
+
+  // ── LOW-HP RADIAL VIGNETTE (pre-baked) ─────────────────────────────────────
+  {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const rg = g.createRadialGradient(W*0.5, H*0.54, W*0.18, W*0.5, H*0.54, W*0.70);
+    rg.addColorStop(0.00, 'rgba(0,0,0,0)');
+    rg.addColorStop(0.50, 'rgba(80,10,12,0.35)');
+    rg.addColorStop(1.00, 'rgba(120,10,20,1.0)');
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    _pixiPostLowHpSprite = new PIXI.Sprite(PIXI.Texture.from(c));
+    _pixiPostLowHpSprite.width  = W;
+    _pixiPostLowHpSprite.height = H;
+    _pixiPostLowHpSprite.alpha  = 0;
+    OVR.addChild(_pixiPostLowHpSprite);
+  }
+
+  // ── LIGHTNING FLASH ─────────────────────────────────────────────────────────
+  _pixiPostLightningGfx = new PIXI.Graphics();
+  _pixiPostLightningGfx.rect(0, 0, W, H).fill({ color: 0xe1ebff, alpha: 1 });
+  _pixiPostLightningGfx.alpha = 0;
+  OVR.addChild(_pixiPostLightningGfx);
+
+  // ── BOSS INTRO CARD ─────────────────────────────────────────────────────────
+  const _nameStyleMain = new PIXI.TextStyle({
+    fontFamily: 'Cinzel, serif', fontWeight: '700', fontSize: 56,
+    fill: '#f5e4b4',
+    dropShadow: { blur: 18, alpha: 0.85, distance: 0, angle: 0 },
+  });
+  _pixiPostBossIntroNameR = new PIXI.Text({ text: '', style: new PIXI.TextStyle({
+    fontFamily: 'Cinzel, serif', fontWeight: '700', fontSize: 56,
+    fill: 'rgba(255,40,40,0.40)',
+  })});
+  _pixiPostBossIntroNameB = new PIXI.Text({ text: '', style: new PIXI.TextStyle({
+    fontFamily: 'Cinzel, serif', fontWeight: '700', fontSize: 56,
+    fill: 'rgba(40,180,255,0.40)',
+  })});
+  _pixiPostBossIntroName = new PIXI.Text({ text: '', style: _nameStyleMain });
+  _pixiPostBossIntroSub  = new PIXI.Text({ text: '— THE VEIL TREMBLES —',
+    style: new PIXI.TextStyle({
+      fontFamily: '"IBM Plex Sans", sans-serif', fontWeight: '500',
+      fontSize: 14, fill: 'rgba(220,180,80,0.75)', letterSpacing: 6,
+    })
+  });
+  for(const t of [_pixiPostBossIntroNameR, _pixiPostBossIntroNameB,
+                  _pixiPostBossIntroName,  _pixiPostBossIntroSub]){
+    t.anchor.set(0.5);
+    t.visible = false;
+    OVR.addChild(t);
+  }
+
+  // ── TILT-SHIFT DOF ──────────────────────────────────────────────────────────
+  // TODO: implement with RenderTexture snapshot + top-fade mask so only the
+  // top ~32% blurs (the sky/distance). Full-sprite blur makes the entire
+  // background blurry which is wrong. Leaving disabled for now.
+  // _pixiPostTiltFilter stays null.
+
+  // ── STAGE-LEVEL POST FILTERS ────────────────────────────────────────────────
+  // AdvancedBloomFilter — GPU highlight spill, replaces canvas downsample blur.
+  // RGBSplitFilter — chromatic aberration on heavy hits.
+  const stageFilters = (_pixiApp.stage.filters ? [..._pixiApp.stage.filters] : []);
+  if(PIXI.filters && PIXI.filters.AdvancedBloomFilter){
+    _pixiPostBloomFilter = new PIXI.filters.AdvancedBloomFilter({
+      threshold:  0.50,
+      bloomScale: 0.16,
+      brightness: 1.0,
+      blur:       7,
+      quality:    4,
+    });
+    stageFilters.push(_pixiPostBloomFilter);
+    _pixiBloomReady = true;
+  }
+  if(PIXI.filters && PIXI.filters.RGBSplitFilter){
+    _pixiPostRgbSplitFilter = new PIXI.filters.RGBSplitFilter({
+      red:   { x: 0, y: 0 },
+      green: { x: 0, y: 0 },
+      blue:  { x: 0, y: 0 },
+    });
+    _pixiPostRgbSplitFilter.enabled = false;
+    stageFilters.push(_pixiPostRgbSplitFilter);
+  }
+  if(stageFilters.length) _pixiApp.stage.filters = stageFilters;
+}
+
+function _tickPixiCinematicPost(){
+  if(!_pixiReady) return;
+  const W = 1280, H = 720;
+  const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+
+  // ── BOKEH SIMULATION TICK ───────────────────────────────────────────────────
+  // Simulation only (no canvas draws). _tickPixiBokeh() renders on Pixi.
+  _tickBokeh();
+
+  // ── BOSS ARENA INTENSITY SMOOTHING ─────────────────────────────────────────
+  const _bossAlive = (typeof enemies !== 'undefined') && enemies.some(e => e.boss && !e.dead);
+  _bossArenaIntensity += ((_bossAlive ? 1 : 0) - _bossArenaIntensity) * 0.025;
+
+  // ── LIGHTNING TIMER (Stage 2) ───────────────────────────────────────────────
+  if(typeof currentStage !== 'undefined' && currentStage === 2
+     && (typeof gameOver === 'undefined' || !gameOver)
+     && _bossArenaIntensity < 0.05){
+    _gameLightningTimer--;
+    if(_gameLightningTimer <= 0 && _gameLightningFlash <= 0){
+      _gameLightningFlash = 22;
+      _gameLightningTimer = 600 + Math.floor(Math.random() * 720);
+      _gameLightningSecondary = (Math.random() < 0.45)
+        ? 1 + Math.floor(Math.random() * 4) : 0;
+      try {
+        clearTimeout(_gameThunderTimerId);
+        _gameThunderTimerId = setTimeout(() => {
+          if(currentStage !== 2 || gameOver) return;
+          try { _gamePlayThunderRumble(); } catch(_) {}
+        }, 800 + Math.random() * 1400);
+      } catch(_) {}
+    }
+  }
+  if(_gameLightningSecondary > 0){
+    _gameLightningSecondary--;
+    if(_gameLightningSecondary <= 0) _gameLightningFlash = Math.max(_gameLightningFlash, 18);
+  }
+  if(_gameLightningFlash > 0) _gameLightningFlash--;
+
+  // ── BLOOM SCALE (ramps with boss intensity) ────────────────────────────────
+  if(_pixiPostBloomFilter)
+    _pixiPostBloomFilter.bloomScale = 0.16 + _bossArenaIntensity * 0.10;
+
+  // ── CHROMATIC ABERRATION ────────────────────────────────────────────────────
+  if(_pixiPostRgbSplitFilter){
+    const ca = (typeof _chromaticAb !== 'undefined') ? _chromaticAb : 0;
+    if(ca > 0.05){
+      const off = 2 + ca * 6;
+      _pixiPostRgbSplitFilter.red   = { x:  off, y: 0 };
+      _pixiPostRgbSplitFilter.blue  = { x: -off, y: 0 };
+      _pixiPostRgbSplitFilter.enabled = true;
+    } else {
+      _pixiPostRgbSplitFilter.enabled = false;
+    }
+  }
+
+  // ── PER-STAGE COLOR GRADE ──────────────────────────────────────────────────
+  if(_pixiPostColorMultGfx && _pixiPostColorAddGfx){
+    _pixiPostColorMultGfx.clear();
+    _pixiPostColorAddGfx.clear();
+    const grade = (typeof _STAGE_GRADES !== 'undefined') && _STAGE_GRADES[currentStage];
+    if(grade){
+      const [wr,wg,wb,wa] = grade.warm;
+      const [cr,cg,cb,ca] = grade.cool;
+      _pixiPostColorMultGfx.rect(0, 0, W, H)
+        .fill({ color: (cr<<16)|(cg<<8)|cb, alpha: ca });
+      _pixiPostColorAddGfx.rect(0, 0, W, H)
+        .fill({ color: (wr<<16)|(wg<<8)|wb, alpha: wa });
+    }
+  }
+
+  // ── BOSS ARENA ATMOSPHERIC ─────────────────────────────────────────────────
+  if(_pixiPostBossVigSprite){
+    const t = now / 1000;
+    const pulse = 0.55 + 0.30*Math.sin(t*1.1) + 0.15*Math.sin(t*0.42 + 1.7);
+    const arenaA = _bossArenaIntensity * (0.16 + pulse*0.10);
+    // Pre-baked gradient has the 0.45/1.0 stop ratio baked in. Scale by arenaA directly.
+    _pixiPostBossVigSprite.alpha = (_bossArenaIntensity > 0.02) ? arenaA : 0;
+  }
+  if(_pixiPostBossMulGfx){
+    _pixiPostBossMulGfx.clear();
+    if(_bossArenaIntensity > 0.02){
+      // rgba(48,20,56, intensity*0.08) in Pixi hex
+      _pixiPostBossMulGfx.rect(0, 0, W, H)
+        .fill({ color: 0x301438, alpha: _bossArenaIntensity * 0.08 });
+    }
+  }
+
+  // ── LOW-HP VIGNETTE ────────────────────────────────────────────────────────
+  if(_pixiPostLowHpSprite){
+    let vigA = 0;
+    if(typeof player !== 'undefined' && player.hp > 0 && player.maxHp > 0){
+      const hpPct = player.hp / player.maxHp;
+      if(hpPct < 0.25){
+        const danger = (0.25 - hpPct) / 0.25;
+        const hbt = now / 1000;
+        const beat = Math.max(0,
+          Math.sin(hbt*4.8)*0.5 + Math.sin(hbt*4.8 - 0.35)*0.5 + 0.5);
+        vigA = (0.18 + danger*0.34) * (0.65 + beat*0.35);
+      }
+    }
+    _pixiPostLowHpSprite.alpha = vigA;
+  }
+
+  // ── LIGHTNING FLASH ────────────────────────────────────────────────────────
+  if(_pixiPostLightningGfx){
+    let flashA = 0;
+    if(_gameLightningFlash > 0){
+      const p = _gameLightningFlash / 22;
+      const ease = p > 0.80 ? (1 - p) / 0.20 : p / 0.80;
+      flashA = ease * 0.50;
+    }
+    _pixiPostLightningGfx.alpha = flashA > 0.01 ? flashA : 0;
+  }
+
+  // ── BOSS INTRO CARD ────────────────────────────────────────────────────────
+  if(_pixiPostBossIntroName){
+    const active = typeof _bossIntroFrames !== 'undefined' && _bossIntroFrames > 0
+                   && typeof _bossIntroRef   !== 'undefined' && _bossIntroRef;
+    if(active){
+      const ip = _bossIntroFrames / _bossIntroTotal;
+      const ir = 1 - ip;
+      const alpha = ir < 0.25 ? ir / 0.25 : ip < 0.25 ? ip / 0.25 : 1;
+      const bn = _bossIntroRef.bossName || 'BOSS';
+      const ny = H * 0.40;
+      _pixiPostBossIntroNameR.text = bn;
+      _pixiPostBossIntroNameB.text = bn;
+      _pixiPostBossIntroName.text  = bn;
+      _pixiPostBossIntroNameR.x = W/2 + 3;  _pixiPostBossIntroNameR.y = ny;
+      _pixiPostBossIntroNameB.x = W/2 - 3;  _pixiPostBossIntroNameB.y = ny;
+      _pixiPostBossIntroName.x  = W/2;      _pixiPostBossIntroName.y  = ny;
+      _pixiPostBossIntroSub.x   = W/2;      _pixiPostBossIntroSub.y   = ny + 50;
+      for(const t of [_pixiPostBossIntroNameR, _pixiPostBossIntroNameB,
+                      _pixiPostBossIntroName,  _pixiPostBossIntroSub]){
+        t.visible = true;
+        t.alpha   = alpha;
+      }
+    } else {
+      for(const t of [_pixiPostBossIntroNameR, _pixiPostBossIntroNameB,
+                      _pixiPostBossIntroName,  _pixiPostBossIntroSub])
+        t.visible = false;
+    }
+  }
+}
+
 // ── PIXI: STAGE-AWARE AMBIENT DRIFT PARTICLES ──────────────────────────────
 // Pure Pixi-native addition. Stage-tinted floating particles that drift
 // across the scene as ambient atmosphere. Per-stage character: dust motes
@@ -4771,17 +5428,12 @@ const _PIXI_DASH_TRAIL_POOL_SIZE = 24;
 let _pixiDashTrailContainer = null;
 const _pixiDashTrailPool = [];
 function _initPixiHero(){
-  // heroCanvas comes from the existing stripMagenta() pipeline. Wait for
-  // it to finish loading before building textures.
-  if(!heroLoaded || !heroCanvas){
+  // Wait for both character sheets to finish loading.
+  if(!heroLoaded || !heroCanvas || !heroLoaded2 || !heroCanvas2){
     setTimeout(_initPixiHero, 100);
     return;
   }
-  // One TextureSource wrapping the magenta-stripped hero canvas; many
-  // Textures sharing that source with different frame rects. Set
-  // scaleMode = 'nearest' to match the canvas player's crisp HD-2D
-  // pixel-art look. Also clamp-to-edge addressing to stop GPU UV from
-  // sampling adjacent atlas frames (texture bleed) at edge cases.
+  // Sheet 1 — charactersheet1.png (all core animations)
   const baseTex   = PIXI.Texture.from(heroCanvas);
   const source    = baseTex.source;
   if(source){
@@ -4792,19 +5444,30 @@ function _initPixiHero(){
       source.style.addressModeV = 'clamp-to-edge';
     }
   }
+  // Sheet 2 — charactersheet2.png (special-move animations)
+  const baseTex2  = PIXI.Texture.from(heroCanvas2);
+  const source2   = baseTex2.source;
+  if(source2){
+    source2.scaleMode = 'nearest';
+    if(source2.style){
+      source2.style.addressMode = 'clamp-to-edge';
+      source2.style.addressModeU = 'clamp-to-edge';
+      source2.style.addressModeV = 'clamp-to-edge';
+    }
+  }
   for(const [animName, frames] of Object.entries(HERO_FRAMES)){
     if(!Array.isArray(frames)) continue;
     for(let i = 0; i < frames.length; i++){
       const f = frames[i];
+      // Route to the correct TextureSource based on the frame's sheet flag.
+      // sheet:1 = charactersheet1.png (all existing animations).
+      // sheet:2 = charactersheet2.png (new special-move animations + future ones).
+      const src = (f.sheet === 2) ? source2 : source;
       // ── Texture-bleed guard ────────────────────────────────────────────
       // Inset the frame rect by 0.5 pixels on each side to prevent GPU
-      // sampling from leaking into adjacent frames in the atlas. Without
-      // this, certain frames (especially run where 12 cells sit side-by-
-      // side at sy=840) would show a thin black line bleed from the next
-      // frame's left edge. The inset is invisible at draw scale but stops
-      // the bleed entirely.
+      // sampling from leaking into adjacent frames in the atlas.
       const tex = new PIXI.Texture({
-        source,
+        source: src,
         frame: new PIXI.Rectangle(f.sx + 0.5, f.sy + 0.5, f.sw - 1, f.sh - 1),
       });
       _pixiHeroFrameCache.set(`${animName}|${i}`, tex);
@@ -5042,6 +5705,13 @@ function _tickPixiHero(){
   _pixiHeroContainer.y = player.y + PH;
   _pixiHeroContainer.scale.x = facing * squashX;
   _pixiHeroContainer.scale.y = squashY;
+  // ── INVULN BLINK — 6 Hz alternating on/off during the iframe window ───────
+  // player.invuln is true for 2 s after being hit (set by _bossHitPlayer /
+  // projectile hit handler). The hurt animation only covers ~1.2 s (hitCD 72→18);
+  // the remaining ~0.8 s the character looks normal with no blink — this was the
+  // "goes invisible" gap. Now the full 2-second window blinks at ~6 Hz (80 ms on/off).
+  _pixiHeroContainer.alpha =
+    (player.invuln && !player.dead && Math.floor(Date.now() / 80) % 2 === 0) ? 0 : 1;
 }
 
 // ── PIXI: SWORD SPRITE + TRAIL (Sessions 9 + 12 — full cutover) ──────────
@@ -5447,6 +6117,100 @@ function _tickPixiSword(){
     }
     return;
   }
+  // ── SPECIAL MOVE WEAPON OVERLAY: upwardSlash + airWeaponDownSlash ────────
+  // Uses the SAME pivot/hilt/rotation formula as getBladeSegment arc so the
+  // weapon placement is identical to a normal swing regardless of anchorY.
+  // (anchorY can be 0.1 for default or 0.85 for editor-exported weapons; a
+  // fixed world-pos formula breaks when the grip is at the bottom of the sprite.)
+  {
+    const _inUp   = player.upSlashTimer > 0 || player.upSlashRising;
+    const _inDown = player.airDownSlashActive || player.airDownSlashLandTimer > 0;
+    if(_inUp || _inDown){
+      if(_pixiSwordRSGlow)   _pixiSwordRSGlow.visible   = false;
+      if(_pixiSwordSpAttack) _pixiSwordSpAttack.visible = false;
+      _pixiSwordTrailSprite.visible = false;
+      const _smFacing = (player.facing === -1) ? -1 : 1;
+      const _smWImg   = (typeof _slotImg === 'function') ? _slotImg('weapon') : null;
+      if(_smWImg){
+        const _smRes = _getOrBuildSwordTextures(_smWImg);
+        if(_smRes){
+          const _smSS   = (_smWImg.naturalWidth === _smWImg.naturalHeight);
+          const _smFxTex = _smSS ? _smRes.singleWeapon : (_smRes.atk?.[0]);
+          const _smRawTx = _smSS ? _smRes.singleRaw    : (_smRes.atkRaw?.[0]);
+          if(_smFxTex){
+            const _smAncX = _smSS ? _WM.weapon.anchorX : 0.5;
+            const _smAncY = _smSS ? _WM.weapon.anchorY : 0.1;
+            const _smRenderH = 100;
+            const _smTs   = _smRenderH / _smFxTex.height;
+            // Mirror getBladeSegment arc: pivot → hilt offset by swordAngle
+            const _bLen  = _smRenderH * 0.88;
+            const _gOff  = _bLen * 0.18;
+            // Pivot: shoulder for rising slash; centered above head for dive; ground-plane for landing
+            const _isLanding = !_inUp && !player.airDownSlashActive; // airDownSlashLandTimer > 0
+            const _pivX  = _inUp
+              ? (player.x + PW/2 + _smFacing * 10)              // shoulder, slightly forward
+              : _isLanding
+                ? (player.x + PW/2 + _smFacing * 25)            // arm extended forward at ground
+                : (player.x + PW/2 + _smFacing * 12);           // hands, slightly forward
+            const _pivY  = _inUp
+              ? (pHitY() - 10)                                   // shoulder level
+              : _isLanding
+                ? (floorY() + (HERO_DRAW_H - HERO_OFFSET_Y))    // visual ground plane
+                : (pHitY() + PH * 0.10);                        // chest/hands height during dive
+            let _smAngle;
+            if(_inUp){
+              // Rising Horizon: hip/back wind-up → arm raised high follow-through
+              const _uProg = player.upSlashTimer > 0 ? Math.min(1, 1 - player.upSlashTimer / 22) : 1;
+              _smAngle = 2.3 + (-2.27 - 2.3) * _uProg; // 2.3 (hip-back) → -2.27 (raised arm)
+            } else if(player.airDownSlashActive){
+              // Headbreaker: overhead start → sweeps down → STOPS horizontal (0°).
+              // Reads the SHARED angle fn so sprite, trail & hitbox are identical.
+              _smAngle = _headbreakerAngle();
+            } else {
+              // Landing recovery: sword horizontal pointing forward at ground level
+              _smAngle = 0; // → rotation=(PI/2)*facing → blade points in facing direction
+            }
+            // Hilt world position (same as getBladeSegment arc formula)
+            const _smWx = _pivX + _smFacing * Math.cos(_smAngle) * _gOff;
+            const _smWy = _pivY + Math.sin(_smAngle) * _gOff;
+            // Sprite rotation (same as _tickPixiSword arc branch)
+            const _smRot = (_smAngle + Math.PI / 2) * _smFacing;
+            if(_smRawTx){
+              _pixiSwordShadowSprite.texture    = _smRawTx;
+              _pixiSwordShadowSprite.anchor.set(_smAncX, _smAncY);
+              _pixiSwordShadowSprite.scale.x    = _smTs * _smFacing;
+              _pixiSwordShadowSprite.scale.y    = _smTs;
+              _pixiSwordShadowSprite.x          = _smWx + 2;
+              _pixiSwordShadowSprite.y          = _smWy + 3;
+              _pixiSwordShadowSprite.rotation   = _smRot;
+              _pixiSwordShadowSprite.visible    = true;
+            } else {
+              _pixiSwordShadowSprite.visible = false;
+            }
+            _pixiSwordSprite.texture  = _smFxTex;
+            _pixiSwordSprite.anchor.set(_smAncX, _smAncY);
+            _pixiSwordSprite.scale.x  = _smTs * _smFacing;
+            _pixiSwordSprite.scale.y  = _smTs;
+            _pixiSwordSprite.x        = _smWx;
+            _pixiSwordSprite.y        = _smWy;
+            _pixiSwordSprite.rotation = _smRot;
+            _pixiSwordSprite.alpha    = 1;
+            _pixiSwordSprite.visible  = true;
+          } else {
+            _pixiSwordSprite.visible = false;
+            _pixiSwordShadowSprite.visible = false;
+          }
+        } else {
+          _pixiSwordSprite.visible = false;
+          _pixiSwordShadowSprite.visible = false;
+        }
+      } else {
+        _pixiSwordSprite.visible = false;
+        _pixiSwordShadowSprite.visible = false;
+      }
+      return;
+    }
+  }
   // Not in a special state — hide the windup/spAtk sprites and let normal
   // swing rendering continue below.
   if(_pixiSwordRSGlow)   _pixiSwordRSGlow.visible   = false;
@@ -5459,7 +6223,7 @@ function _tickPixiSword(){
     _pixiSwordTrailSprite.visible = false;
     return;
   }
-  const step     = player.curStep || 0;
+  const step     = (swingAnim.stepOver >= 0 ? swingAnim.stepOver : (player.curStep || 0));
   const stepData = getStep(step);
   const motion   = stepData.motion || 'arc';
   // spin-throw is rendered as a free-flying projectile elsewhere — hide both.
@@ -5478,7 +6242,7 @@ function _tickPixiSword(){
   // Strike: translates the ATK frame forward/up along an eased path, NO rotation.
   // Thrust/lunge-thrust: canvas has no separate trail pass — skip.
   const trailRes = _getOrBuildSwordTextures(tImg);
-  const showTrail = (motion === 'arc' || motion === 'strike') && !!trailRes;
+  const showTrail = (motion === 'arc' || motion === 'strike' || motion === 'uppercut' || motion === 'slam') && !!trailRes;
   if(showTrail){
     const isSingleSquare = (tImg.naturalWidth === tImg.naturalHeight);
     const pivX = pHitX() + PW/2 + facing * stepData.pivotX;
@@ -5680,9 +6444,12 @@ function _tickPixiSwordRibbon(){
   // floor / scene reads through the ribbon). Elemental + special keep punchier
   // body so the identity colour reads.
   const isPlain = !isSp && !elem;
+  // Slam (Headbreaker dive) trail crosses both bright sky and dark deck. The
+  // ribbon is additive, so a low alpha vanishes over dark wood. Push the slam
+  // body alpha high enough that the additive light reads on ANY background.
   const bodyAlphaScale = isPlain
-    ? (isSlam ? 0.28 : 0.18)
-    : (isSlam ? 0.58 : 0.46);
+    ? (isSlam ? 0.62 : 0.18)
+    : (isSlam ? 0.85 : 0.46);
   // Skip strike — canvas keeps the tight knuckle air-pocket effect for now
   // (it uses background sampling that needs refraction shader to migrate).
   if(isStrike){
@@ -5741,18 +6508,20 @@ function _tickPixiSwordRibbon(){
     const dist       = Math.abs((i - 0.5) - sheenPos);
     const sheenBoost = Math.max(0, 1 - dist / 3.0);
     // Soft halo — wide + low alpha behind the main line
+    const _haloBase = isSlam ? 0.42 : (isPlain ? 0.18 : 0.28);
     _pixiSwordRibbon.moveTo(a.tx, a.ty).lineTo(b.tx, b.ty);
     _pixiSwordRibbon.stroke({
       color: tint,
-      alpha: Math.min(1, (isPlain ? 0.18 : 0.28) * lf + sheenBoost * lf * 0.18),
-      width: 3.0 + sheenBoost * 1.4,
+      alpha: Math.min(1, _haloBase * lf + sheenBoost * lf * 0.18),
+      width: (isSlam ? 4.5 : 3.0) + sheenBoost * 1.4,
     });
     // Crisp inner line — narrower, higher alpha
+    const _coreBase = isSlam ? 0.85 : (isPlain ? 0.35 : 0.55);
     _pixiSwordRibbon.moveTo(a.tx, a.ty).lineTo(b.tx, b.ty);
     _pixiSwordRibbon.stroke({
-      color: tint,
-      alpha: Math.min(1, (isPlain ? 0.35 : 0.55) * lf + sheenBoost * lf * 0.25),
-      width: 0.9 + sheenBoost * 0.4,
+      color: isSlam ? 0xfff0d8 : tint,   // near-white core for slam so it reads on dark wood
+      alpha: Math.min(1, _coreBase * lf + sheenBoost * lf * 0.25),
+      width: (isSlam ? 1.6 : 0.9) + sheenBoost * 0.4,
     });
     drewAny = true;
   }
@@ -10706,7 +11475,10 @@ const _pixiMobileCtlLabelPool = [];
 const _pixiMobileCtlBadgePool = [];
 function _initPixiMobileControls(){
   _pixiMobileCtlContainer = new PIXI.Container();
-  _pixiLayers.ui.addChild(_pixiMobileCtlContainer);
+  // MUST be on the overlay layer (not ui) — the ui layer gets x=camPosX applied
+  // each frame, which shifts touch buttons left as the camera scrolls right.
+  // The overlay layer is never camera-offset, so buttons stay screen-locked.
+  _pixiLayers.overlay.addChild(_pixiMobileCtlContainer);
   // Graphics for circles + badge backgrounds (cleared per tick)
   _pixiMobileCtlGfx = new PIXI.Graphics();
   _pixiMobileCtlContainer.addChild(_pixiMobileCtlGfx);
@@ -10796,13 +11568,20 @@ function _tickPixiMobileControls(){
     const fillAlpha = p ? 0.38 : _mcParseAlpha(b.col);
     const strokeCol = p ? 0xffd73c : 0xffffff;
     const strokeAlpha = p ? 0.95 : 0.50;
-    g.circle(b.x, b.y, b.r)
+    // Draw as ellipse compensating for canvas→screen scale distortion.
+    // b.rx/ry are canvas-space radii that appear circular after CSS scaling.
+    const erx = b.rx ?? b.r;
+    const ery = b.ry ?? b.r;
+    g.ellipse(b.x, b.y, erx, ery)
      .fill({ color: fillCol, alpha: fillAlpha })
      .stroke({ width: p ? 2.5 : 1.5, color: strokeCol, alpha: strokeAlpha });
     // Label
     const lbl = _pixiMobileCtlLabelPool[labelIdx++];
     if(lbl.text !== b.label) lbl.text = b.label;
-    const fontSize = Math.round(b.r * 0.58);
+    // Use the smaller of rx/ry (both in canvas-space) to size the font,
+    // so the label fits inside the visible circle on screen.
+    const labelR = Math.min(b.rx ?? b.r, b.ry ?? b.r);
+    const fontSize = Math.round(labelR * 0.62);
     if(lbl.style.fontSize !== fontSize) lbl.style.fontSize = fontSize;
     lbl.x = b.x;
     lbl.y = b.y + 1;
@@ -10816,20 +11595,21 @@ function _tickPixiMobileControls(){
     if(_mb){
       const charges = player.mpCD > 0 ? 0
                     : (player.pfCharges > 0 && player.pfWindow > 0 ? 1 : 2);
-      const bx = _mb.x + _mb.r * 0.65;
-      const by = _mb.y - _mb.r * 0.65;
-      const br = _mb.r * 0.38;
+      const bx = _mb.x + (_mb.rx??_mb.r) * 0.65;
+      const by = _mb.y - (_mb.ry??_mb.r) * 0.65;
+      const brx = (_mb.rx??_mb.r) * 0.38;
+      const bry = (_mb.ry??_mb.r) * 0.38;
       const badgeCol = charges === 2 ? 0xa064ff
                      : charges === 1 ? 0xff8c14
                                      : 0x3c3c3c;
       const badgeAlpha = charges === 0 ? 0.80 : 0.92;
-      g.circle(bx, by, br)
+      g.ellipse(bx, by, brx, bry)
        .fill({ color: badgeCol, alpha: badgeAlpha })
        .stroke({ width: 1, color: 0xffffff, alpha: 0.55 });
       const badge = _pixiMobileCtlBadgePool[badgeIdx++];
       const txt = String(charges);
       if(badge.text !== txt) badge.text = txt;
-      const fontSize = Math.round(br * 1.5);
+      const fontSize = Math.round(Math.min(brx,bry) * 1.5);
       if(badge.style.fontSize !== fontSize) badge.style.fontSize = fontSize;
       badge.x = bx;
       badge.y = by + 1;
@@ -11313,6 +12093,98 @@ function _tickPixiWindupTelegraph(){
     }
   }
   _pixiWindupQueue.length = 0;
+}
+
+// ── PIXI: AIR-SMASH SHOCKWAVE ──────────────────────────────────────────────
+// Spawned by airSlamEnemy() on impact. Three-ring bone-crushing burst:
+//   Ring 0 — fast ivory/white circle expanding from impact pos, thick→thin,
+//             dim fill inside for the "glass lens / refraction" look
+//   Ring 1 — secondary ice-blue ring, starts 3 frames late, slower fade
+//   Ring 2 — flat ground-plane dust ellipse aligned with contact-shadow floor
+// One PIXI.Graphics cleared + rebuilt per tick. Pool of 4 concurrent events.
+const _PIXI_AIR_SMASH_POOL_SIZE = 4;
+const _PIXI_AIR_SMASH_FRAMES    = 23; // total lifetime in ticks
+let   _pixiAirSmashGfx          = null;
+const _pixiAirSmashPool         = [];
+
+function _initPixiAirSmashShockwave(){
+  _pixiAirSmashGfx = new PIXI.Graphics();
+  _pixiAirSmashGfx.blendMode = 'add'; // additive — feeds the bloom filter cleanly
+  _pixiLayers.vfx.addChild(_pixiAirSmashGfx);
+  for(let i = 0; i < _PIXI_AIR_SMASH_POOL_SIZE; i++){
+    _pixiAirSmashPool.push({ active: false, x: 0, y: 0, f: 0 });
+  }
+}
+
+function _queueAirSmashShockwave(impactX, impactY){
+  for(let i = 0; i < _pixiAirSmashPool.length; i++){
+    const e = _pixiAirSmashPool[i];
+    if(!e.active){ e.active = true; e.x = impactX; e.y = impactY; e.f = 0; return; }
+  }
+}
+
+function _tickPixiAirSmashShockwave(){
+  if(!_pixiAirSmashGfx) return;
+  const g = _pixiAirSmashGfx;
+  g.clear();
+  // Visual ground plane — same as contact shadows and PDK boulders
+  const _gY = ((typeof floorY === 'function') ? floorY() : 600)
+              + (HERO_DRAW_H - HERO_OFFSET_Y);
+  for(let i = 0; i < _pixiAirSmashPool.length; i++){
+    const e = _pixiAirSmashPool[i];
+    if(!e.active) continue;
+    const f = e.f;
+
+    // ── Ring 0: main shockwave — ivory/white, starts thick, carries lens fill ──
+    if(f <= 18){
+      const p0   = f / 18;                      // 0 → 1
+      const r0   = 14 + p0 * 138;               // 14 → 152 px
+      const a0   = Math.pow(1 - p0, 0.65);      // fast-in slow-out fade, peaks ~0.9
+      const w0   = Math.max(1.5, 10 - p0 * 8.5); // 10 → 1.5 px
+      // Outer soft bloom glow
+      g.circle(e.x, e.y, r0 + 5)
+       .stroke({ width: w0 + 5, color: 0x66aaff, alpha: a0 * 0.20 });
+      // Dim interior — creates the refractive glass-lens look
+      g.circle(e.x, e.y, r0 - 1)
+       .fill({ color: 0xaaddff, alpha: a0 * 0.06 });
+      // Primary bright stroke
+      g.circle(e.x, e.y, r0)
+       .stroke({ width: w0, color: 0xeef8ff, alpha: a0 * 0.92 });
+      // Inner thin hot-edge highlight
+      g.circle(e.x, e.y, r0 - w0 * 0.5)
+       .stroke({ width: 1.2, color: 0xffffff, alpha: a0 * 0.55 });
+    }
+
+    // ── Ring 1: secondary trailing ring — ice-blue, starts 3 frames behind ──
+    if(f >= 3 && f <= 22){
+      const p1 = (f - 3) / 19;               // 0 → 1
+      const r1 = 10 + p1 * 118;              // 10 → 128 px
+      const a1 = (1 - p1) * 0.50;
+      const w1 = Math.max(1, 5 - p1 * 4);
+      g.circle(e.x, e.y, r1 + 3)
+       .stroke({ width: w1 + 3, color: 0x2255aa, alpha: a1 * 0.22 });
+      g.circle(e.x, e.y, r1)
+       .stroke({ width: w1, color: 0x55aaee, alpha: a1 * 0.75 });
+    }
+
+    // ── Ring 2: ground-plane dust ellipse — squashed 5:1, tan/dust colour ──
+    if(f <= 20){
+      const p2  = f / 20;                    // 0 → 1
+      const rX  = 12 + p2 * 172;            // horizontal radius 12 → 184 px
+      const rY  = rX * 0.20;                // squash — aligns with ground plane
+      const a2  = (1 - p2) * 0.68;
+      // Outer soft glow
+      g.ellipse(e.x, _gY, rX + 8, rY + 2)
+       .stroke({ width: 3 + (1 - p2) * 4, color: 0xc8a070, alpha: a2 * 0.28 });
+      // Primary dust ring
+      g.ellipse(e.x, _gY, rX, rY)
+       .stroke({ width: 2.5, color: 0xe8c888, alpha: a2 * 0.85 });
+    }
+
+    // Advance; deactivate when done
+    e.f++;
+    if(e.f >= _PIXI_AIR_SMASH_FRAMES) e.active = false;
+  }
 }
 
 // ── PIXI: DEFLECT BARRIER SHIELD (advanced volumetric magical sphere) ──────
@@ -14499,6 +15371,7 @@ function _pixiRenderFrame(){
   _pixiCameraSync();
   // No canvas mirror — Pixi renders ONLY its own native content (sparks +
   // atmospherics). #c renders independently underneath via its own z-index 1.
+  _tickPixiCinematicPost(); // must run before _tickPixiBokeh (sim tick inside)
   _tickPixiFog();
   _tickPixiBokeh();
   _tickPixiRays();
@@ -14551,6 +15424,7 @@ function _pixiRenderFrame(){
   _tickPixiEnemySwingOrb();
   _tickPixiPhaseFlash();
   _tickPixiWindupTelegraph();
+  _tickPixiAirSmashShockwave(); // air-smash impact rings (vfx layer)
   // _tickPixiSparks();  // DEFERRED — see comment in canvas spark branch.
                          //  Sparks need to render on the same canvas as their
                          //  parents (character/fireball/projectiles) to avoid
@@ -14566,14 +15440,7 @@ if(document.readyState === 'loading'){
   _initPixi();
 }
 
-// ── CINEMATIC POST FX — cheap downsampled bloom + tone shaping ─────────
-// Bloom: render gameplay → downsample to 1/4 → blur via native filter →
-//        additive-blend back. ~80% the look of a true bloom, ~5% the cost.
-const _bloomCanvas = document.createElement('canvas');
-const _bloomCtx = _bloomCanvas.getContext('2d');
-_bloomCanvas.width = 320;   // 1/4 of native — cheap to blur
-_bloomCanvas.height = 180;
-let _bloomEnabled = true;
+// Bloom migrated to Pixi AdvancedBloomFilter on app.stage (_initPixiCinematicPost).
 
 // ══════════════════════════════════════════
 //  CINEMATIC COMPOSITING LAYERS
@@ -15290,14 +16157,7 @@ function _drawLensDroplets(){
   }
 }
 
-// ── TILT-SHIFT DEPTH-OF-FIELD ─────────────────────────────────────────────
-// HD-2D's signature diorama feel: middle band sharp, top + bottom softly
-// blurred. Half-res offscreen with vertical alpha mask. Pre-baked mask
-// canvas so per-frame work is just blur + composite.
-const _tiltCanvas = document.createElement('canvas');
-const _tiltCtx = _tiltCanvas.getContext('2d');
-_tiltCanvas.width = 640;
-_tiltCanvas.height = 360;
+// Tilt-shift migrated to PIXI.BlurFilter on _pixiBgSprite (_initPixiCinematicPost).
 let _tiltShiftEnabled = true;
 
 // ── PER-STAGE GOD-RAY TINT ────────────────────────────────────────────────
@@ -15312,292 +16172,13 @@ const _STAGE_RAY_TINT = {
 };
 
 function _applyCinematicPost(){
-  if(!_bloomEnabled) return;
-  // ── Highlight-selective bloom ──
-  // MIGRATED to PixiJS via AdvancedBloomFilter on the canvas mirror sprite.
-  // GPU shader-based bloom — same intent (highlights spill), real Gaussian,
-  // ~10× cheaper than the canvas downsample+blur+composite hack below.
-  // When Pixi bloom is active we skip the canvas pass entirely.
-  if(!_pixiBloomReady){
-    _bloomCtx.globalAlpha = 1;
-    _bloomCtx.globalCompositeOperation = 'source-over';
-    _bloomCtx.filter = 'brightness(1.14) contrast(1.62) saturate(0.96)';
-    _bloomCtx.drawImage(canvas, 0, 0, _bloomCanvas.width, _bloomCanvas.height);
-    _bloomCtx.filter = 'none';
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.16 + _bossArenaIntensity * 0.10;
-    ctx.imageSmoothingEnabled = true;
-    ctx.filter = 'blur(7px)';
-    ctx.drawImage(_bloomCanvas, 0, 0, canvas.width, canvas.height);
-    ctx.filter = 'none';
-    ctx.imageSmoothingEnabled = false;
-    ctx.restore();
-  }
-
-  // ══════════════════════════════════════════
-  //  POST-BLOOM COMPOSITING LAYERS
-  // ══════════════════════════════════════════
-  const W = canvas.width, H = canvas.height;
-  const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
-
-  // (Wet floor reflections + per-puddle system both removed. Wetness is
-  //  now baked into the painted stage backgrounds — the right tool for
-  //  HD-2D fidelity. Stubs kept in code for backward-compatibility.)
-
-  // Bokeh + fog band — Pixi-owned (Session 20). Canvas fallbacks removed.
-  _tickBokeh();
-
-  // ── PER-STAGE COLOR GRADE ──────────────────────────────────────────────
-  // Two-pass painter's grade — multiply darks into stage shadow, lighter
-  // pass kisses stage highlight color into bright pixels. Tiny alphas;
-  // big mood payoff. Skips if stage unknown.
-  const grade = _STAGE_GRADES[currentStage];
-  if(grade){
-    const [wr,wg,wb,wa] = grade.warm;
-    const [cr,cg,cb,ca] = grade.cool;
-    ctx.save();
-    // Shadow deepening — multiply pushes darks toward stage palette
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = `rgba(${cr},${cg},${cb},${ca})`;
-    ctx.fillRect(0, 0, W, H);
-    // Highlight tint — additive warmth on bright pixels
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = `rgba(${wr},${wg},${wb},${wa})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-
-  // Depth haze — Pixi-owned (Session 20). Canvas fallback removed.
-
-  // ── TILT-SHIFT DEPTH-OF-FIELD ──────────────────────────────────────────
-  // Canvas-side (production). Pixi can't easily do this without mirroring
-  // the canvas as a texture, which caused flicker — so this stays on canvas.
-  if(_tiltShiftEnabled){
-    const tw = _tiltCanvas.width, th = _tiltCanvas.height;
-    _tiltCtx.globalCompositeOperation = 'source-over';
-    _tiltCtx.globalAlpha = 1;
-    _tiltCtx.clearRect(0, 0, tw, th);
-    _tiltCtx.filter = 'blur(2.2px)';
-    _tiltCtx.drawImage(canvas, 0, 0, tw, th);
-    _tiltCtx.filter = 'none';
-    // Vertical alpha mask — top fade only. Bottom is fully sharp because
-    // that's where the player + enemies live (player feet sit around 88% of H).
-    _tiltCtx.globalCompositeOperation = 'destination-in';
-    const _tg = _tiltCtx.createLinearGradient(0, 0, 0, th);
-    _tg.addColorStop(0.00, 'rgba(0,0,0,0.80)');  // top — softened
-    _tg.addColorStop(0.18, 'rgba(0,0,0,0.45)');
-    _tg.addColorStop(0.32, 'rgba(0,0,0,0.00)');  // sharp from here down
-    _tg.addColorStop(1.00, 'rgba(0,0,0,0.00)');  // …all the way to floor
-    _tiltCtx.fillStyle = _tg;
-    _tiltCtx.fillRect(0, 0, tw, th);
-    _tiltCtx.globalCompositeOperation = 'source-over';
-    // Composite masked-blur back. No extra upsample blur — keep crisp.
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.globalAlpha = 0.85;
-    ctx.drawImage(_tiltCanvas, 0, 0, W, H);
-    ctx.imageSmoothingEnabled = false;
-    ctx.restore();
-  }
-
-  // ── GOD RAYS / LIGHT SHAFTS ────────────────────────────────────────────
-  // MIGRATED to PixiJS — see _tickPixiRays() in the Pixi runtime block.
-
-  // ── BOSS ARENA ATMOSPHERIC MODE ────────────────────────────────────────
-  // While a boss is alive: ramp up an intensified vignette + slow heartbeat
-  // pulse. Compositing-only; no geometry. Smoothed so it fades in/out softly.
-  const _bossAlive = enemies.some(e => e.boss && !e.dead);
-  const _bossTarget = _bossAlive ? 1 : 0;
-  _bossArenaIntensity += (_bossTarget - _bossArenaIntensity) * 0.025;
-  if(_bossArenaIntensity > 0.02){
-    const t = now / 1000;
-    // Slow heartbeat — two-rate pulse (1.1 + 0.42 Hz) gives organic feel
-    const pulse = 0.55 + 0.30*Math.sin(t*1.1) + 0.15*Math.sin(t*0.42 + 1.7);
-    const arenaA = _bossArenaIntensity * (0.16 + pulse*0.10);
-    // Edge darkening — large radial that crushes corners further
-    const rg = ctx.createRadialGradient(
-      W*0.5, H*0.54, W*0.22,
-      W*0.5, H*0.54, W*0.66);
-    rg.addColorStop(0.0, 'rgba(0,0,0,0)');
-    rg.addColorStop(0.55, `rgba(14,4,12,${arenaA*0.45})`);
-    rg.addColorStop(1.0,  `rgba(6,2,8,${arenaA*1.0})`);
-    ctx.save();
-    ctx.fillStyle = rg;
-    ctx.fillRect(0, 0, W, H);
-    // Cold blood-violet wash on the whole frame — sells "the veil is thin"
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = `rgba(48,20,56,${_bossArenaIntensity*0.08})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-
-  // ── FOREGROUND OCCLUDING SILHOUETTE ────────────────────────────────────
-  // Soft dark edge along the very bottom of the frame, in front of sprites.
-  // Frames the gameplay diorama. Anchored to camera, slight texture via two
-  // overlapping gradient bands at offset heights.
-  ctx.save();
-  const _fgBand = ctx.createLinearGradient(0, H*0.78, 0, H);
-  _fgBand.addColorStop(0,    'rgba(8,4,12,0)');
-  _fgBand.addColorStop(0.55, 'rgba(8,4,12,0.18)');
-  _fgBand.addColorStop(1,    'rgba(4,2,8,0.42)');
-  ctx.fillStyle = _fgBand;
-  ctx.fillRect(0, H*0.78, W, H*0.22);
-  // Side vignette feathers — left + right edges deepen subtly
-  const _fgSide = ctx.createLinearGradient(0, 0, W*0.10, 0);
-  _fgSide.addColorStop(0, 'rgba(6,3,10,0.22)');
-  _fgSide.addColorStop(1, 'rgba(6,3,10,0)');
-  ctx.fillStyle = _fgSide; ctx.fillRect(0, 0, W*0.10, H);
-  const _fgSideR = ctx.createLinearGradient(W*0.90, 0, W, 0);
-  _fgSideR.addColorStop(0, 'rgba(6,3,10,0)');
-  _fgSideR.addColorStop(1, 'rgba(6,3,10,0.22)');
-  ctx.fillStyle = _fgSideR; ctx.fillRect(W*0.90, 0, W*0.10, H);
-  ctx.restore();
-
-  // ── LIGHTNING (Stage 2 only) ───────────────────────────────────────────
-  // Rare sheet-lightning flash + delayed Web-Audio thunder rumble. Skipped
-  // entirely during boss arena (would compete with the dark atmospheric
-  // overlay). Independent timer from the menu-side lightning.
-  if(currentStage === 2 && !gameOver && _bossArenaIntensity < 0.05){
-    _gameLightningTimer--;
-    if(_gameLightningTimer <= 0 && _gameLightningFlash <= 0){
-      _gameLightningFlash = 22;
-      _gameLightningTimer = 600 + Math.floor(Math.random() * 720);
-      _gameLightningSecondary = (Math.random() < 0.45) ? 1 + Math.floor(Math.random() * 4) : 0;
-      try {
-        clearTimeout(_gameThunderTimerId);
-        _gameThunderTimerId = setTimeout(() => {
-          if(currentStage !== 2 || gameOver) return;
-          try { _gamePlayThunderRumble(); } catch(_) {}
-        }, 800 + Math.random() * 1400);
-      } catch(_) {}
-    }
-  }
-  if(_gameLightningSecondary > 0){
-    _gameLightningSecondary--;
-    if(_gameLightningSecondary <= 0){
-      _gameLightningFlash = Math.max(_gameLightningFlash, 18);
-    }
-  }
-  if(_gameLightningFlash > 0){
-    _gameLightningFlash--;
-    const p = _gameLightningFlash / 22;
-    const ease = p > 0.80 ? (1 - p) / 0.20 : p / 0.80;
-    const _flashA = ease * 0.50;
-    if(_flashA > 0.01){
-      ctx.save();
-      ctx.fillStyle = `rgba(225,235,255,${_flashA})`;
-      ctx.fillRect(0, 0, W, H);
-      ctx.restore();
-    }
-  }
-
-  // ── ADAPTIVE LOW-HP VIGNETTE ────────────────────────────────────────────
-  // When player HP < 25%: red-tinted vignette pulses with a slow heartbeat.
-  // Intensity ramps up as HP drops further. Pure compositing, no geometry.
-  if(player.hp > 0 && player.maxHp > 0){
-    const _hpPct = player.hp / player.maxHp;
-    if(_hpPct < 0.25){
-      const _danger = (0.25 - _hpPct) / 0.25;     // 0..1 as HP falls 25%→0
-      const _hbt = now / 1000;
-      // Dual-thump heartbeat: lub-dub pattern via two clustered sines.
-      const _beat = Math.max(0,
-        Math.sin(_hbt * 4.8) * 0.5 +
-        Math.sin(_hbt * 4.8 - 0.35) * 0.5 +
-        0.5
-      );
-      const _vA = (0.18 + _danger * 0.34) * (0.65 + _beat * 0.35);
-      const _rg2 = ctx.createRadialGradient(
-        W*0.5, H*0.54, W*0.18,
-        W*0.5, H*0.54, W*0.70);
-      _rg2.addColorStop(0.00, 'rgba(0,0,0,0)');
-      _rg2.addColorStop(0.50, `rgba(80,10,12,${_vA*0.35})`);
-      _rg2.addColorStop(1.00, `rgba(120,10,20,${_vA})`);
-      ctx.save();
-      ctx.fillStyle = _rg2;
-      ctx.fillRect(0, 0, W, H);
-      ctx.restore();
-    }
-  }
-
-  // ── BOSS PHASE-TRANSITION FLASH ────────────────────────────────────────
-  // White overlay that ramps up and fades. Triggered on HP threshold crossings.
-  if(_phaseFlashTimer > 0){
-    const _fp = _phaseFlashTimer / 16;
-    // Sharp attack, slower decay — ease curve
-    const _fa = _fp > 0.6 ? (1 - _fp) * 2.5 : Math.pow(_fp / 0.6, 0.5);
-    ctx.save();
-    ctx.fillStyle = `rgba(255,238,210,${_fa * 0.62})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-
-  // ── CHROMATIC ABERRATION ───────────────────────────────────────────────
-  // Brief RGB-channel split during heavy moments. Three small canvas re-blits
-  // with R/B offset, masked to frame edges via radial gradient.
-  if(_chromaticAb > 0.05){
-    const _ca = _chromaticAb;
-    const _off = 2 + _ca * 6;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    // Red channel — shifted right
-    ctx.globalAlpha = 0.10 * _ca;
-    ctx.filter = 'hue-rotate(-10deg) saturate(2)';
-    ctx.drawImage(canvas, _off, 0);
-    // Blue channel — shifted left
-    ctx.filter = 'hue-rotate(180deg) saturate(2)';
-    ctx.drawImage(canvas, -_off, 0);
-    ctx.filter = 'none';
-    ctx.restore();
-    // Mask the chromatic ab to frame edges — middle stays clean
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-over';
-    // (No-op for masking — chromatic split looks fine across the whole frame
-    // during the brief flashes since the trigger events are already dramatic.)
-    ctx.restore();
-  }
-
-  // ── LENS RAIN DROPLETS ─────────────────────────────────────────────────
-  // Last per-frame layer (besides the boss intro card). Sits on the very
-  // top of the compositing stack — droplets behave like real water on a
-  // camera lens, refracting everything beneath them.
+  // All compositing (bloom, vignettes, color grade, tilt-shift, chromatic ab,
+  // boss intro card, lightning, foreground silhouette) is now Pixi-native —
+  // see _initPixiCinematicPost / _tickPixiCinematicPost (overlay layer + stage filters).
+  //
+  // Only lens droplets remain on canvas (task #103 — separate migration).
   _tickLensDroplets();
   _drawLensDroplets();
-
-  // ── BOSS INTRO CARD ────────────────────────────────────────────────────
-  // Name reveal + chromatic split overlay during the intro window.
-  if(_bossIntroFrames > 0 && _bossIntroRef){
-    const _ip = _bossIntroFrames / _bossIntroTotal;       // 1 → 0
-    const _ir = 1 - _ip;                                  // 0 → 1
-    // Fade in for first 25%, hold, fade out for last 25%
-    const _alpha = _ir < 0.25 ? _ir / 0.25
-                 : _ip < 0.25 ? _ip / 0.25
-                 : 1;
-    ctx.save();
-    ctx.globalAlpha = _alpha;
-    // Boss name centered, slight chromatic split
-    const _bn = _bossIntroRef.bossName || 'BOSS';
-    const _ny = H * 0.40;
-    ctx.font = '700 56px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    // Chromatic offset shadows
-    ctx.fillStyle = 'rgba(255,40,40,0.40)';
-    ctx.fillText(_bn, W/2 + 3, _ny);
-    ctx.fillStyle = 'rgba(40,180,255,0.40)';
-    ctx.fillText(_bn, W/2 - 3, _ny);
-    // Main name
-    ctx.fillStyle = 'rgba(245,228,180,1)';
-    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-    ctx.shadowBlur = 18;
-    ctx.fillText(_bn, W/2, _ny);
-    // Subtitle "VEIL BREAKING"
-    ctx.font = '500 14px "IBM Plex Sans", sans-serif';
-    ctx.letterSpacing = '0.3em';
-    ctx.fillStyle = 'rgba(220,180,80,0.75)';
-    ctx.fillText('— THE VEIL TREMBLES —', W/2, _ny + 50);
-    ctx.restore();
-  }
 }
 // ── STAGE DEFINITIONS ─────────────────────────────────────────
 // bg:    image file for the stage background (cover-fitted to 1280×720)
@@ -15691,8 +16272,18 @@ let heroLoaded = false, heroCanvas = null;
 heroImg.onload = () => { heroCanvas = stripMagenta(heroImg); heroLoaded = true; };
 heroImg.onerror = (e) => { console.error('Hero sheet failed', e); };
 heroImg.src = 'Resources/GFX/Sprite/charactersheet1.png';
-// Helper used by render paths — single-sheet mode returns the same canvas.
-function _heroCanvasFor(f){ return heroLoaded ? heroCanvas : null; }
+
+const heroImg2 = new Image();
+let heroLoaded2 = false, heroCanvas2 = null;
+heroImg2.onload = () => { heroCanvas2 = stripMagenta(heroImg2); heroLoaded2 = true; };
+heroImg2.onerror = (e) => { console.error('Hero sheet 2 failed', e); };
+heroImg2.src = 'Resources/GFX/Sprite/charactersheet2.png';
+
+// Returns the right canvas for the given frame descriptor (sheet 1 or 2).
+function _heroCanvasFor(f){
+  if(f?.sheet === 2) return heroLoaded2 ? heroCanvas2 : null;
+  return heroLoaded ? heroCanvas : null;
+}
 
 // ══════════════════════════════════════════
 //  WEAPON SPRITE SHEET
@@ -15833,7 +16424,7 @@ const SWORD_TRAIL_FRAMES = wcells(0, 1, 4);
 const SWORD_IMPACT_FRAMES = wcells(0, 2, 4);
 
 // Internal animation state — do not edit
-const swingAnim = {frame:0, trailFrame:0, tick:0, active:false, impactFrame:-1, impactTick:0, impactTimer:0, impactX:0, impactY:0, impactElem:null};
+const swingAnim = {frame:0, trailFrame:0, tick:0, active:false, stepOver:-1, impactFrame:-1, impactTick:0, impactTimer:0, impactX:0, impactY:0, impactElem:null};
 // Pending burst hits — each entry fires one individual hit with a small frame delay
 const _multiHitQueue = [];
 // Object pool for hit entries — reused to avoid per-swing GC churn
@@ -15889,7 +16480,7 @@ function cells(x0, y0, n, sheet, opts){
     sx: x0 + i*sw,
     sy: y0,
     sw, sh,
-    sheet: sheet || 2,
+    sheet: sheet || 1,
     drawW:   o.drawW   != null ? o.drawW   : null,  // null → use HERO_DRAW_W
     drawH:   o.drawH   != null ? o.drawH   : null,
     offsetX: o.offsetX != null ? o.offsetX : null,
@@ -15923,26 +16514,50 @@ const HERO_FRAMES = {
   idleBreath:  cells(0,    600,  6,  1),
 
   // ── Action animations (sy 720..1800, per-row source widths) ──
-  walk:        cells(0,    720,  8,  2, { sw:100, sh:120, drawW:100, drawH:120 }),  // 8 walk loop
-  run:         cells(0,    840,  12, 2, { sw:120, sh:120, drawW:120, drawH:120 }),  // 12 run loop (uniform 120×120)
-  jump:        cells(0,    960,  5,  2, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 5 jump/fall (wider source, narrow draw)
-  fall:        cells(0,    960,  5,  2, { sw:100, sh:120, drawW:70,  drawH:120 }),  // alias
-  attack:      cells(0,    1080, 5,  2, { sw:120, sh:120, drawW:120, drawH:120 }),  // 5 strike
-  throw:       cells(0,    1080, 1,  2, { sw:120, sh:120, drawW:120, drawH:120 }),  // throw lock
-  grapple:     cells(0,    1200, 5,  2, { sw:120, sh:120, drawW:120, drawH:120 }),  // 5 grapple
-  airSmash:    cells(0,    1320, 4,  2, { sw:120, sh:120, drawW:120, drawH:120 }),  // 4 air smash (uniform now)
-  hurt:        cells(0,    1440, 3,  2, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 3 hurt (first 3 frames of row)
-  defeat:      cells(300,  1440, 4,  2, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 4 defeat (last 4 frames of row)
-  launch:      cells(0,    1560, 5,  2),                                             // 5 launch (default 70×120)
-  evade:       cells(0,    1680, 7,  2, { sw:140, sh:120, drawW:140, drawH:120 }),  // 7 evade ground
-  evadeAir:    cells(0,    1680, 4,  2, { sw:140, sh:120, drawW:140, drawH:120 }),  // 4 evade air
-  cast:        cells(0,    1800, 6,  2, { sw:100, sh:120, drawW:100, drawH:120 }),  // 6 cast / channelling
+  walk:        cells(0,    720,  8,  1, { sw:100, sh:120, drawW:100, drawH:120 }),  // 8 walk loop
+  run:         cells(0,    840,  12, 1, { sw:120, sh:120, drawW:120, drawH:120 }),  // 12 run loop (uniform 120×120)
+  jump:        cells(0,    960,  5,  1, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 5 jump/fall (wider source, narrow draw)
+  fall:        cells(0,    960,  5,  1, { sw:100, sh:120, drawW:70,  drawH:120 }),  // alias
+  attack:      cells(0,    1080, 5,  1, { sw:120, sh:120, drawW:120, drawH:120 }),  // 5 strike
+  throw:       cells(0,    1080, 1,  1, { sw:120, sh:120, drawW:120, drawH:120 }),  // throw lock
+  grapple:     cells(0,    1200, 5,  1, { sw:120, sh:120, drawW:120, drawH:120 }),  // 5 grapple
+  airSmash:    cells(0,    1320, 4,  1, { sw:120, sh:120, drawW:120, drawH:120 }),  // 4 air smash (uniform now)
+  hurt:        cells(0,    1440, 3,  1, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 3 hurt (first 3 frames of row)
+  defeat:      cells(300,  1440, 4,  1, { sw:100, sh:120, drawW:70,  drawH:120 }),  // 4 defeat (last 4 frames of row)
+  launch:      cells(0,    1560, 5,  1),                                             // 5 launch (default 70×120)
+  evade:       cells(0,    1680, 7,  1, { sw:140, sh:120, drawW:140, drawH:120 }),  // 7 evade ground
+  evadeAir:    cells(0,    1680, 4,  1, { sw:140, sh:120, drawW:140, drawH:120 }),  // 4 evade air
+  cast:        cells(0,    1800, 6,  1, { sw:100, sh:120, drawW:100, drawH:120 }),  // 6 cast / channelling
   // Parry / Deflect — same row as cast (windup, brace, deflect-impact)
-  parry:       cells(0,    1800, 6,  2, { sw:100, sh:120, drawW:100, drawH:120 }),
+  parry:       cells(0,    1800, 6,  1, { sw:100, sh:120, drawW:100, drawH:120 }),
   // ── Air-action — 2-frame anim shared by air attack / air deflect / air magic.
   //   Lives in the cast/parry row (sy 1800), columns 7 & 8 (sx 600 → 700).
   //   Plays unlooped; if channeling magic, holds the last frame.
-  airAct:      cells(600,  1800, 2,  2, { sw:100, sh:120, drawW:100, drawH:120 }),
+  airAct:      cells(600,  1800, 2,  1, { sw:100, sh:120, drawW:100, drawH:120 }),
+
+  // ── Sheet 2 special move animations (charactersheet2.png) ──
+  // Scaled to 1.25× (drawW/H 88/150 for narrow, 150/150 for wide);
+  // offsetX/offsetY scaled proportionally so feet plane stays grounded.
+  airWeaponDownSlash: [  // AirWeaponDownSlash — charactersheet2.png, sy=0, 7 frames
+    { sx:0,   sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:70,  sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:140, sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:210, sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:280, sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:350, sy:0, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:420, sy:0, sw:120, sh:120, sheet:2, drawW:150, drawH:150, offsetX:63, offsetY:110 },
+  ],
+  upwardSlash: [  // UpwardSlash — charactersheet2.png, sy=120, 9 frames
+    { sx:0,   sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:70,  sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:140, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:210, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:280, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:350, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:420, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:490, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+    { sx:560, sy:120, sw:70,  sh:120, sheet:2, drawW:88,  drawH:150, offsetX:63, offsetY:110 },
+  ],
 };
 
 // Hero sprite draw dimensions — same convention as BOSS_ANIM_DEFS.
@@ -15962,7 +16577,9 @@ const heroAnim = {
 function tickHeroAnim(p){
   const a=heroAnim;
   let next=p.dead?'defeat':p.hitCD>18?'hurt':
-    p.airSmashTimer>0?'airSmash':
+    (p.airSmashTimer>0||p.airSmashWindup>0)?'airSmash':
+    (p.upSlashTimer>0||p.upSlashRising)?'upwardSlash':
+    (p.airDownSlashActive||p.airDownSlashLandTimer>0)?'airWeaponDownSlash':
     Date.now()<p.launchUntil?'launch':
     // Parry: brace pose while window is armed OR while flash plays on successful deflect
     (p.deflectTimer>0 || p.parryFlashTimer>0)?'parry':
@@ -15974,9 +16591,6 @@ function tickHeroAnim(p){
     // the character holds a clean "throw" pose instead of cycling through attack frames
     // that may include transparent/empty sprite cells.
     ((p.atk||p.atkCD>0)&&(getStep(p.curStep||0).motion||'arc')==='spin-throw')?'throw':
-    // Uppercut motion = launch attack → play the uppercut/enrayden anim (same
-    // frames used when the player is juggled, since the rising pose reads both ways).
-    ((p.atk||p.atkCD>0)&&(getStep(p.curStep||0).motion||'arc')==='uppercut')?'launch':
     // Cast animation triggers:
     //   tenraiWindup    — charging the Tenrai special (button held)
     //   arcaneWindup>0  — Arcane Explosion windup (auto-counts down)
@@ -16036,7 +16650,16 @@ function tickHeroAnim(p){
   }
 
   const frames=HERO_FRAMES[next];if(!frames)return;
-  if(a.name!==next){if(a.name==='defeat')return;a.name=next;a.frame=0;a.tick=0;}
+  if(a.name!==next){
+    if(a.name==='defeat') return;
+    // Entering a hold-last-frame phase of these animations — keep the frame so
+    // transient state changes (e.g. hurt flicker) don't restart the sequence.
+    const _holdPhase =
+      (next==='upwardSlash'        && p.upSlashTimer===0 && p.upSlashRising) ||
+      (next==='airWeaponDownSlash' && !p.airDownSlashActive && p.airDownSlashLandTimer>0);
+    a.name=next;
+    if(!_holdPhase){ a.frame=0; a.tick=0; }
+  }
   a.tick++;
   // Per-frame tick budgets — tuned for the new sheet's frame counts so each
   // animation feels paced like the old one even with more frames.
@@ -16124,6 +16747,39 @@ function tickHeroAnim(p){
       // Armed window — interpolate from frame 0 (start) → 2 (held brace)
       const _armed = (DEFLECT_WINDOW - p.deflectTimer) / DEFLECT_WINDOW;
       a.frame = Math.min(2, Math.max(0, (_armed * 3) | 0));
+    }
+    a.tick = 0;
+  } else if(next==='upwardSlash'){
+    if(p.upSlashTimer > 0){
+      // Timer-driven: frames 0-8 across 22 ticks. Frame 6 (7th) is the liftoff frame.
+      const _uProg = Math.min(1, 1 - p.upSlashTimer / 22);
+      a.frame = Math.min(frames.length - 1, Math.floor(_uProg * frames.length));
+    } else {
+      // upSlashRising=true: player left the ground — hold last frame until peak
+      a.frame = frames.length - 1;
+    }
+    a.tick = 0;
+  } else if(next==='airWeaponDownSlash'){
+    if(p.airDownSlashActive){
+      // Dive: 7 frames driven from airDownSlashTimer (0→20).
+      const _dProg = Math.min(1, p.airDownSlashTimer / 20);
+      a.frame = Math.min(frames.length - 1, Math.floor(_dProg * frames.length));
+    } else {
+      // Landing: hold last frame (hard slam) for airDownSlashLandTimer ticks
+      a.frame = frames.length - 1;
+    }
+    a.tick = 0;
+  } else if(next==='airSmash'){
+    // Frame is driven by state so last frame (3) precisely matches the hit:
+    //   airSmashWindup > 0  → frames 0-2 (windup, 3 ticks each)
+    //   airSmashTimer  > 0  → frame 3 held (impact/recovery)
+    if(p.airSmashWindup > 0){
+      // Map winddown 12→1 onto frames 0-2
+      const WINDUP_TICKS = 12;
+      const elapsed = WINDUP_TICKS - p.airSmashWindup;
+      a.frame = Math.min(2, Math.max(0, Math.floor(elapsed / 4)));
+    } else {
+      a.frame = 3; // last frame — holds while airSmashTimer counts down
     }
     a.tick = 0;
   } else if(a.tick>=spd){
@@ -18194,6 +18850,20 @@ const JUGGLE_PLAYER_VY=JUGGLE_VY*0.95; // player peaks 5% lower — enemy always
 // Gravity multiplier to pass to physics() for juggled enemies — cancels ENEMY_GRAV_MULT
 // so enemy and player fall at identical rates during juggle
 const JUGGLE_ENEMY_GRAV_MULT=JUGGLE_GRAV/(GRAV*ENEMY_GRAV_MULT); // cancels ENEMY_GRAV_MULT so juggled enemy falls at same rate as player
+// ── UPWARD SLASH (hold attack, ground) ───────────────────────────────────────
+const UPSLASH_HOLD1         = 20;   // frames held mid-attack to trigger Upward Slash
+const UPSLASH_HOLD2         = 38;   // frames held to also launch player upward (follow)
+const UPSLASH_STAMINA       = 22;
+const UPSLASH_RANGE         = 110;
+const UPSLASH_ENEMY_VY      = -11.5; // stronger launch than JUGGLE_VY (-8.8)
+const UPSLASH_PLAYER_VY     = -13;   // player follow-up jump velocity
+const UPSLASH_CD            = 42;
+// ── AIR DOWNWARD SLASH (hold attack, airborne) ────────────────────────────────
+const AIR_DOWNSLASH_HOLD    = 18;   // frames held while airborne (not attacking) to trigger
+const AIR_DOWNSLASH_STAMINA = 20;
+const AIR_DOWNSLASH_VY      = 20;   // initial downward velocity
+const AIR_DOWNSLASH_CD      = 42;
+const AIR_DOWNSLASH_IMPACT_RANGE = 110; // AoE radius on landing
 const RUN_ACCEL           = 2.0; // velocity added per frame while holding a direction
 const RUN_MAX             = 7.0; // top horizontal speed (units/frame)
 const EVADE_SPEED         = 10; // dash velocity (bypasses normal 4-unit cap)
@@ -18359,6 +19029,9 @@ let DRAK_ATK_COOLDOWN     = 82;   // cooldown after each attack
 // ══════════════════════════════════════════
 let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,deflect:false,grapple:false};
 let jumpEdge=false, atkEdge=false, evadeEdge=false, deflectEdge=false, prevLaunchHeld=false, launchHoldFrames=0, prevSpHeld=false;
+let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false, _mcAtkHeld=false;
+let _airDownSlashNeedsRehold=false; // blocks air-downslash until attack button is released after upward slash
+let _airDownSlashNeedsAtkRehold=false; // blocks upwardSlash from auto-firing when attack is still held on Headbreaker landing
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
 let gameOver=false,frameId=null,paused=false;
 let frozen=0,shakeMag=0,shakeX=0,shakeY=0;
@@ -18426,22 +19099,7 @@ function _tickBokeh(){
     if(b.y < -80){ _bokeh.splice(i,1); }
   }
 }
-function _drawBokeh(){
-  if(!_bokeh.length) return;
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for(const b of _bokeh){
-    const [r,g,bl] = b.hue;
-    // Soft outer halo
-    const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-    grad.addColorStop(0.00, `rgba(${r},${g},${bl},${b.a})`);
-    grad.addColorStop(0.30, `rgba(${r},${g},${bl},${b.a*0.55})`);
-    grad.addColorStop(1.00, `rgba(${r},${g},${bl},0)`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(b.x - b.r, b.y - b.r, b.r*2, b.r*2);
-  }
-  ctx.restore();
-}
+// _drawBokeh() — deleted: bokeh rendering is Pixi-native via _tickPixiBokeh.
 
 // ── CINEMATIC TRIGGERS ────────────────────────────────────────────────────
 // Each trigger pushes the corresponding state toward an active value;
@@ -18586,6 +19244,7 @@ function showMenu(){
 function pauseGame(){
   if(gameOver||paused) return;
   paused=true;
+  _clearAllInput(); // prevent held inputs (especially _mcAtkHeld) getting stuck across pause
   writeSave();
   updateFsButton();
   _syncMobileBtn();
@@ -18776,9 +19435,11 @@ function startRun(){
     stamina:maxSt,maxStamina:maxSt,
     stRegen:calcStRegen(), stDepleted:false, stRegenDelay:0,
     jumpsLeft:_maxJumps(),
-    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,deflectTimer:0,deflectCD:0,airDropUsed:false,
+    atk:false,atkF:0,atkCD:0,hitCD:0,dead:false,invuln:false,airAtkFreezeTimer:0,airGrappleSuspendTimer:0,airSuspendKeepEvade:false,airAtkUsed:false,airSlamUsed:false,airSlamArmed:false,airSlamNeedsRehold:false,pendingAirFollow:false,airSmashTimer:0,airSmashWindup:0,postZipTimer:0,evadeTimer:0,evadeCD:0,evadeDir:1,juggleFollow:false,juggleFollowUsed:false,deflectTimer:0,deflectCD:0,airDropUsed:false,
     comboStep:0,comboTimer:0,comboQueued:false,curStep:0,swingHitMap:new Map(),
     spAtk:false,spF:0,spCD:0,spStreakCounted:false,launchCD:0,launchUntil:0,rsWindup:false,rsF:0,fireDash:0,
+    upSlashCD:0,upSlashTimer:0,upSlashPendingLiftoff:false,upSlashRising:false,
+    airDownSlashActive:false,airDownSlashTarget:null,airDownSlashTimer:0,airDownSlashCD:0,airDownSlashLandTimer:0,airDownSlashHitSet:null,
     mp:maxMp,maxMp,mpRegen:calcMpRegen(),mpCD:0,arcaneWindup:0,arcaneWindupSpell:null,pfCharges:0,pfWindow:0,
     excaliburWindup:false,excaliburWindupF:0,
     tenraiWindup:false,tenraiWindupF:0,tenraiRadius:180,
@@ -19232,7 +19893,7 @@ function _resolvePlayerEnemyCollision(){
   // itself is also let through via the per-enemy skip below.
   if(typeof grappleState !== 'undefined' && grappleState !== 'none') return;
   if(player.juggleFollow) return;                    // launch follow-up
-  if(player.airSmashTimer > 0) return;               // air-smash dive
+  if(player.airSmashTimer > 0 || player.airSmashWindup > 0) return; // air-smash dive
   // Dash-slash / lunge-thrust attacks teleport-step the player and rely on
   // free pass-through. Existing motion check lives in the attack tick.
   const stepData = (typeof getStep === 'function' && player.atk) ? getStep(player.curStep||0) : null;
@@ -19266,25 +19927,16 @@ function _resolvePlayerEnemyCollision(){
     const overlapBot   = eB - pT;                    // push DOWN  to clear
     const minH = Math.min(overlapLeft, overlapRight);
     const minV = Math.min(overlapTop, overlapBot);
+    // Horizontal push only — players should never land on or get stuck on enemy heads.
+    // If the vertical overlap is the shallower axis the player is above/below the enemy;
+    // skip the push and let them pass through vertically.
     if(minH <= minV){
-      // Horizontal push
       if(overlapLeft < overlapRight){
         player.x -= minH;
         if(player.vx > 0) player.vx = 0;
       } else {
         player.x += minH;
         if(player.vx < 0) player.vx = 0;
-      }
-    } else {
-      // Vertical push
-      if(overlapTop < overlapBot){
-        // Player coming from above — land on top
-        player.y -= minV;
-        if(player.vy > 0) player.vy = 0;
-      } else {
-        // Player coming from below — bonk head
-        player.y += minV;
-        if(player.vy < 0) player.vy = 0;
       }
     }
   }
@@ -20249,6 +20901,20 @@ function slamGroundEffect(cx,cy){
     rx:22+Math.random()*34,ry:5+Math.random()*9,alpha:0.82,decay:0.0015});
 }
 
+// Range-only check (no damage, no cost) — gates the air-smash windup so the
+// animation only arms when there is actually an enemy to slam down.
+// Mirrors airSlamEnemy()'s range constants: dx < LAUNCH_RANGE+60, |dy| < 340.
+function _hasAirSmashTarget(){
+  for(let i=0;i<enemies.length;i++){
+    const e=enemies[i];
+    if(e.dead) continue;
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=(e.y+eH(e)/2)-(player.y+PH/2);
+    if(dx<LAUNCH_RANGE+60&&Math.abs(dy)<340) return true;
+  }
+  return false;
+}
+
 function airSlamEnemy(){
   // Find nearest enemy in range — airborne preferred, recently landed accepted
   let target=null,bestDist=Infinity;
@@ -20297,26 +20963,16 @@ function airSlamEnemy(){
   player.airSlamNeedsRehold=true;
   player.airSlamArmed=false;
   player.juggleFollow=false;
-  player.airSmashTimer=30;
+  player.airSmashWindup=0; // already 0 when called from windup expiry, but guard
+  player.airSmashTimer=8;  // hold last frame (impact pose) briefly before clearing
   player.vy=-7; // slight upward recoil on impact
   launchHoldFrames=0;
   // Impact effects
   bloodBurst(target.x+EW/2,target.y+EH*0.35,22);
   sparkBurst(target.x+EW/2,target.y+EH*0.2,18,true);
   goreBurst(target.x+EW/2,target.y+EH*0.35,player.facing,true);
-  // Purple impact burst
-  for(let i=0;i<22;i++){
-    const a=Math.random()*Math.PI*2;
-    const sp=3+Math.random()*9;
-    const h=(270+Math.random()*40)|0;
-    particles.push({type:'spark',
-      x:target.x+EW/2, y:target.y+EH*0.25,
-      vx:Math.cos(a)*sp,
-      vy:Math.sin(a)*sp+1.5,
-      life:1, decay:0.045+Math.random()*0.035,
-      r:2+Math.random()*4,
-      color:`hsl(${h},100%,${(62+Math.random()*24)|0}%)`});
-  }
+  // Bone-crushing shockwave rings (Pixi vfx layer — replaces purple sparks)
+  _queueAirSmashShockwave(target.x + EW/2, target.y + EH * 0.25);
   playSfx(AIR_SMASH_SOUND);
   const _isBossSmash = target.boss;
   triggerFreeze(_isBossSmash?18:12); triggerShake(_isBossSmash?28:18);
@@ -20792,6 +21448,266 @@ function launchEnemy(held=false){
     if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
     updateStreakHud();
   }
+}
+
+// ── UPWARD SLASH ─────────────────────────────────────────────────────────────
+// Triggered by holding attack through any ground combo hit (UPSLASH_HOLD1 frames).
+// Sends nearby enemies upward with more force than the F-key launch.
+// If held even longer (UPSLASH_HOLD2), player also leaps up to follow.
+function upwardSlash(follow=false){
+  if(player.upSlashCD>0||player.dead) return;
+  if(player.stamina<UPSLASH_STAMINA||player.stDepleted) return;
+  player.stamina=Math.max(0,player.stamina-UPSLASH_STAMINA);
+  if(player.stamina<8) player.stDepleted=true;
+  player.stRegenDelay=_stDelay();
+  setStBar(player.stamina,player.maxStamina);
+  player.upSlashCD=UPSLASH_CD;
+  player.upSlashTimer=22;
+  let hit=false;
+  enemies.forEach(e=>{
+    if(e.dead) return;
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=Math.abs((e.y+eH(e)/2)-(player.y+PH/2));
+    if(dx<UPSLASH_RANGE&&dy<130&&!e.dead){
+      const _uIdx=activeWeapon?.steps?.findIndex(s=>s.motion==='uppercut')??-1;
+      const _uMult=_uIdx>=0?(getStep(_uIdx).dmgMult||1.5):0.65;
+      const dmg=Math.round((calcBaseDmg()*_uMult+(Math.random()*10|0))*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
+      const prev=e.hp;
+      e.hp=Math.max(0,e.hp-dmg);
+      e.hitCD=20;
+      e.ghostHp=prev; e.ghostDrainDelay=22;
+      const canLaunch=!e.slammed&&!e.slamStunned&&(!e.boss||e.stunTimer>0);
+      if(canLaunch){ e.vy=UPSLASH_ENEMY_VY; e.vx=player.facing*18; e.juggled=true; e.juggleTimer=220; e.onGround=false; e.airFreezeTimer=0; }
+      spawnEnemyBarChips(e,prev,e.hp);
+      floatText(e.x+eW(e)/2-12,e.y-18,`${dmg}`,'#ffffff',false);
+      sparkBurst(e.x+eW(e)/2,e.y+eH(e)*0.4,10,false);
+      lastHitEnemy=e; lastHitEnemyExp=e.exp;
+      hit=true;
+      if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+    }
+  });
+  // Liftoff, SFX, and freeze always fire so the move works even on a whiff.
+  playSfx(LAUNCH_SOUND);
+  triggerFreeze(10); triggerShake(8);
+  if(follow){
+    // Defer liftoff to animation frame 7 (0-indexed 6) so the character
+    // stays grounded during the wind-up frames. The main loop fires this
+    // when upSlashTimer reaches the liftoff threshold (≤7).
+    player.upSlashPendingLiftoff = true;
+  }
+  if(hit){
+    rumble(240,0.9,0.6);
+    floatText(player.x+PW/2-48,player.y-48,'RISING HORIZON!','#ffe080',true);
+    hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
+    const newTier=Math.floor(hitStreak/10);
+    if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
+    updateStreakHud();
+  }
+}
+
+// ── AIR DOWNWARD SLASH ────────────────────────────────────────────────────────
+// Triggered by holding attack for AIR_DOWNSLASH_HOLD frames while airborne and
+// not currently attacking. Player dives downward, tracking the nearest enemy,
+// and crashes into the ground with an AoE shockwave.
+function airDownwardSlash(){
+  if(player.airDownSlashActive||player.airDownSlashCD>0||player.dead) return;
+  if(player.stamina<AIR_DOWNSLASH_STAMINA||player.stDepleted) return;
+  let target=null,bestDist=Infinity;
+  enemies.forEach(e=>{
+    if(e.dead) return;
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    const dy=(e.y+eH(e)/2)-(player.y+PH/2);
+    if(dx<LAUNCH_RANGE+80&&dy>-100&&dy<400){
+      const d=dx+Math.abs(dy);
+      if(d<bestDist){bestDist=d;target=e;}
+    }
+  });
+  player.stamina=Math.max(0,player.stamina-AIR_DOWNSLASH_STAMINA);
+  if(player.stamina<8) player.stDepleted=true;
+  player.stRegenDelay=_stDelay();
+  setStBar(player.stamina,player.maxStamina);
+  player.airDownSlashActive=true;
+  player.airDownSlashTarget=target;
+  player.airDownSlashTimer=0;
+  player.airDownSlashHitSet=new Set();
+  player._hbLabelShown=false;
+  player.airDownSlashCD=AIR_DOWNSLASH_CD;
+  player.vy=AIR_DOWNSLASH_VY;
+  // Yank airborne enemies into the dive so they fall with the player
+  enemies.forEach(e=>{ if(!e.dead&&!e.onGround) e.vy=Math.max(e.vy,16); });
+  player.atk=false; player.atkF=0; player.atkCD=0;
+  if(target) player.facing=(target.x+eW(target)/2>player.x+PW/2)?1:-1;
+  playSfx(AIR_SMASH_SOUND);
+  triggerFreeze(5); triggerShake(6);
+}
+
+// Landing handler — called the frame airDownSlashActive&&onGround first become true together.
+function _triggerAirDownSlashLanding(){
+  // Before clearing dive state, extend the HORIZONTAL-blade trail band down to
+  // the ground plane. During the fall the blade is held horizontal at chest
+  // height, so the per-frame push stops a body-height above the deck. We carry
+  // the band's bottom edge down to the floor WITHOUT tilting the blade — it
+  // stays a level horizontal slash the whole way, just reaching further down.
+  {
+    const _bLenT = 88, _gOffT = _bLenT * 0.18;
+    const _px = player.x + PW/2 + player.facing * 12;
+    const _groundY = floorY() + (HERO_DRAW_H - HERO_OFFSET_Y); // visual ground plane (feet)
+    const _sSt = activeWeapon?.steps?.findIndex(s=>s.motion==='slam') ?? 0;
+    const _lastEntry = swordTrail.length ? swordTrail[swordTrail.length-1] : null;
+    const _fromY = _lastEntry ? _lastEntry.by : _groundY;
+    const _gap = _groundY - _fromY;
+    if(_gap > 4){
+      // Sub-step so consecutive entries stay under the ribbon discontinuity guard.
+      const _steps = Math.max(1, Math.ceil(_gap / 18));
+      for(let s=1; s<=_steps; s++){
+        const _py = _fromY + (_gap * s/_steps);
+        swordTrail.push({
+          bx: _px + player.facing * _gOffT,            by: _py,
+          tx: _px + player.facing * (_gOffT + _bLenT), ty: _py, // horizontal — level band
+          age:0, step:_sSt>=0?_sSt:0, sp:false, mo:'slam', el:activeWeapon?.elemental||null});
+        if(swordTrail.length>96) swordTrail.shift();
+      }
+    }
+  }
+  player.airDownSlashActive=false;
+  player.airDownSlashTarget=null;
+  _hbPrevSeg=null;
+  player.vx = 0;
+  player.vy = 0;
+  player.airDownSlashLandTimer = 30; // 0.5 s recovery lock (30 frames @ 60 fps)
+  _airDownSlashNeedsAtkRehold = true; // attack must be re-pressed; prevents auto Rising Horizon
+  _holdAtkFrames = 0;                 // wipe any count that built up during the dive
+  _queueAirSmashShockwave(player.x+PW/2, floorY()+(HERO_DRAW_H-HERO_OFFSET_Y));
+  let anyHit=false;
+  enemies.forEach(e=>{
+    if(e.dead) return;
+    const dx=Math.abs((e.x+eW(e)/2)-(player.x+PW/2));
+    if(dx<AIR_DOWNSLASH_IMPACT_RANGE&&e.hitCD<=0){
+      const _sIdx=activeWeapon?.steps?.findIndex(s=>s.motion==='slam')??-1;
+      const _sMult=_sIdx>=0?(getStep(_sIdx).dmgMult||1.5):0.8;
+      const dmg=Math.round((calcBaseDmg()*_sMult+(Math.random()*12|0))*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
+      const prev=e.hp;
+      e.hp=Math.max(0,e.hp-dmg);
+      e.hitCD=22;
+      e.ghostHp=prev; e.ghostDrainDelay=22;
+      // No slam/stun — downward slash deals damage only, no knockup
+      spawnEnemyBarChips(e,prev,e.hp);
+      floatText(e.x+eW(e)/2-12,e.y-18,`${dmg}`,'#ff8040',false);
+      sparkBurst(e.x+eW(e)/2,e.y+eH(e)*0.4,12,false);
+      lastHitEnemy=e; lastHitEnemyExp=e.exp;
+      anyHit=true;
+      if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+    }
+  });
+  triggerFreeze(8); triggerShake(4); // minor shake only
+  rumble(250,0.8,0.6);
+  // Landing dust burst — radial puffs fanning out from impact point
+  {
+    const _hbTint = (currentStage===4)?0x7c9696:(currentStage===3)?0x8c7766:(currentStage===2)?0x9c8f63:0xa8957a;
+    const _hbX = player.x + PW/2;
+    const _hbY = floorY() + (HERO_DRAW_H - HERO_OFFSET_Y);
+    for(let i=0;i<8;i++){
+      const _d=(i%2===0)?-1:1;
+      _spawnPixiFootDust(
+        _hbX+_d*(4+i*7)+(Math.random()-.5)*6, _hbY-Math.random()*3,
+        _d*(1.4+Math.random()*2.8), -(0.5+Math.random()*0.9),
+        0.5+Math.random()*0.3, 10+Math.random()*8,
+        _hbTint, 0.03, 0.85
+      );
+    }
+  }
+  if(anyHit){
+    // Label now pops on the mid-fall blade connect (see _tickHeadbreakerBladeHits).
+    hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
+    const newTier=Math.floor(hitStreak/10);
+    if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
+    updateStreakHud();
+  }
+}
+
+// ── HEADBREAKER BLADE GEOMETRY ───────────────────────────────────────────────
+// Single source of truth for the dive blade segment — the overlay sprite, the
+// trail ribbon, and the mid-fall hitbox ALL read from this so they stay aligned.
+// Returns {hx,hy,tx,ty}: hilt (guard) and tip in world space.
+// Headbreaker arc: starts OVERHEAD (up & back, -135°), sweeps up over the head
+// and down, STOPPING when the blade is HORIZONTAL with the screen (0° = forward).
+// Held horizontal for the rest of the plunge so the trail = the swing path.
+// canvas angle: 0°=forward(facing/horizontal), -90°=straight up, +90°=down.
+function _headbreakerAngle(){
+  const _SWING_FRAMES = 7; // frames to complete the overhead→horizontal swing
+  const _w  = Math.min(1, player.airDownSlashTimer / _SWING_FRAMES); // 0→1
+  const _we = 1 - Math.pow(1 - _w, 2.0); // ease-out: fast snap, smooth settle
+  // -PI*0.75 (overhead, up & back) → 0 (horizontal forward). Stops at horizontal.
+  return -Math.PI * 0.75 + (0 - (-Math.PI * 0.75)) * _we;
+}
+function _headbreakerBladeSeg(){
+  const _bLen = 88, _gOff = _bLen * 0.18;
+  const _ang = _headbreakerAngle();
+  const _px  = player.x + PW/2 + player.facing * 12; // hands, slightly forward
+  const _py  = pHitY() + PH * 0.10;                  // chest/hands height
+  const _cs  = Math.cos(_ang), _ss = Math.sin(_ang);
+  return {
+    hx: _px + player.facing * _cs * _gOff,
+    hy: _py + _ss * _gOff,
+    tx: _px + player.facing * _cs * (_gOff + _bLen),
+    ty: _py + _ss * (_gOff + _bLen),
+  };
+}
+
+// Per-frame mid-fall hit check — the diagonal blade strikes enemies it passes
+// through during the plunge (true blade-following hitbox, not just landing AoE).
+// Uses the SAME segment the visual blade traces, so the hit lands where the
+// blade visibly is. Sweeps prev→cur tip so fast falls can't tunnel.
+let _hbPrevSeg = null;
+function _tickHeadbreakerBladeHits(){
+  if(!player.airDownSlashActive || player.onGround){ _hbPrevSeg = null; return; }
+  if(!player.airDownSlashHitSet) player.airDownSlashHitSet = new Set();
+  const seg = _headbreakerBladeSeg();
+  const prev = _hbPrevSeg;
+  _hbPrevSeg = seg;
+  const _sIdx = activeWeapon?.steps?.findIndex(s=>s.motion==='slam') ?? -1;
+  const _sMult = _sIdx>=0 ? (getStep(_sIdx).dmgMult||1.5) : 0.8;
+  const margin = 8;
+  enemies.forEach(e=>{
+    if(e.dead || e.hitCD>0) return;
+    if(player.airDownSlashHitSet.has(e.id)) return;
+    const _sex=eSX(e), _sey=eSY(e);
+    const ex0=_sex-margin, ey0=_sey-margin, ex1=_sex+eW(e)+margin, ey1=_sey+eH(e)+margin;
+    // Swept quad (two triangles) between previous and current blade positions —
+    // covers the full area the blade passed through this frame.
+    let touched;
+    if(prev){
+      touched =
+        _triAABB(prev.hx,prev.hy, prev.tx,prev.ty, seg.tx,seg.ty, ex0,ey0,ex1,ey1) ||
+        _triAABB(prev.hx,prev.hy, seg.tx,seg.ty,   seg.hx,seg.hy, ex0,ey0,ex1,ey1);
+    } else {
+      touched = _segAABB(seg.hx,seg.hy, seg.tx,seg.ty, ex0,ey0,ex1,ey1, 0);
+    }
+    if(!touched) return;
+    player.airDownSlashHitSet.add(e.id);
+    const dmg=Math.round((calcBaseDmg()*_sMult+(Math.random()*12|0))*(e.elemProcs?.dark?(1+e.elemProcs.dark.dmgBoost):1));
+    const prevHp=e.hp;
+    e.hp=Math.max(0,e.hp-dmg);
+    e.hitCD=12;
+    e.ghostHp=prevHp; e.ghostDrainDelay=22;
+    spawnEnemyBarChips(e,prevHp,e.hp);
+    floatText(e.x+eW(e)/2-12,e.y-18,`${dmg}`,'#ff8040',false);
+    // Spark at the actual blade tip — where the hit visually connects
+    sparkBurst(seg.tx, seg.ty, 10, false);
+    // Pop the HEADBREAKER! callout on the FIRST blade connect (not on land).
+    if(!player._hbLabelShown){
+      player._hbLabelShown = true;
+      floatText(player.x+PW/2-52,player.y-38,'HEADBREAKER!','#ff6020',true);
+      playSfx(AIR_SMASH_SOUND);
+    }
+    lastHitEnemy=e; lastHitEnemyExp=e.exp;
+    triggerFreeze(4); triggerShake(3);
+    hitStreak++; hitStreakTimer=HIT_STREAK_TIMEOUT;
+    const newTier=Math.floor(hitStreak/10);
+    if(newTier>hitStreakTier){hitStreakTier=newTier;onStreakMilestone(newTier,lastHitEnemyExp);}
+    updateStreakHud();
+    if(e.hp<=0&&!e.dead){e.dead=true;onEnemyKilled(e);}
+  });
 }
 
 // ══════════════════════════════════════════
@@ -22021,8 +22937,8 @@ function _tickPlayerVisualState(){
   _playerLastHp = player.hp;
   if(_playerHitWobble > 0) _playerHitWobble--;
 
-  // ── FOOTSTEP DUST ── Spawn small dust puff on walk-frame transitions into
-  // frame 0 or frame 2 (the two foot-down poses in the 4-frame walk loop).
+  // ── FOOTSTEP DUST ── Spawn dust puffs on walk-frame transitions into
+  // frame 0 or frame 2 (the two foot-down poses in the 8-frame run loop).
   if(heroAnim.name === 'run' && player.onGround && Math.abs(player.vx||0) > 0.5){
     if(heroAnim.frame !== _playerLastWalkFrame
        && (heroAnim.frame === 0 || heroAnim.frame === 2)){
@@ -22031,19 +22947,22 @@ function _tickPlayerVisualState(){
                            : (currentStage === 3) ? 0x736050   // city ash-brown
                            : (currentStage === 2) ? 0x80754d   // forest leaf-dust
                            :                         0x8c795a; // airship warm dust
-      const _fx = pHitX() + PW/2 - player.facing * 6;
-      const _fy = pHitY() + PH * 0.98;
-      for(let i = 0; i < 2; i++){
+      // X: horizontal centre of player; Y: visual ground shadow plane.
+      // Use floorY()+(HERO_DRAW_H-HERO_OFFSET_Y) so dust aligns with contact
+      // shadows (same reference as PDK boulders, shockwaves, air-smash ellipse).
+      const _fx = player.x + PW/2 - player.facing * 6;
+      const _fy = floorY() + (HERO_DRAW_H - HERO_OFFSET_Y);
+      for(let i = 0; i < 3; i++){
         _spawnPixiFootDust(
-          _fx + (Math.random()-0.5)*6,
+          _fx + (Math.random()-0.5)*8,
           _fy + (Math.random()-0.5)*2,
-          -player.facing * (0.3 + Math.random()*0.5) + (Math.random()-0.5)*0.2,
-          -(0.2 + Math.random()*0.3),
-          0.40 + Math.random()*0.20,
-          1.0 + Math.random()*0.9,
+          -player.facing * (0.4 + Math.random()*0.7) + (Math.random()-0.5)*0.3,
+          -(0.4 + Math.random()*0.5),
+          0.45 + Math.random()*0.20,
+          4.5 + Math.random()*3.5,    // r: 4.5–8 → sprite ~11–20 px
           _stageDustTint,
-          0.025,
-          0.45
+          0.018,
+          0.70
         );
       }
     }
@@ -22191,7 +23110,8 @@ function _initCloudGrads(){
 
 function tickSwingAnim(p){
   if(p.atk){
-    swingAnim.active = true;
+    swingAnim.active   = true;
+    swingAnim.stepOver = -1;
     const st = p.curStep || 0;
     const frames = ATK_FRAMES[st];
     swingAnim.prog       = p.atkF / frames;
@@ -22200,9 +23120,29 @@ function tickSwingAnim(p){
     const impLen = SWORD_IMPACT_FRAMES.length|| 1;
     swingAnim.frame      = Math.min(atkLen-1, Math.floor(swingAnim.prog * atkLen));
     swingAnim.trailFrame = Math.min(trlLen-1, Math.floor(swingAnim.prog * trlLen));
+  } else if(p.upSlashTimer > 0){
+    // Rising Blade — weapon's uppercut step drives the arc sprite and ribbon
+    const _ui = activeWeapon?.steps?.findIndex(s=>s.motion==='uppercut') ?? -1;
+    swingAnim.active    = true;
+    swingAnim.stepOver  = _ui >= 0 ? _ui : 0;
+    swingAnim.prog      = 1 - p.upSlashTimer / 22;
+    const atkLen = SWORD_ATK_FRAMES.length  || 1;
+    const trlLen = SWORD_TRAIL_FRAMES.length|| 1;
+    swingAnim.frame      = Math.min(atkLen-1, Math.floor(swingAnim.prog * atkLen));
+    swingAnim.trailFrame = Math.min(trlLen-1, Math.floor(swingAnim.prog * trlLen));
+  } else if(p.airDownSlashActive){
+    // Air Downward Slash — weapon's slam step drives the arc sprite and ribbon
+    const _si = activeWeapon?.steps?.findIndex(s=>s.motion==='slam') ?? -1;
+    swingAnim.active    = true;
+    swingAnim.stepOver  = _si >= 0 ? _si : 0;
+    swingAnim.prog      = Math.min(1, p.airDownSlashTimer / 20);
+    const atkLen = SWORD_ATK_FRAMES.length  || 1;
+    const trlLen = SWORD_TRAIL_FRAMES.length|| 1;
+    swingAnim.frame      = Math.min(atkLen-1, Math.floor(swingAnim.prog * atkLen));
+    swingAnim.trailFrame = Math.min(trlLen-1, Math.floor(swingAnim.prog * trlLen));
   } else if(swingAnim.active){
     // Attack finished — clear immediately, no wind-down
-    swingAnim.active=false; swingAnim.frame=0; swingAnim.trailFrame=0; swingAnim.tick=0; swingAnim.prog=0;
+    swingAnim.active=false; swingAnim.frame=0; swingAnim.trailFrame=0; swingAnim.tick=0; swingAnim.prog=0; swingAnim.stepOver=-1;
   }
   // impactTick/impactFrame advanced in _tickImpactAnim() inside _loopUpdate
 }
@@ -24604,6 +25544,42 @@ function _loopUpdate(){
   player._isWalking = _isWalking;
   player._moveMag = _moveMag;
   const jump=keys['ArrowUp']||keys['w']||keys['W']||keys[' ']||btnS.jump;
+  // Raw held state — true every frame the attack button is physically depressed.
+  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld||_mcAtkHeld;
+  // Air Downward Slash: hold attack while airborne and not mid-attack animation.
+  // _airDownSlashNeedsRehold blocks it if the button was continuously held from an upward slash —
+  // player must release and re-press to confirm intent.
+  if(!_airDownSlashNeedsRehold
+     &&!player.onGround&&atkPhysHeld&&!player.atk&&!player.dead
+     &&player.airDownSlashCD<=0&&!player.airDownSlashActive
+     &&grappleState==='none'&&!player.evadeTimer&&!player.spAtk){
+    _airHoldAtkFrames++;
+    if(_airHoldAtkFrames>=AIR_DOWNSLASH_HOLD){
+      airDownwardSlash();
+      _airHoldAtkFrames=0;
+      atkEdge=false; // suppress any queued tap
+    }
+  } else {
+    _airHoldAtkFrames=0;
+    if(!atkPhysHeld) _airDownSlashNeedsRehold=false; // button released — next hold is fresh
+  }
+  // Rising Blade: standalone ground hold — fires without requiring an active combo.
+  // Always passes follow=true so the player rises with the slash when an enemy is hit.
+  if(player.onGround&&atkPhysHeld&&player.upSlashCD<=0&&!player.dead
+     &&!player.evadeTimer&&!player.spAtk&&!player.rsWindup
+     &&!_airDownSlashNeedsAtkRehold){  // must re-press after Headbreaker landing
+    _holdAtkFrames++;
+    if(_holdAtkFrames>=UPSLASH_HOLD1){
+      player.atk=false; player.atkF=0; player.atkCD=0;
+      player.comboQueued=false; player.comboStep=0; player.comboTimer=0;
+      upwardSlash(true);
+      _holdAtkFrames=0;
+      atkEdge=false;
+    }
+  } else if(!atkPhysHeld||!player.onGround){
+    _holdAtkFrames=0;
+    _airDownSlashNeedsAtkRehold=false; // attack released — fresh press allowed again
+  }
   const doAtk=atkEdge; atkEdge=false;
   const doSp=keys['q']||keys['Q']||btnS.sp;
   const spEdge    = doSp && !prevSpHeld;   // first frame sp is pressed
@@ -24640,6 +25616,10 @@ function _loopUpdate(){
     // whatever momentum the player had before the action to zero. Dash-slash
     // and lunge-thrust still move via their own attack-frame translation.
     player.vx*=0.72;
+  }
+  else if(player.airDownSlashLandTimer > 0){
+    // Headbreaker land lock — player is rooted during the slam-pose recovery.
+    player.vx *= 0.72;
   }
   else {
     const _prevFacing = player.facing;
@@ -24716,24 +25696,26 @@ function _loopUpdate(){
                     : (currentStage === 2) ? 0x9c8f63
                     :                        0xa8957a;
       const _lx = player.x + PW/2;
-      const _ly = player.y + PH * 0.98;
-      for(let i = 0; i < 4; i++){
+      const _ly = floorY() + (HERO_DRAW_H - HERO_OFFSET_Y); // visual ground shadow plane
+      // 6 puffs: outer pair fans wide, inner pair rises, 2 tiny central wisps
+      for(let i = 0; i < 6; i++){
         const _dir = (i % 2 === 0) ? -1 : 1;
+        const _big = i < 4;
         _spawnPixiFootDust(
-          _lx + (Math.random()-0.5)*8,
-          _ly - Math.random()*2,
-          _dir * (0.7 + Math.random()*1.0),
-          -(0.2 + Math.random()*0.4),
-          0.40 + Math.random()*0.25,
-          1.8 + Math.random()*1.4,
+          _lx + _dir * (i < 2 ? 4 : 10) + (Math.random()-0.5)*6,
+          _ly - Math.random()*3,
+          _dir * (1.0 + Math.random()*1.4),
+          -(0.5 + Math.random()*0.7),
+          0.45 + Math.random()*0.25,
+          _big ? (7 + Math.random()*5) : (3.5 + Math.random()*2.5),  // r 7–12 or 3.5–6
           _ldTint,
-          0.035,
-          0.50
+          0.028,
+          _big ? 0.78 : 0.55
         );
       }
     }
     player._wasOnGround = true;
-    player.jumpsLeft=_maxJumps(); coyoteFrames=6; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSlamNeedsRehold=false; player.airSmashTimer=0; player.juggleFollow=false; player.juggleFollowUsed=false; player.airDropUsed=false;
+    player.jumpsLeft=_maxJumps(); coyoteFrames=6; player.airAtkUsed=false; player.airSlamUsed=false; player.airSlamArmed=false; player.airSlamNeedsRehold=false; player.airSmashTimer=0; player.airSmashWindup=0; player.juggleFollow=false; player.juggleFollowUsed=false; player.airDropUsed=false;
   } else {
     player._wasOnGround = false;
     if(coyoteFrames>0) coyoteFrames--; // off-ledge grace window
@@ -24745,7 +25727,7 @@ function _loopUpdate(){
   if(jumpBuffer>0) jumpBuffer--;
   // Allow jump if buffered — coyote extends the "on ground" window 6 frames after walking off edge
   const canJump = player.jumpsLeft>0 || coyoteFrames>0;
-  if(jumpBuffer>0&&canJump&&!player.dead){
+  if(jumpBuffer>0&&canJump&&!player.dead&&player.airDownSlashLandTimer<=0){
     // Ground jump (or coyote-grace) gets a brief takeoff pose; air jumps
     // (double-jump) skip frame 0 since the character is already airborne.
     const _wasGrounded = player.onGround || coyoteFrames > 0;
@@ -24786,7 +25768,12 @@ function _loopUpdate(){
     player.comboTimer--;
     if(player.comboTimer<=0&&!player.atk){player.comboStep=0;}
   }
-  // AIR-SMASH POSE HOLD
+  // AIR-SMASH WINDUP → hit fires on last animation frame
+  if(player.airSmashWindup>0){
+    player.airSmashWindup--;
+    if(player.airSmashWindup===0) airSlamEnemy(); // last frame reached — fire hit
+  }
+  // AIR-SMASH POSE HOLD (recovery after hit)
   if(player.airSmashTimer>0) player.airSmashTimer--;
 
   // HIT STREAK TIMER
@@ -24962,7 +25949,7 @@ function _loopUpdate(){
     player.excaliburWindup=false; player.excaliburWindupF=0;
     player.tenraiWindup=false; player.tenraiWindupF=0;
     player.arcaneWindup=0; player.arcaneWindupSpell=null;
-    player.airAtkFreezeTimer=0; player.airSmashTimer=0;
+    player.airAtkFreezeTimer=0; player.airSmashTimer=0; player.airSmashWindup=0;
     // ── Reset combo chain to first step ─────────────────────────────────────
     player.comboStep=0; player.comboTimer=0; player.comboQueued=false;
     player.curStep=0; player.swingHitMap=new Map();
@@ -25128,7 +26115,7 @@ function _loopUpdate(){
       player.excaliburWindup=false; player.excaliburWindupF=0;
       player.tenraiWindup=false; player.tenraiWindupF=0;
       player.arcaneWindup=0; player.arcaneWindupSpell=null;
-      player.airAtkFreezeTimer=0; player.airSmashTimer=0;
+      player.airAtkFreezeTimer=0; player.airSmashTimer=0; player.airSmashWindup=0;
       player.comboStep=0; player.comboTimer=0; player.comboQueued=false;
       player.curStep=0; player.swingHitMap=new Map();
       player.swingStreakCounted=false; player.spStreakCounted=false;
@@ -25214,14 +26201,19 @@ function _loopUpdate(){
     }
     // Only arm slam on a FRESH hold — if we just did an air-follow, button must be released first
     if(!player.onGround&&!player.airSlamNeedsRehold) player.airSlamArmed=true;
-    // Air slam: hold 22 frames while armed — repeatable, requires button release between each
-    if(launchHoldFrames>=22&&!player.onGround&&player.airSlamArmed&&!player.dead){
-      airSlamEnemy();
+    // Air slam: hold 6 frames while armed AND a target is in range → start windup.
+    // _hasAirSmashTarget() guard prevents the animation from firing in empty air,
+    // which was locking out the tap-relaunch path (airSmashWindup===0 guard below).
+    if(launchHoldFrames>=14&&!player.onGround&&player.airSlamArmed&&!player.dead
+       &&player.airSmashWindup===0&&player.airSmashTimer===0&&_hasAirSmashTarget()){
+      player.airSmashWindup=12; // 3 frames × 4 ticks — hit fires when this reaches 0
       launchHoldFrames=0;
     }
   } else {
     // Button released — quick tap in air re-juggles; clear all follow/rehold state
-    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<22&&!player.dead){
+    // Threshold matches hold threshold (14 frames) so any release before that = tap.
+    if(!player.onGround&&launchHoldFrames>0&&launchHoldFrames<14&&!player.dead
+       &&player.airSmashWindup===0){
       _airRelaunch();
     }
     player.pendingAirFollow=false;    // tapped — no follow
@@ -25230,6 +26222,43 @@ function _loopUpdate(){
     player.airSlamNeedsRehold=false;  // cleared — next hold is a fresh hold
   }
   if(player.launchCD>0) player.launchCD--;
+  if(player.upSlashCD>0) player.upSlashCD--;
+  if(player.airDownSlashCD>0) player.airDownSlashCD--;
+  if(player.upSlashTimer>0) player.upSlashTimer--;
+  if(player.airDownSlashLandTimer>0) player.airDownSlashLandTimer--;
+  // Deferred rising-blade liftoff: fires at animation frame 7 (timer≤7) so
+  // the character stays on the ground during the wind-up frames (0-5).
+  if(player.upSlashPendingLiftoff && player.upSlashTimer <= 7){
+    player.onGround=false;
+    player.y-=8;
+    player.vy=JUGGLE_PLAYER_VY;
+    player.vx=0;
+    player.juggleFollow=true;
+    player.juggleFollowUsed=true;
+    player.airSlamNeedsRehold=true;
+    _airDownSlashNeedsRehold=true;
+    player.upSlashPendingLiftoff=false;
+    player.upSlashRising=true;
+    // Ground dust — Rising Horizon liftoff
+    {
+      const _rhTint=(currentStage===4)?0x7c9696:(currentStage===3)?0x8c7766:(currentStage===2)?0x9c8f63:0xa8957a;
+      const _rhX=player.x+PW/2;
+      const _rhY=floorY()+(HERO_DRAW_H-HERO_OFFSET_Y);
+      for(let i=0;i<5;i++){
+        const _d=(i%2===0)?-1:1;
+        _spawnPixiFootDust(
+          _rhX+_d*(3+i*5)+(Math.random()-.5)*5, _rhY-Math.random()*3,
+          _d*(1.0+Math.random()*2.0), -(0.7+Math.random()*1.0),
+          0.4+Math.random()*0.2, 7+Math.random()*6,
+          _rhTint, 0.026, 0.78
+        );
+      }
+    }
+  }
+  // Clear upSlashRising once the player peaks and starts falling
+  if(player.upSlashRising && (player.vy>=0 || player.onGround)){
+    player.upSlashRising=false;
+  }
 
   if(player.atkCD>0) player.atkCD--;
   if(player.spCD>0) player.spCD--;
@@ -25388,9 +26417,66 @@ function _loopUpdate(){
       const angle = swordAngle(prog, st);
       const {px, py} = comboPiv(st);
       const tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
-      const tipY = py + player.facing * Math.sin(angle) * SWORD_RANGE;
+      const tipY = py +                 Math.sin(angle) * SWORD_RANGE; // Y never mirrors with facing
       swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false, mo:_stMotion, el:activeWeapon?.elemental||null});
       if(swordTrail.length>32) swordTrail.shift();
+    }
+  } else if(player.upSlashTimer > 0){
+    // Rising Horizon — trail must match the weapon overlay pivot/angle exactly.
+    // The overlay uses a hardcoded shoulder pivot + bespoke angle sweep; using
+    // comboPiv/swordAngle (weapon-step data) produces a different origin and
+    // different arc so the ribbon detaches from the visible sprite.
+    const _ui   = activeWeapon?.steps?.findIndex(s=>s.motion==='uppercut') ?? -1;
+    const _uSt  = _ui >= 0 ? _ui : 0;
+    const _uPrg = 1 - player.upSlashTimer / 22;
+    // === match overlay exactly ===
+    const _uBLen = 88;                             // 100 * 0.88
+    const _uGOff = _uBLen * 0.18;                  // ≈ 15.84
+    const _uPivX = player.x + PW/2 + player.facing * 10; // shoulder, slightly forward
+    const _uPivY = pHitY() - 10;                          // shoulder level
+    const _uAng  = 2.3 + (-2.27 - 2.3) * _uPrg;          // hip-back → raised arm
+    const _uCos  = Math.cos(_uAng);
+    const _uSin  = Math.sin(_uAng);
+    // hilt = pivot + gOff along blade; tip = pivot + (gOff+bLen) along blade
+    const _uBx   = _uPivX + player.facing * _uCos * _uGOff;
+    const _uBy   = _uPivY + _uSin * _uGOff;
+    const _uTx   = _uPivX + player.facing * _uCos * (_uGOff + _uBLen);
+    const _uTy   = _uPivY + _uSin * (_uGOff + _uBLen);
+    swordTrail.push({bx:_uBx, by:_uBy, tx:_uTx, ty:_uTy,
+      age:0, step:_uSt, sp:false, mo:'uppercut', el:activeWeapon?.elemental||null});
+    if(swordTrail.length>32) swordTrail.shift();
+  } else if(player.airDownSlashActive){
+    // Headbreaker dive — trail, sprite, AND hitbox all read the shared angle fn.
+    player.airDownSlashTimer++;
+    const _si   = activeWeapon?.steps?.findIndex(s=>s.motion==='slam') ?? -1;
+    const _sSt  = _si >= 0 ? _si : 0;
+    // The overhead swing rotates fast in its first frames. Push 3 interpolated
+    // sub-samples so consecutive ribbon points stay close (smooth arc, no gaps).
+    const _bLenT = 88, _gOffT = _bLenT * 0.18;
+    const _pxT = player.x + PW/2 + player.facing * 12;
+    const _pyT = pHitY() + PH * 0.10;
+    const _SWING_FRAMES = 7;
+    const _angAt = (tv) => {
+      const w  = Math.min(1, tv / _SWING_FRAMES);
+      const we = 1 - Math.pow(1 - w, 2.0);
+      return -Math.PI * 0.75 + (0 - (-Math.PI * 0.75)) * we;
+    };
+    const _SUB = (player.airDownSlashTimer <= _SWING_FRAMES) ? 3 : 1;
+    const _prevTv = player.airDownSlashTimer - 1;
+    // Dive trail can span a tall jump (overhead swing + long plunge) — keep a
+    // larger buffer so the whole slash stays visible from sky to ground instead
+    // of the oldest arc points being evicted at the normal 32 cap.
+    const _HB_TRAIL_CAP = 96;
+    for(let s = 1; s <= _SUB; s++){
+      const tv = _prevTv + (s / _SUB);
+      const a  = _angAt(tv), cs = Math.cos(a), ss = Math.sin(a);
+      swordTrail.push({
+        bx: _pxT + player.facing * cs * _gOffT,
+        by: _pyT + ss * _gOffT,
+        tx: _pxT + player.facing * cs * (_gOffT + _bLenT),
+        ty: _pyT + ss * (_gOffT + _bLenT),
+        age:0, step:_sSt, sp:false, mo:'slam', el:activeWeapon?.elemental||null});
+      if(swordTrail.length>_HB_TRAIL_CAP) swordTrail.shift();
     }
   } else {
     swordTrail.forEach(p=>{p.age+=0.11;});
@@ -25411,11 +26497,21 @@ function _loopUpdate(){
     : _airSmashHang ? 0
     : _airSmashFall ? 0.6
     : (!player.onGround&&player.atk) ? AIR_ATK_GRAV_MULT
+    : player.airDownSlashActive ? 0    // zero gravity — arc steers velocity directly
     : player.juggleFollow ? JUGGLE_GRAV/GRAV
     : 1;
   if(player.evadeTimer>0 && !player.onGround && player.vy>=0) player.vy=0; // DMC-style air dash: hold altitude, but let upward jump velocity through
   if(_airSmashHang) player.vy=0; // freeze vertical during hang
   physics(player, true, _pGrav);
+  // Air Downward Slash — straight down, no arc, zero gravity (handled above).
+  if(player.airDownSlashActive&&!player.onGround){
+    player.vx=0;
+    player.vy=20; // constant fast fall (AIR_DOWNSLASH_VY)
+    enemies.forEach(e=>{ if(!e.dead&&!e.onGround) e.vy=Math.max(e.vy,16); });
+    _tickHeadbreakerBladeHits(); // true blade-following hitbox along the diagonal
+  }
+  // Air Downward Slash landing (ground contact fallback)
+  if(player.airDownSlashActive&&player.onGround) _triggerAirDownSlashLanding();
   // ── PLAYER ↔ ENEMY SOLID COLLISION ──
   // Push the player horizontally out of any enemy AABB they overlap so they
   // can't walk through enemies. Exceptions: evade/dash (i-frames), juggle
@@ -27572,22 +28668,24 @@ window.addEventListener('keydown',e=>{
   keys[e.key]=true;
   if(!e.repeat&&(e.key==='ArrowUp'||e.key==='w'||e.key==='W'||e.key===' ')) jumpEdge=true;
   if(!e.repeat&&['z','x','Z','X','Enter'].includes(e.key)) atkEdge=true;
+  if(['z','x','Z','X','Enter'].includes(e.key)) _atkKbdHeld=true;
   if(!e.repeat&&(e.key==='Shift'||e.key==='ShiftLeft'||e.key==='ShiftRight')) evadeEdge=true;
   if(!e.repeat&&(e.key==='g'||e.key==='G')) deflectEdge=true;
   if(!e.repeat&&(e.key==='t'||e.key==='T')) cycleLockedTarget();
   if(['ArrowLeft','ArrowRight','ArrowUp',' ','Shift'].includes(e.key))e.preventDefault();
 });
-window.addEventListener('keyup',e=>{keys[e.key]=false;});
+window.addEventListener('keyup',e=>{keys[e.key]=false;if(['z','x','Z','X','Enter'].includes(e.key)) _atkKbdHeld=false;});
 
 // ── MOUSE CONTROLS (desktop) ──────────────────────────────────────────────
 // Left click = normal attack, Right click = special attack
 // Clicks on HUD buttons are ignored so the on-screen buttons still work.
 let _rmbHeld=false;
 canvas.addEventListener('mousedown', e => {
-  if (e.button === 0) { atkEdge = true; }
+  if (e.button === 0) { atkEdge = true; _atkMouseHeld=true; }
   if (e.button === 2) { deflectEdge = true; _rmbHeld=true; }
 });
 canvas.addEventListener('mouseup', e => {
+  if (e.button === 0) _atkMouseHeld=false;
   if (e.button === 2) _rmbHeld=false;
 });
 canvas.addEventListener('contextmenu', e => e.preventDefault()); // suppress right-click menu
@@ -27738,6 +28836,7 @@ function _updateGamepadInner() {
 
   // X: attack (in-game only)
   if (!isInMenu && xPressed && !prevXButtonState) atkEdge = true;
+  _atkGpadHeld = !isInMenu && xPressed;
 
   // Y: special  |  LT: magic  |  LB: deflect  |  B: evade  |  RT: launch
   btnS.sp     = yPressed;
@@ -28855,16 +29954,16 @@ function _applyHudScale(){
   const rm = v => (v * s).toFixed(2) + 'rem';
   if(mob){
     r.style.setProperty('--hud-pad', px(6));    r.style.setProperty('--hud-w', vw(18));
-    r.style.setProperty('--hud-minw', px(110)); r.style.setProperty('--hud-maxw', px(170));
-    r.style.setProperty('--hud-p', `${px(4)} ${px(8)}`); r.style.setProperty('--hud-gap', px(3));
-    r.style.setProperty('--hud-icon', rm(0.55)); r.style.setProperty('--hud-icon-w', px(11));
-    r.style.setProperty('--hud-icon-lbl', rm(0.32));
-    r.style.setProperty('--hud-bar-h', px(5));  r.style.setProperty('--hud-val', rm(0.48));
-    r.style.setProperty('--hud-val-w', px(22)); r.style.setProperty('--hud-lv', rm(0.44));
-    r.style.setProperty('--hud-score', rm(0.38));
-    r.style.setProperty('--hud-level', rm(0.73)); r.style.setProperty('--hud-wave', rm(0.73));
-    r.style.setProperty('--hud-potion', rm(0.9));
-    r.style.setProperty('--hud-exp-h', px(4));
+    r.style.setProperty('--hud-minw', px(130)); r.style.setProperty('--hud-maxw', px(200));
+    r.style.setProperty('--hud-p', `${px(6)} ${px(10)}`); r.style.setProperty('--hud-gap', px(5));
+    r.style.setProperty('--hud-icon', rm(0.60)); r.style.setProperty('--hud-icon-w', px(13));
+    r.style.setProperty('--hud-icon-lbl', rm(0.34));
+    r.style.setProperty('--hud-bar-h', px(8));  r.style.setProperty('--hud-val', rm(0.52));
+    r.style.setProperty('--hud-val-w', px(26)); r.style.setProperty('--hud-lv', rm(0.48));
+    r.style.setProperty('--hud-score', rm(0.42));
+    r.style.setProperty('--hud-level', rm(0.76)); r.style.setProperty('--hud-wave', rm(0.76));
+    r.style.setProperty('--hud-potion', rm(0.95));
+    r.style.setProperty('--hud-exp-h', px(5));
     r.style.setProperty('--boss-bar-w-px', px(220));
     r.style.setProperty('--boss-track-h', px(6));   r.style.setProperty('--boss-name-sz', rm(0.50));
     r.style.setProperty('--boss-num-sz', rm(0.50));  r.style.setProperty('--boss-stun-lbl-sz', rm(0.38));
@@ -28911,31 +30010,60 @@ function _applyHudScale(){
     r.style.setProperty('--cdi-lbl-sz', rm(0.92));  r.style.setProperty('--cdi-lbl-w', px(82));
     r.style.setProperty('--cdi-track-w', px(104));  r.style.setProperty('--cdi-track-h', px(6));
   }
+  // Always recompute responsive layout after hud scale changes
+  if(typeof _applyResponsiveUI === 'function') _applyResponsiveUI();
 }
-let _mcBtns=[];const _mcPressed={};
+let _mcBtns=[];const _mcPressed={}; let _mcPixelScale=1;
 function _buildMcLayout(){
-  const W=canvas.width,H=canvas.height;
-  const r=Math.round(H*0.085);       // movement buttons +18% larger
-  const rBig=Math.round(H*0.105);    // attack button +24% larger
-  const rSm=Math.round(H*0.072);     // smaller utility buttons
-  const pad=Math.round(H*0.052),gap=Math.round(r*2.55);
-  const gapSm=Math.round(rSm*2.55);
-  const lx=pad+r,ly=H-pad-r,rx=W-pad-rBig,ry=H-pad-rBig;
+  const cW=canvas.width, cH=canvas.height;
+  const sW = window.visualViewport ? window.visualViewport.width  : window.innerWidth;
+  const sH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const scX = sW/cW, scY = sH/cH;
+  _mcPixelScale = Math.min(scX,scY);
+  const W=cW, H=cH;
+  // Target button sizes in SCREEN pixels (feel/comfort), then convert to canvas units.
+  // This avoids the oval problem: we define radius in screen-px, then compute
+  // separate canvas-x and canvas-y radii that appear circular after CSS scaling.
+  const sizeFactor = Math.max(0.85, Math.min(1.3, sH/730));
+  // Screen-pixel target radii — deliberately larger than before
+  const rScrMove = Math.round(52 * sizeFactor);   // left/right movement — largest
+  const rScrAtk  = Math.round(60 * sizeFactor);   // attack — biggest of all
+  const rScrSm   = Math.round(40 * sizeFactor);   // utility buttons
+  // Convert screen radii → canvas radii (use average to keep hitbox fair)
+  const r    = Math.round(rScrMove / ((scX+scY)/2));
+  const rBig = Math.round(rScrAtk  / ((scX+scY)/2));
+  const rSm  = Math.round(rScrSm   / ((scX+scY)/2));
+  // Per-axis ellipse radii so buttons appear circular on screen
+  // rx * scX = ry * scY = screen radius  →  rx = screenR/scX, ry = screenR/scY
+  const toRx = (rScr) => rScr / scX;
+  const toRy = (rScr) => rScr / scY;
+  const pad  = Math.round(H*0.048);
+  // Gap proportional to screen radii (spacing in canvas units)
+  const gap   = Math.round((rScrMove * 2.4) / ((scX+scY)/2));
+  const gapSm = Math.round((rScrSm   * 2.4) / ((scX+scY)/2));
+  const cs = getComputedStyle(document.documentElement);
+  const safB = Math.round((parseFloat(cs.getPropertyValue('--sab'))||0)/scY);
+  const safL = Math.round((parseFloat(cs.getPropertyValue('--sal'))||0)/scX);
+  const safR = Math.round((parseFloat(cs.getPropertyValue('--sar'))||0)/scX);
+  const lx=pad+safL+r, ly=H-pad-safB-r;
+  const rx=W-pad-safR-rBig, ry=H-pad-safB-rBig;
+  // Store ellipse radii on each button so the renderer can draw true circles
   _mcBtns=[
-    // Left cluster — movement (larger)
-    {id:'l',      x:lx,           y:ly,          r:r,    label:'◀',col:'rgba(255,255,255,0.28)'},
-    {id:'r',      x:lx+gap,       y:ly,          r:r,    label:'▶',col:'rgba(255,255,255,0.28)'},
-    {id:'grapple',x:lx,           y:ly-gap,      r:rSm,  label:'🪝',col:'rgba(255,200,60,0.28)'},
-    {id:'deflect',  x:lx+gap,       y:ly-gap,      r:rSm,  label:'🛡',col:'rgba(255,100,20,0.28)'},
-    {id:'target', x:lx,           y:ly-gap-gapSm,r:rSm,  label:'🎯',col:'rgba(60,200,255,0.28)'},
-    // Right cluster — actions
-    {id:'jump',   x:rx,           y:ry-gap,      r:rSm,  label:'▲',col:'rgba(255,255,255,0.28)'},
-    {id:'atk',    x:rx,           y:ry,          r:rBig, label:'⚔',col:'rgba(220,60,60,0.35)'},
-    {id:'magic',  x:rx-gap,       y:ry,          r:rSm,  label:'✨',col:'rgba(120,80,220,0.28)'},
-    {id:'evade',  x:rx-gap,       y:ry-gap,      r:rSm,  label:'💨',col:'rgba(60,140,220,0.28)'},
-    {id:'launch', x:rx-gap*2,     y:ry,          r:rSm,  label:'↑', col:'rgba(40,180,130,0.28)'},
-    {id:'sp',     x:rx-gap*2,     y:ry-gapSm,    r:rSm,  label:'★', col:'rgba(255,160,20,0.30)'},
+    {id:'l',      x:lx,       y:ly,          r:r,    rx:toRx(rScrMove), ry:toRy(rScrMove), label:'◀',col:'rgba(255,255,255,0.28)'},
+    {id:'r',      x:lx+gap,   y:ly,          r:r,    rx:toRx(rScrMove), ry:toRy(rScrMove), label:'▶',col:'rgba(255,255,255,0.28)'},
+    {id:'grapple',x:lx,       y:ly-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🪝',col:'rgba(255,200,60,0.28)'},
+    {id:'deflect',x:lx+gap,   y:ly-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🛡',col:'rgba(255,100,20,0.28)'},
+    {id:'target', x:lx,       y:ly-gap-gapSm,r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'🎯',col:'rgba(60,200,255,0.28)'},
+    {id:'jump',   x:rx,       y:ry-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'▲',col:'rgba(255,255,255,0.28)'},
+    {id:'atk',    x:rx,       y:ry,          r:rBig, rx:toRx(rScrAtk),  ry:toRy(rScrAtk),  label:'⚔',col:'rgba(220,60,60,0.35)'},
+    {id:'magic',  x:rx-gap,   y:ry,          r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'✨',col:'rgba(120,80,220,0.28)'},
+    {id:'evade',  x:rx-gap,   y:ry-gap,      r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'💨',col:'rgba(60,140,220,0.28)'},
+    {id:'launch', x:rx-gap*2, y:ry,          r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'↑', col:'rgba(40,180,130,0.28)'},
+    {id:'sp',     x:rx-gap*2, y:ry-gapSm,    r:rSm,  rx:toRx(rScrSm),   ry:toRy(rScrSm),   label:'★', col:'rgba(255,160,20,0.30)'},
   ];
+  const topmost=Math.min(..._mcBtns.map(b=>b.y-b.r));
+  const ctrlH_screen=Math.round((H-topmost)*scY)+(parseFloat(cs.getPropertyValue('--sab'))||0)+16;
+  document.documentElement.style.setProperty('--mc-ctrl-h', ctrlH_screen+'px');
 }
 function _drawMobileControls(){
   // Pixi owns this now (Session 20 — _tickPixiMobileControls in ui layer).
@@ -28950,7 +30078,7 @@ function _mcOn(id){
   if(id==='l'||id==='r') btnS.walkMag = undefined;
   if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
-  else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
+  else if(id==='atk'){atkEdge=true;_mcAtkHeld=true;}else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
   else if(id==='deflect'){deflectEdge=true;btnS.deflect=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
@@ -28961,10 +30089,54 @@ function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
+  else if(id==='atk')_mcAtkHeld=false;
   else if(id==='deflect')btnS.deflect=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
-function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();_syncHudSizeDisplays();scaleViewport();writeSave();}
+function _lockOrientation(){
+  try {
+    if(screen.orientation && screen.orientation.lock){
+      screen.orientation.lock('landscape').catch(()=>{ _checkOrientationFallback(); });
+    } else if(screen.lockOrientation){
+      screen.lockOrientation('landscape');
+    } else if(screen.mozLockOrientation){
+      screen.mozLockOrientation('landscape');
+    } else if(screen.msLockOrientation){
+      screen.msLockOrientation('landscape');
+    } else {
+      _checkOrientationFallback();
+    }
+  } catch(e){ _checkOrientationFallback(); }
+}
+function _unlockOrientation(){
+  try {
+    if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+    else if(screen.unlockOrientation) screen.unlockOrientation();
+    else if(screen.mozUnlockOrientation) screen.mozUnlockOrientation();
+    else if(screen.msUnlockOrientation) screen.msUnlockOrientation();
+  } catch(e){}
+  document.body.classList.remove('portrait-locked');
+}
+function _checkOrientationFallback(){
+  // Called when OS orientation lock isn't supported (iOS Safari etc).
+  // Show rotate overlay when in portrait; hide when landscape.
+  const isPortrait = window.innerHeight > window.innerWidth;
+  document.body.classList.toggle('portrait-locked', !!(save.mobileControls && isPortrait));
+}
+// Watch orientation changes to toggle the overlay
+window.addEventListener('orientationchange', ()=>{
+  setTimeout(()=>{ scaleViewport(); _applyHudScale(); _checkOrientationFallback(); }, 120);
+});
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    if(save && save.mobileControls){ scaleViewport(); _applyHudScale(); _checkOrientationFallback(); }
+  });
+}
+function toggleMobileControls(){
+  save.mobileControls=!save.mobileControls;
+  _syncMobileBtn();_applyHudScale();_applyResponsiveUI();_syncHudSizeDisplays();scaleViewport();writeSave();
+  if(save.mobileControls) _lockOrientation(); else _unlockOrientation();
+}
 function _updateControllerLayout(){
   const ps=(save.controllerLayout||'xbox')==='ps';
   document.body.classList.toggle('ps-ctrl',ps);
@@ -29036,6 +30208,101 @@ function _syncHudSizeDisplays(){
   if(bf) bf.style.width=Math.round((v-50)/120*100)+'%';
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+//  RESPONSIVE UI SYSTEM
+//  Computes all dynamic position/scale CSS variables from the current screen
+//  dimensions, safe-area insets, aspect ratio, and hud-size preference.
+//  Called on: resize, orientation change, toggleMobileControls, _applyHudScale.
+// ══════════════════════════════════════════════════════════════════════════════
+function _applyResponsiveUI(){
+  const mob = !!save.mobileControls;
+  const r   = document.documentElement;
+  if(!mob) return; // desktop layout is handled by _applyHudScale + scaleViewport
+
+  const W  = window.visualViewport ? window.visualViewport.width  : window.innerWidth;
+  const H  = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+  // ── Safe area insets (numeric, px) ──
+  const cs  = getComputedStyle(document.documentElement);
+  const sat = parseFloat(cs.getPropertyValue('--sat')) || 0;
+  const sar = parseFloat(cs.getPropertyValue('--sar')) || 0;
+  const sab = parseFloat(cs.getPropertyValue('--sab')) || 0;
+  const sal = parseFloat(cs.getPropertyValue('--sal')) || 0;
+
+  // ── Aspect ratio buckets ──
+  const aspect = W / H;
+  const isTall     = aspect < 0.6;   // very tall phone (< ~9:15)
+  const isNormal   = aspect < 0.75;  // normal phone (9:16-ish)
+  const isWide     = aspect >= 0.75; // wide/tablet/landscape
+
+  // ── Scale factor: base 375px wide reference ──
+  const sScale = Math.max(0.72, Math.min(1.4, W / 375));
+  r.style.setProperty('--ui-scale', sScale.toFixed(3));
+
+  // ── Touch control height estimate (for HUD bottom padding) ──
+  // Controls are placed at bottom ~H*0.052 pad + H*0.105 radius = ~H*0.26
+  const ctrlH = Math.round(H * 0.30 + sab); // 30% of screen + safe bottom
+  r.style.setProperty('--mc-ctrl-h', ctrlH + 'px');
+
+  // ── HUD panel — top-left, scaled with safe area ──
+  const hudTop  = Math.round(sat + 8 * sScale);
+  const hudLeft = Math.round(sal + 8 * sScale);
+  r.style.setProperty('--hud-top',  hudTop  + 'px');
+  r.style.setProperty('--hud-left', hudLeft + 'px');
+
+  // ── Streak — top-right ──
+  const streakTop   = Math.round(sat + 10 * sScale);
+  const streakRight = Math.round(sar + 14 * sScale);
+  r.style.setProperty('--streak-top',   streakTop   + 'px');
+  r.style.setProperty('--streak-right', streakRight + 'px');
+
+  // ── Pause button — top-left ──
+  r.style.setProperty('--pause-top',   Math.round(sat + 8  * sScale) + 'px');
+  r.style.setProperty('--pause-right', Math.round(sar + 10 * sScale) + 'px');
+
+  // ── Boss bar — flush to top safe area ──
+  r.style.setProperty('--boss-bar-top', sat + 'px');
+
+  // ── Cooldown bar — top-right on mobile, below boss/streak ──
+  const bossBarH  = 58 * sScale; // approximate boss bar height when visible
+  const cdTopBase = Math.round(sat + bossBarH + 12 * sScale);
+  r.style.setProperty('--cdb-top-mc',    cdTopBase + 'px');
+  r.style.setProperty('--cdb-right',     Math.round(sar + 18 * sScale) + 'px');
+  r.style.setProperty('--cdb-bottom',    Math.round(sab + 28) + 'px');
+
+  // ── Combo HUD — below HUD panel, above touch controls ──
+  // On mc-active, combo sits below the stats panel (approx 120px scaled)
+  const comboBase = Math.round(sat + 120 * sScale);
+  const comboBoss = Math.round(sat + 154 * sScale);
+  r.style.setProperty('--combo-top',         Math.round(148 * sScale) + 'px');
+  r.style.setProperty('--combo-top-mc',       comboBase + 'px');
+  r.style.setProperty('--combo-top-mc-boss',  comboBoss + 'px');
+  r.style.setProperty('--combo-top-boss',     Math.round(sat + 200 * sScale) + 'px');
+  r.style.setProperty('--combo-top-boss-st',  Math.round(sat + 238 * sScale) + 'px');
+
+  // ── mc-active streak nudge ──
+  r.style.setProperty('--streak-top-mc', Math.round(sat + 54 * sScale) + 'px');
+
+  // ── Screen padding ──
+  r.style.setProperty('--screen-pt', Math.round(sat + H * 0.055) + 'px');
+  r.style.setProperty('--screen-pb', Math.round(sab + 12) + 'px');
+
+  // Reapply mc-active streak top via direct style on the element if present
+  const sh = document.getElementById('streakHud');
+  if(sh && mob) sh.style.top = Math.round(sat + 54 * sScale) + 'px';
+
+  // On landscape phone, shrink the canvas area used for controls
+  // so the game area isn't too cramped
+  if(H < 430 && W > H){
+    r.style.setProperty('--mc-ctrl-h', Math.round(H * 0.38 + sab) + 'px');
+  }
+
+  // ── _buildMcLayout consistency: recompute if layout already built ──
+  if(typeof _buildMcLayout === 'function') _buildMcLayout();
+}
+
+
+
 // ── SOUND VOLUME ──────────────────────────────────────────────────────────────
 function changeBgmVol(delta){
   save.bgmVol = Math.max(0, Math.min(100, (save.bgmVol ?? 100) + delta));
@@ -29066,18 +30333,22 @@ function _syncSoundDisplays(){
   const sp = document.getElementById('sfxPct');      if(sp) sp.textContent  = sv+'%';
 }
 const tmap={};
+// Returns true when a menu/overlay screen is open - touch should not be consumed by canvas
+function _screenOpen(){ return !!document.querySelector('.screen:not(.hidden), #pauseScreen.show, #dead.show'); }
 function initMobileControls(){
   function tc(sx,sy){const r=canvas.getBoundingClientRect();return{x:(sx-r.left)/r.width*canvas.width,y:(sy-r.top)/r.height*canvas.height};}
   canvas.addEventListener('touchstart',(e)=>{
+    if(_screenOpen()) return; // let screen handle the touch (scrolling etc.)
     e.preventDefault();preloadAllSfx();if(!save.mobileControls)return;
     _buildMcLayout();for(const t of e.changedTouches){const{x,y}=tc(t.clientX,t.clientY);const id=_mcHit(x,y);if(!id)continue;tmap[t.identifier]=id;_mcOn(id);}
   },{passive:false});
   canvas.addEventListener('touchmove',(e)=>{
+    if(_screenOpen()) return;
     e.preventDefault();if(!save.mobileControls)return;
     _buildMcLayout();for(const t of e.changedTouches){const{x,y}=tc(t.clientX,t.clientY);const nid=_mcHit(x,y),oid=tmap[t.identifier];if(nid===oid)continue;if(oid)_mcOff(oid);if(nid){tmap[t.identifier]=nid;_mcOn(nid);}else delete tmap[t.identifier];}
   },{passive:false});
-  canvas.addEventListener('touchend',(e)=>{e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
-  canvas.addEventListener('touchcancel',(e)=>{e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
+  canvas.addEventListener('touchend',(e)=>{if(_screenOpen())return;e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
+  canvas.addEventListener('touchcancel',(e)=>{if(_screenOpen())return;e.preventDefault();for(const t of e.changedTouches){const id=tmap[t.identifier];if(!id)continue;delete tmap[t.identifier];_mcOff(id);}},{passive:false});
 }
 
 document.addEventListener('visibilitychange',()=>{
@@ -29087,7 +30358,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('blur', _clearAllInput);
 
 function _clearAllInput(){
-  keys={}; _rmbHeld=false;
+  keys={}; _rmbHeld=false; _mcAtkHeld=false;
   btnS.l=btnS.r=btnS.jump=btnS.sp=btnS.magic=btnS.launch=btnS.evade=btnS.grapple=btnS.deflect=false;
   jumpEdge=false; atkEdge=false; evadeEdge=false; deflectEdge=false;
   // Clear any stuck mobile touch mappings
@@ -29127,15 +30398,28 @@ updateGamepad();
 //  BOOT
 // ══════════════════════════════════════════
 openDB().then(()=>{
-  loadSave().then(()=>{ scaleViewport();_applyHudScale();showMenu(); }).catch(()=>{ scaleViewport();_applyHudScale();showMenu(); });
+  loadSave().then(()=>{
+    scaleViewport();_applyHudScale();_applyResponsiveUI();
+    if(save.mobileControls) _lockOrientation();
+    showMenu();
+  }).catch(()=>{
+    scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
+  });
 }).catch(()=>{
-  scaleViewport();_applyHudScale();showMenu();
+  scaleViewport();_applyHudScale();_applyResponsiveUI();showMenu();
 });
 initMobileControls();
 // Auto fullscreen DISABLED — user opted out. The fsBtn in Settings still works.
 // Sfx preload kept (fires once on first interaction to satisfy autoplay policies).
 document.addEventListener('touchstart',function _ft(){
   preloadAllSfx();
+  // Auto-fullscreen on first touch when mobile controls are enabled.
+  // Must be triggered from a user gesture to satisfy browser autoplay/fullscreen policy.
+  if(save && save.mobileControls && !isFullscreen()){
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if(req) req.call(el).catch(()=>{});
+  }
   document.removeEventListener('touchstart',_ft);
 },{once:true,passive:true});
 
@@ -31005,6 +32289,12 @@ window.addEventListener('keydown',e=>{
   };
 }
 </script>
+<!-- Rotate device overlay — shown on mc-active portrait when OS lock unavailable -->
+<div id="rotateOverlay">
+  <div class="rot-icon">📱</div>
+  <div class="rot-text">Rotate to landscape</div>
+</div>
+
 </div><!-- #viewport -->
 </body>
 </html>
