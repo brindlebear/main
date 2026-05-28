@@ -5939,28 +5939,34 @@ function _tickPixiSword(){
         rotation = 0;
       }
     } else if(motion === 'horiz-slash'){
-      // Horizontal slash trail — show only during the actual slash window (0.22-0.82)
+      // Horizontal slash: the swordTrail ribbon (drawn separately) provides the
+      // sweeping trail effect as the blade moves across. The Pixi trail sprite
+      // shows a horizontal ghost behind the blade during the slash window.
       const WINDUP = 0.22, SLASH_END = 0.82;
-      if(t < WINDUP || t > SLASH_END + 0.08){
-        _pixiSwordTrailSprite.visible = false;
-      } else {
-        // Trail hangs horizontal — rotated 90deg (pointing along facing direction)
-        const trailAngle = (Math.PI / 2);
+      if(t >= WINDUP && t <= SLASH_END + 0.06){
+        const _hSeg = getBladeSegment(player, t);
+        // Position trail sprite AT the blade, horizontal, slightly behind
+        const _behindOff = facing * -12; // ghost trails slightly behind tip
         if(isSingleSquare){
           tex = trailRes.singleRaw;
           anchorX = _WM.trail.anchorX;
           anchorY = _WM.trail.anchorY;
-          renderH = (stepData.displayH || stepData.swingH) * 1.1;
-          alpha = 0.8;
+          renderH = (stepData.displayH || stepData.swingH) * 1.05;
+          alpha = 0.55 * (1 - Math.max(0, (t - SLASH_END) / 0.08)); // fade out
         } else {
           const idx = Math.min(swingAnim.trailFrame || 0, 7);
           tex = trailRes.trail?.[idx % SWORD_TRAIL_FRAMES.length];
           anchorX = 0.35;
           anchorY = 0.5;
           renderH = 120;
-          alpha = 0.9;
+          alpha = 0.7 * (1 - Math.max(0, (t - SLASH_END) / 0.08));
         }
-        rotation = trailAngle * facing;
+        rotation = (Math.PI / 2) * facing; // horizontal
+        // Override position to blade hilt
+        ox = _hSeg.hx - (pHitX() + PW/2 + facing * stepData.pivotX) + _behindOff;
+        oy = _hSeg.hy - (pHitY() + PH * stepData.pivotY);
+      } else {
+        _pixiSwordTrailSprite.visible = false;
       }
     } else {
       // arc
@@ -20166,10 +20172,13 @@ function tickAttackHits(){
   const stepData = getStep(step);
   const motion = stepData.motion || 'arc';
   if(motion === 'spin-throw') return; // throw object handles its own hit detection
-  const WIN_START = (motion === 'thrust' || motion === 'lunge-thrust' || motion === 'strike') ? 0.15 : 0.08;
+  const WIN_START = (motion === 'thrust' || motion === 'lunge-thrust' || motion === 'strike') ? 0.15
+                  : (motion === 'horiz-slash') ? 0.22   // horiz-slash: start at end of windup
+                  : 0.08;
   const WIN_END   = (motion === 'thrust' || motion === 'lunge-thrust' || motion === 'strike') ? 0.72
                   : (motion === 'slam') ? 0.80
-                  : (motion === 'sweep') ? 0.92   // sweep stays active longer — wide arc
+                  : (motion === 'sweep') ? 0.92
+                  : (motion === 'horiz-slash') ? 0.82   // horiz-slash: end when blade settles
                   : 0.88;
   if(curProg < WIN_START || prevProg > WIN_END) return;
   const from = Math.max(prevProg, WIN_START);
@@ -26123,18 +26132,19 @@ function _loopUpdate(){
       const frames = ATK_FRAMES[st];
       const prog = player.atkF / frames;
       const angle = swordAngle(prog, st);
-      const {px, py} = comboPiv(st);
-      let tipX, tipY;
+      let bx, by, tipX, tipY;
       if(_stMotion === 'horiz-slash'){
-        // Trail follows the blade segment directly for horizontal motion
+        // Trail follows blade segment directly — gives horizontal ribbon
         const _hSeg = getBladeSegment(player, prog);
+        bx = _hSeg.hx; by = _hSeg.hy;
         tipX = _hSeg.tx; tipY = _hSeg.ty;
-        px = _hSeg.hx;   py  = _hSeg.hy;
       } else {
+        const {px, py} = comboPiv(st);
+        bx = px; by = py;
         tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
         tipY = py +                 Math.sin(angle) * SWORD_RANGE;
       }
-      swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false, mo:_stMotion, el:activeWeapon?.elemental||null});
+      swordTrail.push({bx, by, tx:tipX, ty:tipY, age:0, step:st, sp:false, mo:_stMotion, el:activeWeapon?.elemental||null});
       if(swordTrail.length>32) swordTrail.shift();
     }
   } else if(player.upSlashTimer > 0){
