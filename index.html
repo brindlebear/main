@@ -5939,35 +5939,23 @@ function _tickPixiSword(){
         rotation = 0;
       }
     } else if(motion === 'horiz-slash'){
-      // Horizontal slash: the swordTrail ribbon (drawn separately) provides the
-      // sweeping trail effect as the blade moves across. The Pixi trail sprite
-      // shows a horizontal ghost behind the blade during the slash window.
-      const WINDUP = 0.22, SLASH_END = 0.82;
-      if(t >= WINDUP && t <= SLASH_END + 0.06){
-        const _hSeg = getBladeSegment(player, t);
-        // Position trail sprite AT the blade, horizontal, slightly behind
-        const _behindOff = facing * -12; // ghost trails slightly behind tip
-        if(isSingleSquare){
-          tex = trailRes.singleRaw;
-          anchorX = _WM.trail.anchorX;
-          anchorY = _WM.trail.anchorY;
-          renderH = (stepData.displayH || stepData.swingH) * 1.05;
-          alpha = 0.55 * (1 - Math.max(0, (t - SLASH_END) / 0.08)); // fade out
-        } else {
-          const idx = Math.min(swingAnim.trailFrame || 0, 7);
-          tex = trailRes.trail?.[idx % SWORD_TRAIL_FRAMES.length];
-          anchorX = 0.35;
-          anchorY = 0.5;
-          renderH = 120;
-          alpha = 0.7 * (1 - Math.max(0, (t - SLASH_END) / 0.08));
-        }
-        rotation = (Math.PI / 2) * facing; // horizontal
-        // Override position to blade hilt
-        ox = _hSeg.hx - (pHitX() + PW/2 + facing * stepData.pivotX) + _behindOff;
-        oy = _hSeg.hy - (pHitY() + PH * stepData.pivotY);
+      // Trail follows the sweep angle exactly like arc — gives a clean rotational ribbon
+      const trailAngle = swordAngle(t, step) + Math.PI/2;
+      if(isSingleSquare){
+        tex = trailRes.singleRaw;
+        anchorX = _WM.trail.anchorX;
+        anchorY = _WM.trail.anchorY;
+        renderH = (stepData.displayH || stepData.swingH) * 1.15; // slightly wider trail
+        alpha = 0.85;
       } else {
-        _pixiSwordTrailSprite.visible = false;
+        const idx = Math.min(swingAnim.trailFrame || 0, 7);
+        tex = trailRes.trail?.[idx % SWORD_TRAIL_FRAMES.length];
+        anchorX = 0.35;
+        anchorY = 0.5;
+        renderH = 130;
+        alpha = 0.95;
       }
+      rotation = trailAngle * facing;
     } else {
       // arc
       const trailAngle = swordAngle(t, step) + Math.PI/2;
@@ -6037,8 +6025,8 @@ function _tickPixiSword(){
         } else if(motion === 'strike'){
           baseRot = _dRotRad;
         } else if(motion === 'horiz-slash'){
-          // Weapon stays horizontal — fixed 90deg rotation throughout the sweep
-          baseRot = Math.PI/2 + _dRotRad;
+          // Weapon rotates with the sweep angle — back-to-forward rotation gives 3D feel
+          baseRot = swordAngle(t, step) + Math.PI/2 + _dRotRad;
         } else {
           // arc
           baseRot = swordAngle(t, step) + Math.PI/2 + _dRotRad;
@@ -16839,7 +16827,7 @@ const WEAPONS = {
     { motion:'arc', startAngle:-115, endAngle:120, easing:'out', pivotX:50, pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, knockback:[4,5,12], displayH:0, displayRot:0, dashDist:60, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
     { motion:'sweep', startAngle:-162, endAngle:12, easing:'out', pivotX:50, pivotY:0.18, swingH:102, frameIdx:1, duration:20, dmgMult:1.2, stamCost:20, hitMargin:9, sweepSteps:6, hitCD:20, knockback:[5,6,10], displayH:0, displayRot:0, dashDist:60, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
     { motion:'dash-slash', startAngle:-115, endAngle:110, easing:'out', pivotX:50, pivotY:0.18, swingH:106, frameIdx:2, duration:20, dmgMult:2, dashDist:58, stamCost:28, hitMargin:9, sweepSteps:7, hitCD:18, knockback:[6,8,18], displayH:0, displayRot:0, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
-    { motion:'horiz-slash', startAngle:0, endAngle:0, easing:'out', pivotX:50, pivotY:0.28, swingH:108, frameIdx:0, duration:22, dmgMult:1.5, stamCost:22, hitMargin:10, sweepSteps:8, hitCD:18, knockback:[7,5,14], displayH:0, displayRot:0, dashDist:0, throwSpeed:0, throwRange:0, throwRiseVy:0, hitCount:1, launchPower:6, shockRadius:60, slamVx:0 }
+    { motion:'horiz-slash', startAngle:-170, endAngle:16, easing:'out', pivotX:50, pivotY:0.28, swingH:110, frameIdx:1, duration:32, dmgMult:1.6, stamCost:24, hitMargin:12, sweepSteps:9, hitCD:20, knockback:[8,4,16], displayH:0, displayRot:0, dashDist:0, throwSpeed:0, throwRange:0, throwRiseVy:0, hitCount:1, launchPower:8, shockRadius:60, slamVx:6 }
     ],
     desc: 'Slash — low sweep — lunging dash finish. A complete three-hit set.',
     elemental: null,
@@ -19837,35 +19825,20 @@ function getBladeSegment(p, prog){
   }
 
   if(motion === 'horiz-slash'){
-    // True horizontal sweep: blade drags behind player then snaps across chest-height.
-    // Wind-up (0-0.25): hilt pulls back behind body, blade vertical.
-    // Slash (0.25-0.80): blade sweeps horizontally from behind to in-front, eased fast.
-    // Recovery (0.80-1.0): decelerate and settle.
-    const bLen    = s.swingH * 0.88;
-    const height  = PH * (s.pivotY || 0.30);          // vertical position = chest height
-    const behind  = -s.swingH * 0.55;                 // how far behind the body the hilt starts
-    const ahead   = s.swingH * 0.30;                  // how far past body the hilt ends
-    const WINDUP  = 0.22, SLASH_END = 0.82;
-    let hiltX, hiltY = pivY;
-    if(prog < WINDUP){
-      // windup — pull back
-      const wp = 1 - prog / WINDUP;
-      hiltX = pivX + p.facing * (behind * wp);
-    } else if(prog < SLASH_END){
-      // slash — fast horizontal sweep with ease-out
-      const sp = (prog - WINDUP) / (SLASH_END - WINDUP);
-      const ease = 1 - Math.pow(1 - sp, 3);
-      hiltX = pivX + p.facing * (behind * (1 - ease) + ahead * ease);
-    } else {
-      // recovery
-      hiltX = pivX + p.facing * ahead;
-    }
-    return {
-      hx: hiltX,
-      hy: hiltY,
-      tx: hiltX + p.facing * bLen,
-      ty: hiltY,
-    };
+    // Horizontal slash: arc geometry with hilt Y locked to chest height.
+    // The blade ROTATES from pointing-back through pointing-forward (like a real horizontal cut).
+    // Hilt stays level — tip traces a gentle vertical arc for 3D depth.
+    // Rotation drives both the sprite angle AND the tip position.
+    const bLen     = s.swingH * 0.88;
+    const guardOff = bLen * 0.18;
+    const angleRad = swordAngle(prog, step); // sweeps -168deg -> +14deg
+    // Hilt: X follows arc naturally, Y locked to chest (no vertical bob)
+    const hx = pivX + p.facing * Math.cos(angleRad) * guardOff;
+    const hy = pivY; // hilt stays at chest height throughout
+    // Tip: X follows arc, Y gets gentle arc for 3D (tip dips on entry, rises on exit)
+    const tx = pivX + p.facing * Math.cos(angleRad) * bLen;
+    const ty = pivY + Math.sin(angleRad) * bLen * 0.35; // 35% vertical = subtle 3D arc
+    return { hx, hy, tx, ty };
   }
 
   // arc / dash-slash / uppercut / slam — rotational swing (dash-slash pivot shifts in _loopUpdate, hitbox follows naturally)
