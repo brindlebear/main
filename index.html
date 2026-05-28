@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>THE VEILBREAKER</title>
 <link rel="icon" type="image/svg+xml" href="Resources/GFX/Sprite/favicon.svg">
 <!-- Typography per VEILDIRECTIONS.md:
@@ -333,341 +333,6 @@ body:has(#menuScreen:not(.hidden)) #menuLensCanvas{display:block;}
 .mnb:hover .mnb-inner,.mnb.gamepad-focused .mnb-inner,.mnb:focus-visible .mnb-inner{color:#f0d878;font-size:clamp(1.55rem,3.5vw,2.05rem);padding:22px 88px 22px 38px;min-width:clamp(420px,54vw,680px);}
 .mnb:hover .mnb-bg,.mnb.gamepad-focused .mnb-bg,.mnb:focus-visible .mnb-bg{background:linear-gradient(108deg,rgba(46,29,8,0.97) 0%,rgba(18,10,2,0.92) 100%);border-left-color:rgba(215,170,60,0.82);box-shadow:0 8px 44px rgba(0,0,0,0.72),0 0 32px rgba(192,148,42,0.22),inset 0 1px 0 rgba(255,215,100,0.07);}
 .mnb:hover .mnb-bar,.mnb.gamepad-focused .mnb-bar,.mnb:focus-visible .mnb-bar{background:rgba(215,170,60,0.94);transform:scaleY(1) skewX(-9deg);box-shadow:0 0 18px rgba(215,170,60,0.80),0 0 6px rgba(255,220,80,1);}
-
-/* Loading overlay — shown while stage assets finish downloading */
-#loadingOverlay{
-  display:none; position:fixed; inset:0; z-index:99998;
-  background:radial-gradient(ellipse at center, #0a0c16 0%, #03040a 100%);
-  flex-direction:column; align-items:center; justify-content:center; gap:22px;
-  font-family:'Cinzel',serif; color:#d4b870;
-}
-#loadingOverlay .load-spin{
-  width:46px; height:46px; border-radius:50%;
-  border:3px solid rgba(212,184,112,0.18);
-  border-top-color:#d4b870;
-  animation:loadSpin 0.9s linear infinite;
-}
-#loadingOverlay .load-txt{ font-size:0.95rem; letter-spacing:0.45em; opacity:0.8; padding-left:0.45em; }
-@keyframes loadSpin{ to{ transform:rotate(360deg); } }
-
-/* Rotate-to-landscape prompt — only on touch devices held in portrait */
-#rotateOverlay{ display:none; }
-@media (pointer: coarse) and (orientation: portrait){
-  #rotateOverlay{
-    display:flex; position:fixed; inset:0; z-index:99999;
-    background:rgba(3,4,12,0.98); flex-direction:column;
-    align-items:center; justify-content:center; gap:20px;
-    color:#d4b870; text-align:center; font-family:'Jost',sans-serif;
-  }
-  #rotateOverlay .rot-ico{ font-size:4rem; animation:rotSpin 2s ease-in-out infinite; }
-  #rotateOverlay .rot-txt{ font-size:1.1rem; letter-spacing:0.2em; text-transform:uppercase; opacity:0.85; }
-  @keyframes rotSpin{ 0%,100%{transform:rotate(0)} 50%{transform:rotate(-90deg)} }
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   MOBILE MENU SYSTEM — purpose-built for touch. ONLY applies on body.mc-active
-   (auto-set for phones/tablets). Desktop is completely unaffected.
-   Design: centered title, then a tidy responsive grid of touch tiles.
-   ════════════════════════════════════════════════════════════════════════ */
-
-/* ---- MAIN MENU ---- */
-body.mc-active #menuScreen{
-  justify-content:flex-start;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 10px) calc(env(safe-area-inset-left,0px) + 14px);
-  gap:0;
-  overflow-y:auto;
-}
-body.mc-active #menuScreen .menu-title{ font-size:clamp(1.5rem,5.5vw,2.4rem)!important; margin:0!important; }
-body.mc-active #menuScreen .menu-subtitle{ font-size:clamp(0.5rem,1.7vw,0.72rem)!important; margin-top:2px!important; }
-body.mc-active #menuScreen .menu-divider{ margin:5px 0!important; }
-body.mc-active #menuScreen .save-info{ font-size:clamp(0.58rem,1.7vw,0.8rem)!important; line-height:1.4!important; margin:2px 0 8px!important; }
-
-/* Turn the vertical nav into a responsive tile grid */
-body.mc-active #menuNav{
-  display:grid!important;
-  grid-template-columns:repeat(2, minmax(0,1fr));
-  gap:9px!important;
-  width:100%!important;
-  max-width:560px;
-  margin:0 auto!important;
-  padding:0!important;
-  align-self:center;
-}
-/* Primary action spans full width as a hero tile */
-body.mc-active #menuNav > button:nth-child(1){ grid-column:1 / -1; }
-/* The separator div is irrelevant in grid — hide it */
-body.mc-active #menuNav .mnb-sep{ display:none!important; }
-
-/* Tile styling — replaces the parallelogram bars on mobile */
-body.mc-active #menuNav .mnb{
-  width:100%!important; max-width:none!important; min-width:0!important;
-  height:100%; margin:0!important;
-}
-body.mc-active #menuNav .mnb-bar{ display:none!important; }   /* drop the skewed accent bar */
-body.mc-active #menuNav .mnb-bg{
-  position:absolute!important; inset:0!important;
-  transform:none!important;          /* no skew — clean rounded tile */
-  border-radius:12px!important;
-  border:1px solid rgba(200,160,80,0.28)!important;
-  border-left:3px solid rgba(215,170,60,0.55)!important;
-  background:linear-gradient(150deg,rgba(40,26,10,0.92),rgba(16,10,4,0.88))!important;
-  box-shadow:0 4px 18px rgba(0,0,0,0.5)!important;
-}
-body.mc-active #menuNav .mnb-inner{
-  position:relative; z-index:1;
-  min-width:0!important; width:100%!important;
-  display:flex; align-items:center; gap:10px;
-  justify-content:flex-start;
-  padding:16px 16px!important;
-  font-size:clamp(0.82rem,2.4vw,1.05rem)!important;
-  letter-spacing:0.1em!important;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  color:rgba(225,195,130,0.92)!important;
-  transition:none!important;
-}
-body.mc-active #menuNav > button:nth-child(1) .mnb-inner{
-  justify-content:center;
-  padding:20px 16px!important;
-  font-size:clamp(1.0rem,3vw,1.35rem)!important;
-  letter-spacing:0.16em!important;
-}
-body.mc-active #menuNav .mnb-icon{ font-size:1.2em; opacity:0.9; }
-/* Active/pressed feedback (touch + gamepad focus) */
-body.mc-active #menuNav .mnb:active .mnb-bg,
-body.mc-active #menuNav .mnb.gamepad-focused .mnb-bg{
-  border-color:rgba(240,215,120,0.9)!important;
-  border-left-color:rgba(255,215,90,1)!important;
-  background:linear-gradient(150deg,rgba(64,42,14,0.97),rgba(28,18,6,0.92))!important;
-  box-shadow:0 6px 26px rgba(0,0,0,0.6),0 0 22px rgba(200,150,50,0.25)!important;
-}
-body.mc-active #menuNav .mnb:active .mnb-inner,
-body.mc-active #menuNav .mnb.gamepad-focused .mnb-inner{
-  color:#ffe69a!important; font-size:clamp(0.82rem,2.4vw,1.05rem)!important;
-}
-/* Color accents per variant */
-body.mc-active #menuNav .mnb-teal .mnb-bg{ border-left-color:rgba(80,200,150,0.6)!important; }
-body.mc-active #menuNav .mnb-ember .mnb-bg{ border-left-color:rgba(225,110,70,0.6)!important; }
-body.mc-active #menuNav .mnb-danger .mnb-bg{ border-left-color:rgba(210,80,80,0.6)!important; }
-body.mc-active #menuNav .mnb-ghost .mnb-inner{ font-size:clamp(0.76rem,2.2vw,0.95rem)!important; opacity:0.92; }
-
-/* ---- SELECTION SCREENS (Stage Select / Boss Selection) ---- */
-body.mc-active #stageSelectScreen,
-body.mc-active #bossRushScreen{
-  justify-content:flex-start;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 10px) calc(env(safe-area-inset-left,0px) + 14px);
-  overflow-y:auto;
-}
-body.mc-active #stageSelectScreen .sel-title,
-body.mc-active #bossRushScreen .sel-title{ font-size:clamp(1.3rem,4vw,2rem)!important; }
-body.mc-active #stageSelectScreen .sel-sub,
-body.mc-active #bossRushScreen .sel-sub{ font-size:clamp(0.52rem,1.7vw,0.66rem)!important; }
-body.mc-active #stageSelectScreen .menu-nav,
-body.mc-active #bossRushScreen .menu-nav{
-  width:100%!important; max-width:600px; margin:8px auto 0!important;
-  padding:0!important; align-items:stretch!important;
-}
-/* Cards laid out in a responsive grid. The JS sets inline min-width:clamp(...)
-   on each card for the desktop cascade — override it so the grid governs width. */
-body.mc-active #stageCards,
-body.mc-active #bossCards{
-  display:grid!important;
-  grid-template-columns:repeat(2, minmax(0,1fr))!important;
-  gap:8px!important; width:100%!important;
-}
-body.mc-active #stageCards .stage-card,
-body.mc-active #bossCards .stage-card,
-body.mc-active #bossCards .boss-card{
-  min-width:0!important; width:100%!important; max-width:none!important;
-  height:76px!important; border-radius:10px!important; margin:0!important;
-}
-body.mc-active .stage-card-name{ font-size:0.8rem!important; letter-spacing:0.12em!important; }
-body.mc-active .stage-card-sub{ font-size:0.58rem!important; }
-body.mc-active .stage-card-num{ font-size:0.85rem!important; min-width:18px!important; }
-body.mc-active .stage-card-badge{ font-size:0.9rem!important; }
-/* BACK button — full-width tile under the cards */
-body.mc-active #stageSelectScreen .menu-nav .mnb,
-body.mc-active #bossRushScreen .menu-nav .mnb{
-  width:100%!important; max-width:none!important; min-width:0!important; margin-top:10px!important;
-}
-body.mc-active #stageSelectScreen .mnb-bar,
-body.mc-active #bossRushScreen .mnb-bar{ display:none!important; }
-body.mc-active #stageSelectScreen .mnb-bg,
-body.mc-active #bossRushScreen .mnb-bg{
-  transform:none!important; border-radius:10px!important; inset:0!important;
-  border:1px solid rgba(200,160,80,0.28)!important;
-  background:linear-gradient(150deg,rgba(40,26,10,0.9),rgba(16,10,4,0.85))!important;
-}
-body.mc-active #stageSelectScreen .mnb-inner,
-body.mc-active #bossRushScreen .mnb-inner{
-  min-width:0!important; width:100%!important; justify-content:center;
-  padding:14px!important; font-size:clamp(0.82rem,2.4vw,1.05rem)!important;
-  color:rgba(225,195,130,0.92)!important;
-}
-
-/* ════════ ALL REMAINING SCREENS — MOBILE (mc-active only) ════════ */
-
-/* Shared: every screen scrolls, fits within safe area, compact title */
-body.mc-active #tutorialScreen,
-body.mc-active #settingsScreen,
-body.mc-active #prepScreen,
-body.mc-active #pauseScreen,
-body.mc-active #dead,
-body.mc-active #stageCompleteScreen{
-  justify-content:flex-start!important;
-  overflow-y:auto!important; overflow-x:hidden!important;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 14px) calc(env(safe-area-inset-left,0px) + 14px)!important;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* ---- HOW TO PLAY ---- */
-body.mc-active #tutorialScreen .tut-wrap{ max-width:100%!important; width:100%!important; }
-body.mc-active #tutorialScreen .tut-title{ font-size:clamp(1.2rem,4vw,1.8rem)!important; margin-bottom:3px!important; }
-body.mc-active #tutorialScreen .tut-sub{ font-size:clamp(0.5rem,1.6vw,0.62rem)!important; }
-body.mc-active #tutorialScreen .tut-grid{
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr))!important;
-  gap:8px!important; margin-bottom:10px!important;
-}
-body.mc-active #tutorialScreen .tut-card{ padding:11px 13px!important; border-radius:9px!important; }
-body.mc-active #tutorialScreen .tut-card-title{ font-size:0.85rem!important; }
-body.mc-active #tutorialScreen .tut-row{ padding:4px 0!important; gap:8px!important; }
-body.mc-active #tutorialScreen .tut-keys{ width:88px!important; }
-body.mc-active #tutorialScreen .tut-desc{ font-size:0.68rem!important; }
-body.mc-active #tutorialScreen .tut-key{ font-size:0.6rem!important; padding:2px 5px!important; }
-body.mc-active #tutorialScreen .tut-pill{ font-size:0.55rem!important; }
-
-/* ---- SETTINGS — clean mobile layout ---- */
-body.mc-active #settingsScreen{ justify-content:flex-start!important; }
-body.mc-active #settingsScreen .settings-wrap{
-  max-height:none!important; width:100%!important; max-width:520px!important;
-  margin:0 auto!important; padding:2px 0 24px!important; gap:8px!important;
-  align-items:stretch!important;
-}
-body.mc-active #settingsScreen .settings-title{
-  font-size:clamp(1.2rem,3.6vw,1.7rem)!important; text-align:center; align-self:center;
-}
-/* Tab bar — three even segmented tabs */
-body.mc-active #settingsScreen .settings-tabs{
-  display:flex!important; gap:4px!important; padding:0!important;
-  margin:4px 0 8px!important; width:100%!important; max-width:none!important;
-  border-bottom:none!important; justify-content:stretch!important;
-}
-body.mc-active #settingsScreen .settings-tab{
-  min-width:0!important; flex:1 1 0!important; padding:11px 4px!important;
-  font-size:0.74rem!important; letter-spacing:0.08em!important;
-  border:1px solid rgba(200,160,80,0.22)!important; border-radius:9px!important;
-  background:linear-gradient(150deg,rgba(28,18,8,0.7),rgba(14,9,3,0.7))!important;
-  color:rgba(200,160,90,0.6)!important; margin:0!important;
-}
-body.mc-active #settingsScreen .settings-tab.active{
-  border-color:rgba(240,200,90,0.7)!important;
-  background:linear-gradient(150deg,rgba(60,40,14,0.92),rgba(30,19,6,0.9))!important;
-  color:#ffe69a!important;
-}
-/* Panel = vertical stack of control cards */
-body.mc-active #settingsScreen .settings-panel{
-  display:flex!important; flex-direction:column!important;
-  gap:8px!important; width:100%!important; max-width:none!important;
-  align-items:stretch!important;
-}
-/* Section label sits as a small heading above each control */
-body.mc-active #settingsScreen .settings-section-lbl{
-  font-size:0.6rem!important; letter-spacing:0.22em!important;
-  color:rgba(210,175,105,0.7)!important; margin:2px 0 0 2px!important;
-  text-align:left!important; align-self:flex-start!important;
-}
-/* Toggle/action buttons — full-width cards */
-body.mc-active #settingsScreen .settings-fs-btn,
-body.mc-active #settingsScreen .menu-btn{
-  width:100%!important; min-width:0!important; max-width:none!important;
-  justify-content:center!important; gap:10px!important;
-  padding:13px 16px!important; font-size:0.82rem!important;
-  border-radius:10px!important; margin:0!important;
-}
-/* Slider / stepper rows — full-width cards */
-body.mc-active #settingsScreen .diff-row,
-body.mc-active #settingsScreen .vol-row{
-  width:100%!important; max-width:none!important;
-  border-radius:10px!important; height:48px!important;
-}
-body.mc-active #settingsScreen .diff-btn{
-  width:48px!important; height:100%!important; font-size:1.3rem!important; flex-shrink:0;
-}
-body.mc-active #settingsScreen .vol-label,
-body.mc-active #settingsScreen .diff-label{ font-size:0.66rem!important; letter-spacing:0.12em!important; }
-body.mc-active #settingsScreen .vol-track{ height:5px!important; }
-body.mc-active #settingsScreen .vol-pct,
-body.mc-active #settingsScreen .diff-val{ font-size:0.78rem!important; }
-/* Descriptions + dividers compact */
-body.mc-active #settingsScreen .diff-desc{
-  font-size:0.6rem!important; padding:0 2px!important; text-align:left!important;
-  line-height:1.3!important; margin:-2px 0 2px 2px!important; align-self:flex-start!important;
-}
-body.mc-active #settingsScreen .diff-locked-note{ font-size:0.55rem!important; text-align:left!important; margin-left:2px!important; }
-body.mc-active #settingsScreen .settings-divider{ margin:4px 0!important; opacity:0.5; }
-body.mc-active #settingsScreen #diffSection{ width:100%!important; display:flex; flex-direction:column; gap:4px; }
-
-/* ---- PREP (loadout before a run) ---- */
-body.mc-active #prepScreen .prep-wrap{
-  width:100%!important; max-width:100%!important; max-height:none!important;
-  padding:0 0 24px!important; margin:0 auto!important;
-}
-body.mc-active #prepScreen .prep-title{ font-size:clamp(1.1rem,3.6vw,1.6rem)!important; }
-/* Prep loadout — keep portrait + stats side by side, scaled to fit landscape phone */
-body.mc-active #prepScreen .prep-stats-layout{ flex-direction:row!important; gap:6px!important; padding:6px 0 4px!important; }
-body.mc-active #prepScreen .prep-portrait-col{ width:clamp(120px,22vw,200px)!important; padding:4px 10px!important; }
-body.mc-active #prepScreen .stat-rows-wrap{ padding:0 8px!important; gap:5px!important; }
-body.mc-active #prepScreen .stat-row{ padding:8px 10px!important; gap:8px!important; }
-body.mc-active #prepScreen .stat-name{ font-size:0.85rem!important; }
-body.mc-active #prepScreen .stat-desc{ font-size:0.62rem!important; }
-body.mc-active #prepScreen .stat-btn{ width:34px!important; height:34px!important; font-size:1.1rem!important; }
-body.mc-active #prepScreen .stat-val{ min-width:44px!important; font-size:0.95rem!important; }
-body.mc-active #prepScreen .prep-tabs{ padding:0 4px!important; }
-body.mc-active #prepScreen .prep-tab{ padding:8px 10px!important; font-size:0.72rem!important; min-width:64px!important; }
-body.mc-active #prepScreen .prep-actions{ padding:8px 12px 0!important; gap:6px!important; }
-body.mc-active #prepScreen .prep-confirm-btn{ padding:12px 16px!important; font-size:0.92rem!important; letter-spacing:0.2em!important; }
-
-/* ---- PAUSE ---- */
-body.mc-active #pauseScreen{ align-items:center!important; gap:8px!important; }
-body.mc-active #pauseScreen .pause-header h2{ font-size:clamp(1.4rem,5vw,2rem)!important; margin:0!important; }
-body.mc-active #pauseScreen .psub{ font-size:0.55rem!important; margin:2px 0 6px!important; }
-body.mc-active #pauseScreen .pause-nav,
-body.mc-active #pauseScreen .pause-util,
-body.mc-active #pauseScreen .pause-nav-bottom{ width:min(86vw,360px)!important; }
-
-/* ---- DEAD ---- */
-body.mc-active #dead{ align-items:center!important; gap:10px!important; }
-body.mc-active #dead h1{ font-size:clamp(1.5rem,5.5vw,2.2rem)!important; }
-body.mc-active #dead .dead-nav{ width:min(86vw,360px)!important; }
-
-/* ---- STAGE COMPLETE ---- */
-body.mc-active #stageCompleteScreen{ align-items:center!important; gap:8px!important; }
-body.mc-active #stageCompleteScreen h1{ font-size:clamp(1.4rem,5vw,2rem)!important; }
-body.mc-active #stageCompleteScreen .sc-nav{ width:min(86vw,360px)!important; }
-
-/* Pause / Dead / Stage-complete buttons: clean full-width tiles (drop skew bar) */
-body.mc-active #pauseScreen .mnb,
-body.mc-active #dead .mnb,
-body.mc-active #stageCompleteScreen .mnb{ width:100%!important; max-width:none!important; min-width:0!important; margin:3px 0!important; }
-body.mc-active #pauseScreen .mnb-bar,
-body.mc-active #dead .mnb-bar,
-body.mc-active #stageCompleteScreen .mnb-bar{ display:none!important; }
-body.mc-active #pauseScreen .mnb-bg,
-body.mc-active #dead .mnb-bg,
-body.mc-active #stageCompleteScreen .mnb-bg{
-  transform:none!important; inset:0!important; border-radius:10px!important;
-  border:1px solid rgba(200,160,80,0.28)!important;
-  background:linear-gradient(150deg,rgba(40,26,10,0.9),rgba(16,10,4,0.85))!important;
-}
-body.mc-active #pauseScreen .mnb-danger .mnb-bg,
-body.mc-active #dead .mnb-danger .mnb-bg{ border-left:3px solid rgba(210,80,80,0.6)!important; }
-body.mc-active #pauseScreen .mnb-inner,
-body.mc-active #dead .mnb-inner,
-body.mc-active #stageCompleteScreen .mnb-inner{
-  min-width:0!important; width:100%!important; justify-content:center!important;
-  padding:13px!important; font-size:clamp(0.82rem,2.4vw,1.05rem)!important;
-  color:rgba(225,195,130,0.92)!important;
-}
-
 .mnb:hover .mnb-icon,.mnb.gamepad-focused .mnb-icon,.mnb:focus-visible .mnb-icon{opacity:1;transform:scale(1.14);}
 
 /* ── HOVER PULSE ── Weak breathing brightness on the active button's
@@ -1257,11 +922,16 @@ body:not(.mc-active) .combo-hud{top:148px;}
   pointer-events:none;z-index:10;
 }
 #cdBar.visible{display:flex;}
-/* hide gpHints on mobile */
+/* hide gpHints on mobile — cooldown bar still shown, repositioned */
 body.mc-active #gpHints{display:none!important;}
-/* On mobile the cooldown info bar is replaced by cooldown rings drawn ON the
-   touch buttons themselves — hide the separate HUD bar entirely. */
-body.mc-active #cdBar{ display:none!important; }
+/* Mobile cdBar — same column layout, right side, below combo meter */
+body.mc-active #cdBar{
+  top:172px;bottom:auto;right:24px;
+}
+body.mc-active #cdBar .cdi-key,
+body.mc-active #cdBar .cdi-btn{display:none!important;}
+/* Shift down when boss bar is visible */
+body.mc-active.boss-fighting #cdBar{top:206px;}
 /* ── Input-mode visibility rules ── */
 /* gpHints bar only renders when a gamepad is connected */
 body:not(.gp-active) #gpHints{display:none!important;}
@@ -1493,8 +1163,8 @@ body.boss-fighting.boss-has-status .combo-hud{top:154px;}
 body.boss-fighting.boss-has-status:not(.mc-active) .combo-hud{top:238px;}
 
 /* ── PAUSE ── */
-#pauseBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(env(safe-area-inset-right,0px) + 10px);left:auto;transform:none;z-index:15;pointer-events:all;
-  width:38px;height:38px;border-radius:8px;border:1px solid rgba(200,160,80,0.25);
+#pauseBtn{position:fixed;top:8px;left:10px;right:auto;transform:none;z-index:15;pointer-events:all;
+  width:32px;height:32px;border-radius:6px;border:1px solid rgba(200,160,80,0.25);
   background:rgba(8,6,3,0.55);backdrop-filter:blur(4px);
   color:rgba(200,160,80,0.6);font-size:0.9rem;cursor:pointer;display:none;
   align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
@@ -3546,6 +3216,12 @@ body:has(#settingsScreen:not(.hidden)) #cineLetterBot{display:none;}
         <div class="diff-locked-note">Only changeable from the main menu</div>
       </div>
       <div class="settings-divider"></div>
+      <div class="settings-section-lbl">Mobile Controls</div>
+      <button class="menu-btn settings-fs-btn" id="mobileCtrlBtn" onclick="toggleMobileControls()">
+        <span>📱</span><span id="mobileCtrlLabel">MOBILE CONTROLS: OFF</span>
+      </button>
+      <div class="diff-desc">Touch HUD for phones in landscape</div>
+      <div class="settings-divider"></div>
       <div class="settings-section-lbl">Controller Layout</div>
       <button class="menu-btn settings-fs-btn" onclick="toggleControllerLayout()">
         <span>🎮</span><span id="ctrlLayoutLabel">CONTROLLER: XBOX</span>
@@ -3988,41 +3664,22 @@ function scaleViewport(){
   const ww=window.innerWidth, wh=window.innerHeight;
   const isMobile=!!save.mobileControls;
   if(isMobile){
-    const dw = window.visualViewport ? window.visualViewport.width  : ww;
-    const dh = window.visualViewport ? window.visualViewport.height : wh;
-    if(dw > dh){
-      // Landscape: letterbox to 16:9 so the game isn't stretched horizontally
-      const vpW = Math.min(dw, Math.round(dh*16/9));
-      const vpH = Math.min(dh, Math.round(dw*9/16));
-      vp.style.width  = vpW+'px';
-      vp.style.height = vpH+'px';
-      vp.style.top    = Math.round((dh-vpH)/2)+'px';
-      vp.style.left   = Math.round((dw-vpW)/2)+'px';
-    } else {
-      // Portrait: fill the screen (rotate prompt will ask user to turn landscape)
-      vp.style.width  = dw+'px';
-      vp.style.height = dh+'px';
-      vp.style.top    = '0';
-      vp.style.left   = '0';
-    }
-    vp.style.transform='translate(0,0)';
+    // Mobile: fill entire screen, no letterbox
+    vp.style.width =ww+'px';
+    vp.style.height=wh+'px';
+    vp.style.top   ='0';
+    vp.style.left  ='0';
+    vp.style.transform='translate(0,0)'; // keep transform so position:fixed children stay contained
   } else {
+    // Desktop: largest 16:9 rect that fits, centred — black bars handled by body background:#000
     const vpW=Math.min(ww, Math.round(wh*16/9));
     const vpH=Math.min(wh, Math.round(ww*9/16));
     vp.style.width =vpW+'px';
     vp.style.height=vpH+'px';
     vp.style.top   =Math.round((wh-vpH)/2)+'px';
     vp.style.left  =Math.round((ww-vpW)/2)+'px';
-    vp.style.transform='translate(0,0)';
+    vp.style.transform='translate(0,0)'; // identity transform — creates containing block for fixed children
   }
-}
-function _lockOrientation(){
-  try {
-    if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
-    else if(screen.lockOrientation) screen.lockOrientation('landscape');
-    else if(screen.mozLockOrientation) screen.mozLockOrientation('landscape');
-    else if(screen.msLockOrientation) screen.msLockOrientation('landscape');
-  } catch(e){}
 }
 window.addEventListener('resize',scaleViewport);
 let _settingsFrom = 'menu'; // 'menu' | 'pause'
@@ -4146,21 +3803,6 @@ function calcStRegen(){ return 0.40 + save.stats.agi*0.07; }
 function calcMaxMp(){ return 45 + (save.stats.int||1)*18; }
 function calcMpRegen(){ return 0.10 + (save.stats.int||1)*0.012; }
 
-// Definitive mobile detection — survives "Desktop site" mode via pointer/hover
-// media queries (hardware signals can't be spoofed like the userAgent can).
-function _isMobileDevice(){
-  const ua = navigator.userAgent || navigator.vendor || '';
-  const uaMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(ua);
-  const iPadOS = navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1;
-  let coarse = false, noHover = false;
-  try {
-    coarse  = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
-  } catch(e){}
-  const touchPts = (navigator.maxTouchPoints || navigator.msMaxTouchPoints || 0) > 0;
-  return !!(uaMobile || iPadOS || (coarse && noHover) || (('ontouchstart' in window) && coarse));
-}
-
 async function loadSave(){
   try {
     const s=await dbGet('save');
@@ -4170,9 +3812,6 @@ async function loadSave(){
     equipSpell(save.spell||'fireball');
     equipAccessory(save.accessories||[]);
   } catch(e){ console.warn('loadSave failed, using defaults:',e); save={...DEFAULT_SAVE}; }
-  // Device type decides mobile controls — NOT a user setting. Forced every load.
-  // Mobile → touch controls ON. Desktop → OFF (mouse/keyboard + controller only).
-  save.mobileControls = _isMobileDevice();
   _smoothRender = !!save.smoothRender;
   _syncSmoothRenderBtn();
   _updateControllerLayout();
@@ -6263,7 +5902,7 @@ function _tickPixiSword(){
   // Strike: translates the ATK frame forward/up along an eased path, NO rotation.
   // Thrust/lunge-thrust: canvas has no separate trail pass — skip.
   const trailRes = _getOrBuildSwordTextures(tImg);
-  const showTrail = (motion === 'arc' || motion === 'strike' || motion === 'uppercut' || motion === 'slam') && !!trailRes;
+  const showTrail = (motion === 'arc' || motion === 'strike' || motion === 'uppercut' || motion === 'slam' || motion === 'horiz-slash') && !!trailRes;
   if(showTrail){
     const isSingleSquare = (tImg.naturalWidth === tImg.naturalHeight);
     const pivX = pHitX() + PW/2 + facing * stepData.pivotX;
@@ -6298,6 +5937,30 @@ function _tickPixiSword(){
           alpha = 0.35;
         }
         rotation = 0;
+      }
+    } else if(motion === 'horiz-slash'){
+      // Horizontal slash trail — show only during the actual slash window (0.22-0.82)
+      const WINDUP = 0.22, SLASH_END = 0.82;
+      if(t < WINDUP || t > SLASH_END + 0.08){
+        _pixiSwordTrailSprite.visible = false;
+      } else {
+        // Trail hangs horizontal — rotated 90deg (pointing along facing direction)
+        const trailAngle = (Math.PI / 2);
+        if(isSingleSquare){
+          tex = trailRes.singleRaw;
+          anchorX = _WM.trail.anchorX;
+          anchorY = _WM.trail.anchorY;
+          renderH = (stepData.displayH || stepData.swingH) * 1.1;
+          alpha = 0.8;
+        } else {
+          const idx = Math.min(swingAnim.trailFrame || 0, 7);
+          tex = trailRes.trail?.[idx % SWORD_TRAIL_FRAMES.length];
+          anchorX = 0.35;
+          anchorY = 0.5;
+          renderH = 120;
+          alpha = 0.9;
+        }
+        rotation = trailAngle * facing;
       }
     } else {
       // arc
@@ -6367,6 +6030,9 @@ function _tickPixiSword(){
           baseRot = Math.PI/2 + _dRotRad;
         } else if(motion === 'strike'){
           baseRot = _dRotRad;
+        } else if(motion === 'horiz-slash'){
+          // Weapon stays horizontal — fixed 90deg rotation throughout the sweep
+          baseRot = Math.PI/2 + _dRotRad;
         } else {
           // arc
           baseRot = swordAngle(t, step) + Math.PI/2 + _dRotRad;
@@ -11496,7 +11162,7 @@ const _pixiMobileCtlLabelPool = [];
 const _pixiMobileCtlBadgePool = [];
 function _initPixiMobileControls(){
   _pixiMobileCtlContainer = new PIXI.Container();
-  _pixiLayers.overlay.addChild(_pixiMobileCtlContainer);
+  _pixiLayers.ui.addChild(_pixiMobileCtlContainer);
   // Graphics for circles + badge backgrounds (cleared per tick)
   _pixiMobileCtlGfx = new PIXI.Graphics();
   _pixiMobileCtlContainer.addChild(_pixiMobileCtlGfx);
@@ -11589,32 +11255,6 @@ function _tickPixiMobileControls(){
     g.circle(b.x, b.y, b.r)
      .fill({ color: fillCol, alpha: fillAlpha })
      .stroke({ width: p ? 2.5 : 1.5, color: strokeCol, alpha: strokeAlpha });
-    // ── COOLDOWN RING (mobile replacement for the cdBar) ──
-    // Map each action button to its cooldown timer + max. While on cooldown we
-    // dim the button and draw a depleting arc around it.
-    let _cd = 0, _cdMax = 0;
-    if(typeof player !== 'undefined' && player){
-      if(b.id === 'sp')          { _cd = player.spCD||0;     _cdMax = 80;  }
-      else if(b.id === 'magic')  { _cd = player.mpCD||0;     _cdMax = (typeof activeSpell!=='undefined'&&activeSpell?activeSpell.cooldown:60)||60; }
-      else if(b.id === 'launch') { _cd = player.launchCD||0; _cdMax = (typeof LAUNCH_COOLDOWN!=='undefined'?LAUNCH_COOLDOWN:38); }
-      else if(b.id === 'evade')  { _cd = player.evadeCD||0;  _cdMax = (typeof EVADE_COOLDOWN!=='undefined'?EVADE_COOLDOWN:32); }
-      else if(b.id === 'grapple'){ _cd = (typeof grappleCooldown!=='undefined'?grappleCooldown:0); _cdMax = (typeof GRAPPLE_COOLDOWN_MAX!=='undefined'?GRAPPLE_COOLDOWN_MAX:55); }
-    }
-    if(_cd > 0 && _cdMax > 0){
-      const frac = Math.max(0, Math.min(1, _cd / _cdMax));
-      // Dim overlay
-      g.circle(b.x, b.y, b.r).fill({ color: 0x000000, alpha: 0.45 });
-      // Depleting arc — starts full, shrinks as cooldown elapses. Drawn from
-      // top (-90°) clockwise spanning the remaining fraction.
-      const a0 = -Math.PI/2;
-      const a1 = a0 + Math.PI*2*frac;
-      g.moveTo(b.x, b.y)
-       .arc(b.x, b.y, b.r - 1, a0, a1)
-       .lineTo(b.x, b.y)
-       .fill({ color: 0x1a1410, alpha: 0.55 });
-      g.circle(b.x, b.y, b.r)
-       .stroke({ width: 2, color: 0xffce5a, alpha: 0.8 });
-    }
     // Label
     const lbl = _pixiMobileCtlLabelPool[labelIdx++];
     if(lbl.text !== b.label) lbl.text = b.label;
@@ -17192,7 +16832,8 @@ const WEAPONS = {
     steps: [
     { motion:'arc', startAngle:-115, endAngle:120, easing:'out', pivotX:50, pivotY:0.18, swingH:104, frameIdx:0, duration:19, dmgMult:1, stamCost:18, hitMargin:8, sweepSteps:5, hitCD:20, knockback:[4,5,12], displayH:0, displayRot:0, dashDist:60, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
     { motion:'sweep', startAngle:-162, endAngle:12, easing:'out', pivotX:50, pivotY:0.18, swingH:102, frameIdx:1, duration:20, dmgMult:1.2, stamCost:20, hitMargin:9, sweepSteps:6, hitCD:20, knockback:[5,6,10], displayH:0, displayRot:0, dashDist:60, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
-    { motion:'dash-slash', startAngle:-115, endAngle:110, easing:'out', pivotX:50, pivotY:0.18, swingH:106, frameIdx:2, duration:20, dmgMult:2, dashDist:58, stamCost:28, hitMargin:9, sweepSteps:7, hitCD:18, knockback:[6,8,18], displayH:0, displayRot:0, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 }
+    { motion:'dash-slash', startAngle:-115, endAngle:110, easing:'out', pivotX:50, pivotY:0.18, swingH:106, frameIdx:2, duration:20, dmgMult:2, dashDist:58, stamCost:28, hitMargin:9, sweepSteps:7, hitCD:18, knockback:[6,8,18], displayH:0, displayRot:0, throwSpeed:10, throwRange:340, throwRiseVy:1.5, hitCount:1, launchPower:10, shockRadius:60, slamVx:8 },
+    { motion:'horiz-slash', startAngle:0, endAngle:0, easing:'out', pivotX:50, pivotY:0.28, swingH:108, frameIdx:0, duration:22, dmgMult:1.5, stamCost:22, hitMargin:10, sweepSteps:8, hitCD:18, knockback:[7,5,14], displayH:0, displayRot:0, dashDist:0, throwSpeed:0, throwRange:0, throwRiseVy:0, hitCount:1, launchPower:6, shockRadius:60, slamVx:0 }
     ],
     desc: 'Slash — low sweep — lunging dash finish. A complete three-hit set.',
     elemental: null,
@@ -19065,7 +18706,7 @@ let DRAK_ATK_COOLDOWN     = 82;   // cooldown after each attack
 // ══════════════════════════════════════════
 let keys={},btnS={l:false,r:false,sp:false,jump:false,magic:false,launch:false,evade:false,deflect:false,grapple:false};
 let jumpEdge=false, atkEdge=false, evadeEdge=false, deflectEdge=false, prevLaunchHeld=false, launchHoldFrames=0, prevSpHeld=false;
-let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkMouseHeld=false, _atkGpadHeld=false, _mcAtkHeld=false;
+let _holdAtkFrames=0, _airHoldAtkFrames=0, _atkKbdHeld=false, _atkMouseHeld=false, _atkGpadHeld=false;
 let _airDownSlashNeedsRehold=false; // blocks air-downslash until attack button is released after upward slash
 let _airDownSlashNeedsAtkRehold=false; // blocks upwardSlash from auto-firing when attack is still held on Headbreaker landing
 let jumpBuffer=0, coyoteFrames=0; // feel — jump buffer queues jump for 10 frames; coyote allows jump just after walking off edge
@@ -19280,7 +18921,6 @@ function showMenu(){
 function pauseGame(){
   if(gameOver||paused) return;
   paused=true;
-  _clearAllInput();
   writeSave();
   updateFsButton();
   _syncMobileBtn();
@@ -19430,45 +19070,6 @@ async function confirmReset(){
 //  GAME LOOP / RUN INIT
 // ══════════════════════════════════════════
 function startRun(){
-  // ── ASSET LOAD GATE ──
-  // On mobile/slow connections the stage background and hero sprite sheets may
-  // not be downloaded yet. Entering now shows a blank/black stage. Wait for the
-  // essential assets, showing a brief loading overlay, then start for real.
-  const _bgReady   = !(typeof _stageBgs !== 'undefined' && _stageBgs[currentStage]) || _stageBgs[currentStage]._loaded;
-  const _heroReady = (typeof heroLoaded === 'undefined' || heroLoaded) && (typeof heroLoaded2 === 'undefined' || heroLoaded2);
-  if(!_bgReady || !_heroReady){
-    _showLoadingOverlay();
-    let _waited = 0;
-    const _poll = setInterval(()=>{
-      _waited += 80;
-      const bgOk   = !(typeof _stageBgs !== 'undefined' && _stageBgs[currentStage]) || _stageBgs[currentStage]._loaded;
-      const heroOk = (typeof heroLoaded === 'undefined' || heroLoaded) && (typeof heroLoaded2 === 'undefined' || heroLoaded2);
-      // Proceed when ready, or give up waiting after 8s (start anyway).
-      if((bgOk && heroOk) || _waited > 8000){
-        clearInterval(_poll);
-        _hideLoadingOverlay();
-        _startRunNow();
-      }
-    }, 80);
-    return;
-  }
-  _startRunNow();
-}
-function _showLoadingOverlay(){
-  let el = document.getElementById('loadingOverlay');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'loadingOverlay';
-    el.innerHTML = '<div class="load-spin"></div><div class="load-txt">LOADING</div>';
-    document.body.appendChild(el);
-  }
-  el.style.display = 'flex';
-}
-function _hideLoadingOverlay(){
-  const el = document.getElementById('loadingOverlay');
-  if(el) el.style.display = 'none';
-}
-function _startRunNow(){
   _menuAmbStop();
   _menuMusicStop();
   _stopPortraitAnim();
@@ -20226,6 +19827,38 @@ function getBladeSegment(p, prog){
       hy: cy,
       tx: cx + p.facing * reach,
       ty: cy,
+    };
+  }
+
+  if(motion === 'horiz-slash'){
+    // True horizontal sweep: blade drags behind player then snaps across chest-height.
+    // Wind-up (0-0.25): hilt pulls back behind body, blade vertical.
+    // Slash (0.25-0.80): blade sweeps horizontally from behind to in-front, eased fast.
+    // Recovery (0.80-1.0): decelerate and settle.
+    const bLen    = s.swingH * 0.88;
+    const height  = PH * (s.pivotY || 0.30);          // vertical position = chest height
+    const behind  = -s.swingH * 0.55;                 // how far behind the body the hilt starts
+    const ahead   = s.swingH * 0.30;                  // how far past body the hilt ends
+    const WINDUP  = 0.22, SLASH_END = 0.82;
+    let hiltX, hiltY = pivY;
+    if(prog < WINDUP){
+      // windup — pull back
+      const wp = 1 - prog / WINDUP;
+      hiltX = pivX + p.facing * (behind * wp);
+    } else if(prog < SLASH_END){
+      // slash — fast horizontal sweep with ease-out
+      const sp = (prog - WINDUP) / (SLASH_END - WINDUP);
+      const ease = 1 - Math.pow(1 - sp, 3);
+      hiltX = pivX + p.facing * (behind * (1 - ease) + ahead * ease);
+    } else {
+      // recovery
+      hiltX = pivX + p.facing * ahead;
+    }
+    return {
+      hx: hiltX,
+      hy: hiltY,
+      tx: hiltX + p.facing * bLen,
+      ty: hiltY,
     };
   }
 
@@ -25620,7 +25253,7 @@ function _loopUpdate(){
   player._moveMag = _moveMag;
   const jump=keys['ArrowUp']||keys['w']||keys['W']||keys[' ']||btnS.jump;
   // Raw held state — true every frame the attack button is physically depressed.
-  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld||_mcAtkHeld;
+  const atkPhysHeld=keys['z']||keys['x']||keys['Z']||keys['X']||keys['Enter']||_atkMouseHeld||_atkGpadHeld;
   // Air Downward Slash: hold attack while airborne and not mid-attack animation.
   // _airDownSlashNeedsRehold blocks it if the button was continuously held from an upward slash —
   // player must release and re-press to confirm intent.
@@ -26491,8 +26124,16 @@ function _loopUpdate(){
       const prog = player.atkF / frames;
       const angle = swordAngle(prog, st);
       const {px, py} = comboPiv(st);
-      const tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
-      const tipY = py +                 Math.sin(angle) * SWORD_RANGE; // Y never mirrors with facing
+      let tipX, tipY;
+      if(_stMotion === 'horiz-slash'){
+        // Trail follows the blade segment directly for horizontal motion
+        const _hSeg = getBladeSegment(player, prog);
+        tipX = _hSeg.tx; tipY = _hSeg.ty;
+        px = _hSeg.hx;   py  = _hSeg.hy;
+      } else {
+        tipX = px + player.facing * Math.cos(angle) * SWORD_RANGE;
+        tipY = py +                 Math.sin(angle) * SWORD_RANGE;
+      }
       swordTrail.push({bx:px, by:py, tx:tipX, ty:tipY, age:0, step:st, sp:false, mo:_stMotion, el:activeWeapon?.elemental||null});
       if(swordTrail.length>32) swordTrail.shift();
     }
@@ -28743,12 +28384,13 @@ window.addEventListener('keydown',e=>{
   keys[e.key]=true;
   if(!e.repeat&&(e.key==='ArrowUp'||e.key==='w'||e.key==='W'||e.key===' ')) jumpEdge=true;
   if(!e.repeat&&['z','x','Z','X','Enter'].includes(e.key)) atkEdge=true;
+  if(['z','x','Z','X','Enter'].includes(e.key)) _atkKbdHeld=true;
   if(!e.repeat&&(e.key==='Shift'||e.key==='ShiftLeft'||e.key==='ShiftRight')) evadeEdge=true;
   if(!e.repeat&&(e.key==='g'||e.key==='G')) deflectEdge=true;
   if(!e.repeat&&(e.key==='t'||e.key==='T')) cycleLockedTarget();
   if(['ArrowLeft','ArrowRight','ArrowUp',' ','Shift'].includes(e.key))e.preventDefault();
 });
-window.addEventListener('keyup',e=>{keys[e.key]=false;});
+window.addEventListener('keyup',e=>{keys[e.key]=false;if(['z','x','Z','X','Enter'].includes(e.key)) _atkKbdHeld=false;});
 
 // ── MOUSE CONTROLS (desktop) ──────────────────────────────────────────────
 // Left click = normal attack, Right click = special attack
@@ -30123,7 +29765,7 @@ function _mcOn(id){
   if(id==='l'||id==='r') btnS.walkMag = undefined;
   if(id==='l')btnS.l=true;else if(id==='r')btnS.r=true;
   else if(id==='jump'){btnS.jump=true;jumpEdge=true;}
-  else if(id==='atk'){atkEdge=true;_mcAtkHeld=true;}else if(id==='magic')btnS.magic=true;
+  else if(id==='atk')atkEdge=true;else if(id==='magic')btnS.magic=true;
   else if(id==='evade')evadeEdge=true;
   else if(id==='deflect'){deflectEdge=true;btnS.deflect=true;}
   else if(id==='grapple')btnS.grapple=true;else if(id==='launch')btnS.launch=true;
@@ -30134,11 +29776,10 @@ function _mcOff(id){
   delete _mcPressed[id];
   if(id==='l')btnS.l=false;else if(id==='r')btnS.r=false;
   else if(id==='jump')btnS.jump=false;else if(id==='magic')btnS.magic=false;
-  else if(id==='atk')_mcAtkHeld=false;
   else if(id==='deflect')btnS.deflect=false;else if(id==='grapple')btnS.grapple=false;
   else if(id==='launch')btnS.launch=false;else if(id==='sp')btnS.sp=false;
 }
-function toggleMobileControls(){ /* removed — mobile mode is auto-detected per device */ }
+function toggleMobileControls(){save.mobileControls=!save.mobileControls;_syncMobileBtn();_applyHudScale();_syncHudSizeDisplays();scaleViewport();writeSave();}
 function _updateControllerLayout(){
   const ps=(save.controllerLayout||'xbox')==='ps';
   document.body.classList.toggle('ps-ctrl',ps);
@@ -30160,8 +29801,11 @@ function toggleControllerLayout(){
   writeSave();
 }
 function _syncMobileBtn(){
-  // Mobile-control settings UI was removed (mode is auto-detected). This now
-  // only refreshes the HUD size row that callers still expect to be synced.
+  const on=!!save.mobileControls;
+  const lbl=on?'MOBILE CONTROLS: ON':'MOBILE CONTROLS: OFF';
+  const l=document.getElementById('mobileCtrlLabel'); if(l) l.textContent=lbl;
+  const p=document.getElementById('pauseMobileCtrlLabel'); if(p) p.textContent=(on?'MOBILE: ON':'MOBILE: OFF');
+  // Refresh the unified pause HUD row value to match current mode
   _syncHudSizeDisplays();
 }
 function togglePhaseIndicator(){
@@ -30258,7 +29902,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('blur', _clearAllInput);
 
 function _clearAllInput(){
-  keys={}; _rmbHeld=false; _mcAtkHeld=false;
+  keys={}; _rmbHeld=false;
   btnS.l=btnS.r=btnS.jump=btnS.sp=btnS.magic=btnS.launch=btnS.evade=btnS.grapple=btnS.deflect=false;
   jumpEdge=false; atkEdge=false; evadeEdge=false; deflectEdge=false;
   // Clear any stuck mobile touch mappings
@@ -30298,31 +29942,12 @@ updateGamepad();
 //  BOOT
 // ══════════════════════════════════════════
 openDB().then(()=>{
-  loadSave().then(()=>{ scaleViewport();_applyHudScale();showMenu(); if(save.mobileControls)_lockOrientation(); }).catch(()=>{ scaleViewport();_applyHudScale();showMenu(); });
+  loadSave().then(()=>{ scaleViewport();_applyHudScale();showMenu(); }).catch(()=>{ scaleViewport();_applyHudScale();showMenu(); });
 }).catch(()=>{
   scaleViewport();_applyHudScale();showMenu();
 });
 initMobileControls();
-// Auto fullscreen + landscape on first user interaction (browsers require a
-// gesture). Binds to touchend/click in capture phase, retries until it sticks.
-let _immersiveDone=false;
-function _tryImmersive(){
-  if(_immersiveDone || !save || !save.mobileControls) return;
-  if(!isFullscreen()){
-    const el=document.documentElement;
-    const req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-    if(req){ try{ const p=req.call(el); if(p&&p.then) p.catch(()=>{}); }catch(e){} }
-  }
-  _lockOrientation();
-  // Mark done once fullscreen is active so we stop retrying
-  if(isFullscreen()){
-    _immersiveDone=true;
-    document.removeEventListener('touchend',_tryImmersive,true);
-    document.removeEventListener('click',_tryImmersive,true);
-  }
-}
-document.addEventListener('touchend',_tryImmersive,true);
-document.addEventListener('click',_tryImmersive,true);
+// Auto fullscreen DISABLED — user opted out. The fsBtn in Settings still works.
 // Sfx preload kept (fires once on first interaction to satisfy autoplay policies).
 document.addEventListener('touchstart',function _ft(){
   preloadAllSfx();
@@ -32196,6 +31821,5 @@ window.addEventListener('keydown',e=>{
 }
 </script>
 </div><!-- #viewport -->
-<div id="rotateOverlay"><div class="rot-ico">📱</div><div class="rot-txt">Rotate to landscape</div></div>
 </body>
 </html>
